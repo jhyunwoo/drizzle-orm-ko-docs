@@ -1,0 +1,23 @@
+---
+title: DrizzleORM v0.31.3 릴리스
+pubDate: 2024-07-08
+description: Prisma-Drizzle 확장
+---
+
+### 버그 수정
+
+- 🛠️ 서로 다른 스키마에 같은 이름의 테이블이 있을 때 RQB 동작을 수정했습니다
+- 🛠️ RDS Data API 사용 시 타입 힌트가 맞지 않던 [BUG]를 수정했습니다 - #2097
+
+### 새로운 Prisma-Drizzle 확장
+
+```ts
+import { PrismaClient } from '@prisma/client';
+import { drizzle } from 'drizzle-orm/prisma/pg';
+import { User } from './drizzle';
+
+const prisma = new PrismaClient().$extends(drizzle());
+const users = await prisma.$drizzle.select().from(User);
+```
+
+자세한 내용은 문서 `/docs/prisma`를 확인하세요.

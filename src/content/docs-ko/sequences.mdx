@@ -1,0 +1,57 @@
+import IsSupportedChipGroup from '@mdx-ko/IsSupportedChipGroup.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+
+# Sequences
+
+<IsSupportedChipGroup chips={{ 'PostgreSQL': true, 'SQLite': false, 'MySQL': false, 'SingleStore': false, 'MSSQL': false, 'CockroachDB': true }} />
+
+PostgreSQL과 CockroachDB의 sequence는 고유 식별자를 생성하기 위해 만들어지는 특수한 단일 행 테이블이며, 보통 자동 증가 기본 키 값을 생성할 때 사용됩니다. 여러 세션에 걸쳐 순차적인 고유 값을 thread-safe하게 생성할 수 있는 방법을 제공합니다.
+
+<Tabs items={['PostgreSQL', 'CockroachDB']}>
+<Tab>
+```ts
+import { pgSchema, pgSequence } from "drizzle-orm/pg-core";
+
+// No params specified
+export const customSequence = pgSequence("name");
+
+// Sequence with params
+export const customSequence = pgSequence("name", {
+      startWith: 100,
+      maxValue: 10000,
+      minValue: 100,
+      cycle: true,
+      cache: 10,
+      increment: 2
+});
+
+// Sequence in custom schema
+export const customSchema = pgSchema('custom_schema');
+export const customSequence = customSchema.sequence("name");
+```
+</Tab>
+<Tab>
+```ts
+import { cockroachSchema, cockroachSequence } from "drizzle-orm/cockroach-core";
+
+// No params specified
+export const customSequence = cockroachSequence("name");
+
+// Sequence with params
+export const customSequence = cockroachSequence("name", {
+      startWith: 100,
+      maxValue: 10000,
+      minValue: 100,
+      cycle: true,
+      cache: 10,
+      increment: 2
+});
+
+// Sequence in custom schema
+export const customSchema = cockroachSchema('custom_schema');
+export const customSequence = customSchema.sequence("name");
+```
+</Tab>
+</Tabs>

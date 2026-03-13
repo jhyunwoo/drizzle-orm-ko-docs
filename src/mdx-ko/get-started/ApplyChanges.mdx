@@ -1,0 +1,25 @@
+import Callout from '@mdx-ko/Callout.astro';
+
+`drizzle-kit push` 명령을 사용하면 데이터베이스에 변경 사항을 직접 적용할 수 있습니다. 이 방법은 로컬 개발 환경에서 새로운 스키마 설계나 수정 사항을 빠르게 테스트하기에 편리하며, 마이그레이션 파일을 관리하지 않고도 빠르게 반복 작업을 진행할 수 있습니다:
+
+```bash copy
+npx drizzle-kit push
+```
+
+push 명령에 대한 자세한 내용은 [documentation](/docs/drizzle-kit-push)에서 확인하세요.
+
+<Callout type='info' title='Tips' emoji='💡'>
+또는 `drizzle-kit generate` 명령으로 마이그레이션을 생성한 다음, `drizzle-kit migrate` 명령으로 이를 적용할 수도 있습니다:
+
+마이그레이션 생성:
+```bash copy
+npx drizzle-kit generate
+```
+
+마이그레이션 적용:
+```bash copy
+npx drizzle-kit migrate
+```
+
+마이그레이션 과정에 대한 자세한 내용은 [documentation](/docs/kit-overview)에서 확인하세요.
+</Callout>

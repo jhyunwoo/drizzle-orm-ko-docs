@@ -1,0 +1,23 @@
+`src/db` 디렉터리에 `index.ts` 파일을 생성하고 연결을 초기화합니다.
+```typescript copy
+import { drizzle } from "drizzle-orm/planetscale-serverless";
+
+const db = drizzle({ connection: {
+  host: process.env.DATABASE_HOST!,
+  username: process.env.DATABASE_USERNAME!,
+  password: process.env.DATABASE_PASSWORD!,
+}});
+```
+기존 드라이버를 제공해야 하는 경우
+```typescript copy"
+import { drizzle } from "drizzle-orm/planetscale-serverless";
+import { Client } from "@planetscale/database";
+
+const client = new Client({
+  host: process.env.DATABASE_HOST!,
+  username: process.env.DATABASE_USERNAME!,
+  password: process.env.DATABASE_PASSWORD!,
+});
+
+const db = drizzle({ client: client });
+```

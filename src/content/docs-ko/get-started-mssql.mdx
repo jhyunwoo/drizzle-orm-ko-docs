@@ -1,0 +1,82 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextMSSQL from "@mdx-ko/WhatsNextMSSQL.astro";
+
+# Drizzle \<\> MSSQL
+
+<Callout type='error'>
+이 페이지는 drizzle `1.0.0-beta.2` 이상 버전에서 사용할 수 있는 개념을 설명합니다.
+</Callout>
+
+<br/>
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본 사항](/docs/connect-overview)
+- node-mssql [기본 사항](https://github.com/tediousjs/node-mssql)
+</Prerequisites>
+
+Drizzle는 `mssql` 드라이버를 사용하는 MSSQL 연결을 기본적으로 지원합니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm@beta mssql
+-D drizzle-kit@beta
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 작성
+<CodeTabs items={["mssql", "설정이 포함된 mssql"]}>
+```typescript copy
+// Make sure to install the 'mssql' package 
+import { drizzle } from 'drizzle-orm/node-mssql';
+
+const db = drizzle(process.env.DATABASE_URL);
+ 
+const result = await db.execute('select 1');
+```
+```typescript copy
+// Make sure to install the 'pg' package 
+import { drizzle } from 'drizzle-orm/node-mssql';
+
+// You can specify any property from the mssql connection options
+const db = drizzle({ 
+  connection: { 
+    connectionString: process.env.DATABASE_URL,
+    ssl: true
+  }
+});
+ 
+const result = await db.execute('select 1');
+```
+</CodeTabs>
+
+<Callout type='warning'>
+`node-mssql` 드라이버는 `Pool` 초기화 시 `await`를 요구하므로, 자체 Pool 인스턴스를 Drizzle에 제공하지 않는 한 각 요청 전에 이를 `await`해야 합니다. 이 경우 `db.$client`에 접근하려면 먼저 이를 `await`한 다음 사용해야 합니다.
+
+```ts
+const awaitedClient = await db.$client;
+const response = awaitedClient.query...
+```
+</Callout>
+
+기존 드라이버를 제공해야 하는 경우:
+
+```typescript copy
+// Make sure to install the 'mssql' package 
+import { drizzle } from "drizzle-orm/node-mssql";
+import type { ConnectionPool } from 'mssql';
+
+const pool = await mssql.connect(connectionString);
+const db = drizzle({ client: pool });
+ 
+const result = await db.execute('select 1');
+```
+
+#### 다음 단계는?
+
+<WhatsNextMSSQL/>

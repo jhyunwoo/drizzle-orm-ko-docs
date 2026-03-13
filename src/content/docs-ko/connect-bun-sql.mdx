@@ -1,0 +1,49 @@
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+# Drizzle \<\> Bun SQL
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- Bun - [웹사이트](https://bun.sh/docs)
+- Bun SQL - PostgreSQL 데이터베이스 작업을 위한 네이티브 바인딩 - [여기서 읽기](https://bun.sh/docs/api/sql)
+</Prerequisites>
+
+**[공식 웹사이트](https://bun.sh/)**에 따르면, Bun은 빠른 올인원 JavaScript 런타임입니다. 
+
+Drizzle ORM은 **[`bun sql`](https://bun.sh/docs/api/sql)** 모듈을 네이티브하게 지원하며, 엄청나게 빠릅니다 🚀  
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/bun-sql';
+
+const db = drizzle(process.env.DATABASE_URL);
+
+const result = await db.select().from(...);
+```
+
+기존 드라이버를 직접 제공해야 하는 경우:
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/bun-sql';
+import { SQL } from 'bun';
+
+const client = new SQL(process.env.DATABASE_URL!);
+const db = drizzle({ client });
+```
+
+#### 다음 단계는?
+
+<WhatsNextPostgres/>

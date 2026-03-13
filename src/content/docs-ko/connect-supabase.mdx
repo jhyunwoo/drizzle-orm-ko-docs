@@ -1,0 +1,66 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> Supabase
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- Drizzle PostgreSQL 드라이버 - [docs](/docs/get-started-postgresql)
+</Prerequisites>
+
+**[공식 웹사이트](https://supabase.com/docs)**에 따르면, Supabase는 최소한의 설정으로 안전하고 성능 좋은 Postgres 백엔드를 구축할 수 있도록 해주는 오픈소스 Firebase 대안입니다.
+
+공식 **[Supabase + Drizzle](https://supabase.com/docs/guides/database/connecting-to-postgres#connecting-with-drizzle)** 문서를 확인해 보세요.
+
+#### 1단계 - 패키지 설치
+
+<Npm>
+drizzle-orm postgres
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+
+```typescript copy filename="index.ts"
+import { drizzle } from 'drizzle-orm/postgres-js'
+
+const db = drizzle(process.env.DATABASE_URL);
+
+const allUsers = await db.select().from(...);
+```
+
+기존 드라이버를 직접 제공해야 하는 경우:
+```typescript copy filename="index.ts"
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+
+const client = postgres(process.env.DATABASE_URL)
+const db = drizzle({ client });
+
+const allUsers = await db.select().from(...);
+```
+
+Supabase의 connection pooling을 사용하기로 했다면([여기](https://supabase.com/docs/guides/database/connecting-to-postgres#connection-pooler) 설명), "Transaction" pool mode가 활성화된 경우 prepared statements가 지원되지 않으므로 prepare를 꺼야 합니다.
+
+```typescript copy filename="index.ts"
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+
+// Disable prefetch as it is not supported for "Transaction" pool mode
+const client = postgres(process.env.DATABASE_URL, { prepare: false })
+const db = drizzle({ client });
+
+const allUsers = await db.select().from(...);
+```
+
+**serverless 환경**에서는 Connection Pooler를 사용하고, **장시간 실행되는 서버**에서는 Direct Connection을 사용해 데이터베이스에 연결하세요.
+
+#### 다음 단계
+
+<WhatsNextPostgres/>

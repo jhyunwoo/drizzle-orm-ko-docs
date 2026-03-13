@@ -1,0 +1,186 @@
+---
+title: 행 개수 세기
+slug: count-rows
+---
+import Section from "@mdx-ko/Section.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import IsSupportedChipGroup from "@mdx-ko/IsSupportedChipGroup.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Callout from '@mdx-ko/Callout.astro';
+
+<IsSupportedChipGroup chips={{PostgreSQL: true, MySQL: true, SQLite: true}}/>
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql), [SQLite](/docs/get-started-sqlite) 시작하기
+- [Select statement](/docs/select)
+- [Filters](/docs/operators)와 [sql operator](/docs/sql)
+- [Aggregations](/docs/select#aggregations)와 [Aggregation helpers](/docs/select#aggregations-helpers)
+- [Joins](/docs/joins)
+</Prerequisites>
+
+테이블의 모든 행 수를 세려면 아래처럼 `count()` 함수나 `sql` operator를 사용할 수 있습니다:
+
+<CodeTabs items={["index.ts", "schema.ts"]}>
+  <CodeTab>
+    ```ts copy {6,9}
+    import { count, sql } from 'drizzle-orm';
+    import { products } from './schema';
+
+    const db = drizzle(...);
+
+    await db.select({ count: count() }).from(products);
+
+    // Under the hood, the count() function casts its result to a number at runtime.
+    await db.select({ count: sql`count(*)`.mapWith(Number) }).from(products);
+    ```
+
+    ```ts
+    // result type
+    type Result = {
+      count: number;
+    }[];
+    ```
+
+    ```sql
+    select count(*) from products;
+    ```
+  </CodeTab>
+  ```ts
+  import { integer, pgTable, serial, text } from 'drizzle-orm/pg-core';
+
+  export const products = pgTable('products', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    discount: integer('discount'),
+    price: integer('price').notNull(),
+  });
+  ```
+</CodeTabs>
+
+지정한 컬럼에 non-NULL 값이 들어 있는 행 수를 세려면, 컬럼을 인자로 넣어 `count()` 함수를 사용할 수 있습니다:
+
+<Section>
+```ts copy {1}
+await db.select({ count: count(products.discount) }).from(products);
+```
+
+```ts
+// result type
+type Result = {
+  count: number;
+}[];
+```
+
+```sql
+select count("discount") from products;
+```
+</Section>
+
+Drizzle은 단순하고 유연한 API를 제공하므로, 커스텀 해법도 쉽게 만들 수 있습니다. PostgreSQL과 MySQL에서는 `count()` 함수가 bigint를 반환하며, 드라이버는 이를 string으로 해석하므로 integer로 cast해야 합니다:
+
+<Section>
+```ts copy {5,7,11,12}
+import { AnyColumn, sql } from 'drizzle-orm';
+
+const customCount = (column?: AnyColumn) => {
+  if (column) {
+    return sql<number>`cast(count(${column}) as integer)`; // In MySQL cast to unsigned integer
+  } else {
+    return sql<number>`cast(count(*) as integer)`; // In MySQL cast to unsigned integer
+  }
+};
+
+await db.select({ count: customCount() }).from(products);
+await db.select({ count: customCount(products.discount) }).from(products);
+```
+
+```sql
+select cast(count(*) as integer) from products;
+select cast(count("discount") as integer) from products;
+```
+</Section>
+
+SQLite에서는 `count()` 결과가 integer로 반환됩니다.
+
+<Section>
+```ts copy {3,4}
+import { sql } from 'drizzle-orm';
+
+await db.select({ count: sql<number>`count(*)` }).from(products);
+await db.select({ count: sql<number>`count(${products.discount})` }).from(products);
+```
+
+```sql
+select count(*) from products;
+select count("discount") from products;
+```
+</Section>
+
+<Callout type="warning">
+`sql<number>`를 지정하면, 해당 필드의 **예상** 타입이 `number`라고 Drizzle에 알려 주는 것입니다.<br />
+이를 잘못 지정하면(예: 실제로는 number로 반환되는 필드에 `sql<string>`을 사용하는 경우), 런타임 값은 예상 타입과 맞지 않게 됩니다.
+제공한 type generic 정보는 런타임에서 사용할 수 없기 때문에, Drizzle은 이를 기반으로 어떤 type cast도 수행할 수 없습니다.
+
+반환된 값에 런타임 변환을 적용해야 한다면 [`.mapWith()`](/docs/sql#sqlmapwith) 메서드를 사용할 수 있습니다.
+</Callout>
+
+조건에 맞는 행 수를 세려면 `.where()` 메서드를 사용할 수 있습니다:
+
+<Section>
+```ts copy {4,6}
+import { count, gt } from 'drizzle-orm';
+
+await db
+  .select({ count: count() })
+  .from(products)
+  .where(gt(products.price, 100));
+```
+
+```sql
+select count(*) from products where price > 100
+```
+</Section>
+
+아래는 `count()` 함수를 join과 aggregation과 함께 사용하는 방법입니다:
+
+<CodeTabs items={["index.ts", "schema.ts"]}>
+	<CodeTab>
+    ```ts copy {8,11,12,13}
+    import { count, eq } from 'drizzle-orm';
+    import { countries, cities } from './schema';
+
+    // Count cities in each country
+    await db
+      .select({
+        country: countries.name,
+        citiesCount: count(cities.id),
+      })
+      .from(countries)
+      .leftJoin(cities, eq(countries.id, cities.countryId))
+      .groupBy(countries.id)
+      .orderBy(countries.name);
+    ```
+
+    ```sql
+    select countries.name, count("cities"."id") from countries
+      left join cities on countries.id = cities.country_id
+      group by countries.id
+      order by countries.name;
+    ```
+  </CodeTab>
+  ```ts
+  import { integer, pgTable, serial, text } from 'drizzle-orm/pg-core';
+
+  export const countries = pgTable('countries', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+  });
+
+  export const cities = pgTable('cities', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    countryId: integer('country_id').notNull().references(() => countries.id),
+  });
+  ```
+</CodeTabs>

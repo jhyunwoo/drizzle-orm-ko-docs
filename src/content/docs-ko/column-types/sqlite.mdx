@@ -1,0 +1,349 @@
+---
+title: SQLite 열 타입
+---
+
+import Section from '@mdx-ko/Section.astro';
+import Callout from '@mdx-ko/Callout.astro';
+
+공식 **[SQLite docs](https://www.sqlite.org/datatype3.html)**에 따르면,
+SQLite 데이터베이스에 저장되거나(또는 데이터베이스 엔진에 의해 처리되는) 각 값은
+다음 저장 클래스 중 하나를 가집니다: `NULL`, `INTEGER`, `REAL`, `TEXT`, `BLOB`.
+
+Drizzle은 이 모든 타입을 네이티브하게 지원합니다. 그래도 충분하지 않다면 **[custom types](/docs/custom-types)**를 자유롭게 만들어 사용할 수 있습니다.
+
+<Callout title='important' type='warning'>
+이 문서 섹션의 모든 예제는 데이터베이스 컬럼 이름 alias를 사용하지 않으며, 컬럼 이름은 TypeScript 키로부터 생성됩니다.
+
+원한다면 컬럼 이름에 데이터베이스 alias를 사용할 수 있고, `casing` 매개변수를 사용해 Drizzle의 매핑 전략을 정의할 수도 있습니다.
+
+자세한 내용은 [here](/docs/sql-schema-declaration#shape-your-data-schema)에서 확인할 수 있습니다.
+</Callout>
+
+### Integer
+
+값의 크기에 따라 `0`, `1`, `2`, `3`, `4`, `6`, 또는 `8`바이트에 저장되는 부호 있는 정수입니다.
+
+<Section>
+```typescript
+import { integer, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const table = sqliteTable('table', {
+	id: integer()
+});
+
+// you can customize integer mode to be number, boolean, timestamp, timestamp_ms
+integer({ mode: 'number' })
+integer({ mode: 'boolean' })
+integer({ mode: 'timestamp_ms' })
+integer({ mode: 'timestamp' }) // Date
+
+```
+
+```sql
+CREATE TABLE `table` (
+	`id` integer
+);
+```
+
+</Section>
+
+<Section>
+```typescript
+// to make integer primary key auto increment
+integer({ mode: 'number' }).primaryKey({ autoIncrement: true })
+```
+```sql
+CREATE TABLE `table` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL
+);
+```
+</Section>
+
+### Real
+
+`8-byte IEEE` 부동소수점 수로 저장되는 부동소수점 값입니다.
+
+<Section>
+```typescript
+import { real, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const table = sqliteTable('table', {
+	real: real()
+});
+
+```
+
+```sql
+CREATE TABLE `table` (
+	`real` real
+);
+```
+
+</Section>
+
+### Text
+
+데이터베이스 인코딩(`UTF-8`, `UTF-16BE`, `UTF-16LE`)을 사용해 저장되는 문자열입니다.
+
+<Callout type="info" emoji="ℹ️">
+	`{ enum: ["value1", "value2"] }` 설정을 정의해 `insert`와 `select` 타입을 추론할 수 있지만, 런타임 값을 검사하지는 않습니다.
+</Callout>
+
+<Section>
+```typescript
+import { text, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const table = sqliteTable('table', {
+	text: text()
+});
+
+// will be inferred as text: "value1" | "value2" | null
+text({ enum: ["value1", "value2"] })
+text({ mode: 'json' })
+text({ mode: 'json' }).$type<{ foo: string }>()
+```
+
+```sql
+CREATE TABLE `table` (
+	`text` text
+);
+```
+
+</Section>
+
+### Blob
+
+입력된 그대로 저장되는 blob 데이터입니다.
+
+<Callout type="info" emoji="ℹ️">
+	JSON 함수를 지원하므로 `blob('', { mode: 'json' })` 대신 `text('', { mode: 'json' })`를 사용하는 것을 권장합니다:
+
+	현재 JSON 함수는 인수 중 하나라도 BLOB이면 모두 오류를 발생시킵니다. BLOB은 향후 JSON의 바이너리 인코딩을 저장하는 확장을 위해 예약되어 있기 때문입니다.
+
+	자세한 내용은 **https://www.sqlite.org/json1.html**을 참고하세요.
+</Callout>
+
+<Section>
+```typescript
+import { blob, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const table = sqliteTable('table', {
+	blob: blob()
+});
+
+blob()
+blob({ mode: 'buffer' })
+blob({ mode: 'bigint' })
+
+blob({ mode: 'json' })
+blob({ mode: 'json' }).$type<{ foo: string }>()
+
+```
+
+```sql
+CREATE TABLE `table` (
+	`blob` blob
+);
+```
+
+blob 추론을 위해 `.$type<..>()`를 지정할 수 있지만, 런타임 값을 검사하지는 않습니다.
+이는 기본값, insert, select 스키마에 대해 컴파일 타임 보호를 제공합니다.
+
+```typescript
+// will be inferred as { foo: string }
+json: blob({ mode: 'json' }).$type<{ foo: string }>();
+
+// will be inferred as string[]
+json: blob({ mode: 'json' }).$type<string[]>();
+
+// won't compile
+json: blob({ mode: 'json' }).$type<string[]>().default({});
+```
+
+</Section>
+
+### Boolean
+
+SQLite에는 네이티브 `boolean` 데이터 타입이 없지만, `integer` 컬럼을 `boolean` 모드로 지정할 수 있습니다.
+이를 통해 코드에서는 boolean 값으로 다룰 수 있고, Drizzle은 이를 데이터베이스에 0과 1 정수 값으로 저장합니다.
+
+<Section>
+```typescript
+import { integer, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const table = sqliteTable('table', {
+	id: integer({ mode: 'boolean' })
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`id` integer
+);
+```
+
+</Section>
+
+### Bigint
+
+SQLite에는 `bigint` 데이터 타입이 없기 때문에, Drizzle은 `blob` 컬럼을 위한 특별한 `bigint` 모드를 제공합니다.
+이 모드를 사용하면 코드에서는 BigInt 인스턴스를 다룰 수 있고, Drizzle은 이를 데이터베이스에 blob 값으로 저장합니다.
+
+<Section>
+```typescript
+import { blob, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const table = sqliteTable('table', {
+	id: blob({ mode: 'bigint' })
+});
+
+```
+
+```sql
+CREATE TABLE `table` (
+	`id` blob
+);
+```
+</Section>
+
+### Numeric
+
+<Section>
+```typescript
+import { blob, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const table = sqliteTable('table', {
+	numeric: numeric(),
+	numericNum: numeric({ mode: 'number' }),
+	numericBig: numeric({ mode: 'bigint' }),
+});
+
+```
+
+```sql
+CREATE TABLE `table` (
+	`numeric` numeric,
+	`numericNum` numeric,
+	`numericBig` numeric
+);
+```
+</Section>
+
+## ---
+
+### 데이터 타입 커스터마이징
+모든 column builder에는 컬럼의 데이터 타입을 커스터마이즈할 수 있는 `.$type()` 메서드가 있습니다. 예를 들어 unknown 타입이나 branded 타입과 함께 사용할 때 유용합니다.
+```ts
+type UserId = number & { __brand: 'user_id' };
+type Data = {
+	foo: string;
+	bar: number;
+};
+
+const users = sqliteTable('users', {
+  id: integer().$type<UserId>().primaryKey(),
+  jsonField: blob().$type<Data>(),
+});
+```
+
+### Not null
+`NOT NULL` 제약 조건은 해당 컬럼에 `NULL` 값을 포함할 수 없음을 의미합니다.
+<Section>
+```typescript
+const table = sqliteTable('table', { 
+	numInt: integer().notNull() 
+});
+```
+
+```sql
+CREATE TABLE table (
+	`numInt` integer NOT NULL
+);
+```
+</Section>
+
+### Default value
+
+`DEFAULT` 절은 사용자가 `INSERT`를 수행할 때 명시적으로 값을 제공하지 않은 경우, 컬럼에 사용할 기본값을 지정합니다.
+컬럼 정의에 명시적인 `DEFAULT` 절이 붙어 있지 않다면,
+그 컬럼의 기본값은 `NULL`입니다.
+
+명시적인 `DEFAULT` 절에는 `NULL`,
+문자열 상수, blob 상수, signed-number, 또는 괄호로 감싼 상수 표현식을 지정할 수 있습니다.
+
+<Section>
+```typescript
+import { sql } from "drizzle-orm";
+import { integer, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const table = sqliteTable('table', {
+	int1: integer().default(42),
+	int2: integer().default(sql`(abs(42))`)
+});
+
+```
+```sql
+CREATE TABLE `table` (
+	`int1` integer DEFAULT 42,
+	`int2` integer DEFAULT (abs(42))
+);
+```
+</Section>
+
+기본값은 대소문자를 구분하지 않는 특수 키워드 `CURRENT_TIME`, `CURRENT_DATE`, `CURRENT_TIMESTAMP` 중 하나일 수도 있습니다.
+
+<Section>
+```typescript
+import { sql } from "drizzle-orm";
+import { text, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const table = sqliteTable("table", {
+  time: text().default(sql`(CURRENT_TIME)`),
+  date: text().default(sql`(CURRENT_DATE)`),
+  timestamp: text().default(sql`(CURRENT_TIMESTAMP)`),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`time` text DEFAULT (CURRENT_TIME),
+	`date` text DEFAULT (CURRENT_DATE),
+	`timestamp` text DEFAULT (CURRENT_TIMESTAMP)
+);
+```
+</Section>
+
+`$default()` 또는 `$defaultFn()`을 사용하면, 같은 함수의 단순한 별칭을 통해 런타임에 기본값을 생성하고 모든 insert 쿼리에서 이 값을 사용할 수 있습니다.
+이 함수들은 `uuid`, `cuid`, `cuid2` 등 다양한 구현을 활용하는 데 도움을 줍니다.
+
+<Callout type="info" emoji="ℹ️">
+	참고: 이 값은 `drizzle-kit` 동작에 영향을 주지 않으며, `drizzle-orm`에서 런타임에만 사용됩니다.
+</Callout>
+
+```ts
+import { text, sqliteTable } from "drizzle-orm/sqlite-core";
+import { createId } from '@paralleldrive/cuid2';
+
+const table = sqliteTable('table', {
+	id: text().$defaultFn(() => createId()),
+});
+```
+
+`$onUpdate()` 또는 `$onUpdateFn()`을 사용하면, 같은 함수의 단순한 별칭을 통해 런타임에 기본값을 생성하고 모든 update 쿼리에서 이 값을 사용할 수 있습니다.
+
+컬럼에 동적인 update 값을 추가합니다. 이 함수는 행이 업데이트될 때 호출되며,
+값이 별도로 제공되지 않았다면 반환된 값이 컬럼 값으로 사용됩니다.
+기본값(또는 `$defaultFn`)이 제공되지 않은 경우, 이 함수는
+행이 insert될 때도 호출되며 반환된 값이 컬럼 값으로 사용됩니다.
+
+<Callout type="info" emoji="ℹ️">
+	참고: 이 값은 `drizzle-kit` 동작에 영향을 주지 않으며, `drizzle-orm`에서 런타임에만 사용됩니다.
+</Callout>
+
+```ts
+import { text, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const table = sqliteTable('table', {
+    alwaysNull: text().$type<string | null>().$onUpdate(() => null),
+});
+```

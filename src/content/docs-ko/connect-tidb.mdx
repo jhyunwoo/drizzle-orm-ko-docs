@@ -1,0 +1,54 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Tab from '@mdx-ko/Tab.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+# Drizzle \<\> TiDB Serverless
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- TiDB 데이터베이스 - [웹사이트](https://docs.pingcap.com/)
+- TiDB HTTP 드라이버 - [웹사이트](https://docs.pingcap.com/tidbcloud/serverless-driver)
+- Drizzle MySQL 드라이버 - [docs](/docs/get-started-mysql)
+</Prerequisites>
+
+**[공식 웹사이트](https://www.pingcap.com/tidb-serverless/)**에 따르면,
+TiDB Serverless는 즉시 클러스터를 프로비저닝할 수 있고 사용량 기반 과금이 적용되는 완전관리형 자율 DBaaS입니다.
+
+<Callout type="info" emoji="ℹ️">
+TiDB Serverless는 MySQL과 호환되므로, 연결에는 [MySQL connection guide](/docs/get-started-mysql)를 사용할 수 있습니다.
+</Callout>
+
+TiDB Serverless는 edge 환경을 위한 [HTTP driver](https://docs.pingcap.com/tidbcloud/serverless-driver)를 제공합니다. Drizzle ORM은 `drizzle-orm/tidb-serverless` 패키지를 통해 이를 기본 지원합니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm @tidbcloud/serverless
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+```typescript copy filename="index.ts"
+import { drizzle } from 'drizzle-orm/tidb-serverless';
+
+const db = drizzle({ connection: { url: process.env.TIDB_URL }});
+
+const response = await db.select().from(...)
+```
+
+기존 드라이버를 직접 제공해야 하는 경우:
+```typescript copy"
+import { connect } from '@tidbcloud/serverless';
+import { drizzle } from 'drizzle-orm/tidb-serverless';
+
+const client = connect({ url: process.env.TIDB_URL });
+const db = drizzle({ client });
+```
+
+#### 다음 단계
+
+<WhatsNextPostgres/>

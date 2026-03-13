@@ -1,0 +1,141 @@
+---
+title: 외래 키가 있는 부분적으로 노출된 테이블 시딩
+slug: seeding-with-partially-exposed-tables
+---
+
+import IsSupportedChipGroup from "@mdx-ko/IsSupportedChipGroup.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Callout from '@mdx-ko/Callout.astro';
+
+<IsSupportedChipGroup chips={{PostgreSQL: true, MySQL: true, SQLite: true}}/>
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql) 또는 [SQLite](/docs/get-started-sqlite) 시작하기
+- [Drizzle Seed](/docs/seed-overview) 익숙해지기
+</Prerequisites>
+
+## 예제 1
+아래와 같은 시딩 스크립트와 schema를 사용해 데이터베이스를 시딩하려고 한다고 가정해 보겠습니다.
+<CodeTabs items={["index.ts", "schema.ts"]}>
+<CodeTab>
+```ts
+import { bloodPressure } from './schema.ts';
+
+async function main() {
+  const db = drizzle(...);
+  await seed(db, { bloodPressure });
+}
+main();
+
+```
+</CodeTab>
+
+<CodeTab>
+```ts copy {10}
+import { serial, pgTable, integer, doublePrecision } from "drizzle-orm/pg-core";
+
+export const users = pgTable("users", {
+    id: serial("id").primaryKey(),
+});
+
+export const bloodPressure = pgTable("bloodPressure", {
+	bloodPressureId: serial().primaryKey(),
+	pressure: doublePrecision(),
+	userId: integer().references(() => users.id).notNull(),
+})
+```
+</CodeTab>
+</CodeTabs>
+`bloodPressure` 테이블의 `userId` 열에 not-null 제약이 있으면, 시딩 스크립트를 실행할 때 오류가 발생합니다.
+
+```
+Error: Column 'userId' has not null constraint, 
+and you didn't specify a table for foreign key on column 'userId' in 'bloodPressure' table.
+```
+
+<Callout title='무슨 뜻인가요?'>
+이는 `userId` 열에 not-null 제약이 있기 때문에 `userId` 열을 Null 값으로 채울 수 없다는 뜻입니다. 
+또한 `seed` 함수 schema에 `users` 테이블을 노출하지 않았기 때문에, 이 값들을 `userId` 열에 채우기 위한 `users.id`를 생성할 수도 없습니다.
+</Callout>
+
+
+이 시점에서 오류를 해결할 수 있는 선택지는 여러 가지가 있습니다:
+- `userId` 열에서 not-null 제약을 제거할 수 있습니다;
+- `seed` 함수 schema에 `users` 테이블을 노출할 수 있습니다
+```ts 
+await seed(db, { bloodPressure, users });
+```
+- `userId` 열 생성기를 [refine](/docs/guides/seeding-with-partially-exposed-tables#refining-the-userid-column-generator)할 수 있습니다;
+
+## 예제 2
+
+<CodeTabs items={["index.ts", "schema.ts"]}>
+<CodeTab>
+```ts
+import { bloodPressure } from './schema.ts';
+
+async function main() {
+  const db = drizzle(...);
+  await seed(db, { bloodPressure });
+}
+main();
+
+```
+</CodeTab>
+
+<CodeTab>
+```ts copy {10}
+import { serial, pgTable, integer, doublePrecision } from "drizzle-orm/pg-core";
+
+export const users = pgTable("users", {
+    id: serial("id").primaryKey(),
+});
+
+export const bloodPressure = pgTable("bloodPressure", {
+	bloodPressureId: serial().primaryKey(),
+	pressure: doublePrecision(),
+	userId: integer().references(() => users.id),
+})
+```
+</CodeTab>
+</CodeTabs>
+
+위의 시딩 스크립트를 실행하면 다음과 같은 경고가 표시됩니다
+```
+Column 'userId' in 'bloodPressure' table will be filled with Null values
+because you specified neither a table for foreign key on column 'userId' 
+nor a function for 'userId' column in refinements.
+```
+<Callout title='무슨 뜻인가요?'>
+이는 `seed` 함수 schema에 `users` 테이블을 제공하지도 않았고, `userId` 열 생성기를 refine하지도 않았다는 뜻입니다. 
+그 결과 `userId` 열은 Null 값으로 채워집니다.
+</Callout>
+그러면 두 가지 선택지가 있습니다:
+- `userId` 열을 Null 값으로 채우는 것이 괜찮다면, 이 경고를 무시할 수 있습니다;
+
+- 그렇지 않다면 `userId` 열 생성기를 [refine](/docs/guides/seeding-with-partially-exposed-tables#refining-the-userid-column-generator)할 수 있습니다. 
+
+## `userId` 열 생성기 refine하기
+이 작업을 하려면 데이터베이스의 `users` 테이블에 이미 1, 2 같은 ID가 존재해야 합니다.
+<CodeTabs items={["index.ts"]}>
+<CodeTab>
+```ts copy {8}
+import { bloodPressure } from './schema.ts';
+
+async function main() {
+  const db = drizzle(...);
+  await seed(db, { bloodPressure }).refine((funcs) => ({
+    bloodPressure: {
+      columns: {
+        userId: funcs.valuesFromArray({ values: [1, 2] })
+      }
+    }
+  }));
+}
+main();
+
+```
+</CodeTab>
+</CodeTabs>

@@ -1,0 +1,110 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import ConnectVercel from '@mdx-ko/get-started/postgresql/ConnectVercel.mdx'
+import CreateTable from '@mdx-ko/get-started/postgresql/CreateTable.mdx'
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import QueryDatabase from '@mdx-ko/get-started/QueryDatabase.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+
+<Breadcrumbs/>
+
+# Drizzle과 Vercel Postgres로 시작하기
+
+<Prerequisites>
+  - **dotenv** - 환경 변수를 관리하는 패키지 - [여기에서 읽기](https://www.npmjs.com/package/dotenv)
+  - **tsx** - TypeScript 파일을 실행하는 패키지 - [여기에서 읽기](https://tsx.is/)
+  - **Vercel Postgres 데이터베이스** - [여기에서 읽기](https://vercel.com/docs/storage/vercel-postgres)
+  - **Vercel Postgres 드라이버** - [여기에서 읽기](https://vercel.com/docs/storage/vercel-postgres/sdk) & [GitHub](https://github.com/vercel/storage/tree/main/packages/postgres)
+</Prerequisites>
+
+<FileStructure/>
+
+#### 1단계 - 필요한 패키지 설치
+<InstallPackages lib='@vercel/postgres'/>
+
+#### 2단계 - 연결 변수 설정
+
+<SetupEnv env_variable='POSTGRES_URL' />
+
+<Callout title='경고'>
+Vercel Postgres에서는 변수 이름을 `POSTGRES_URL`로 지정하는 것이 중요합니다.
+
+Vercel Postgres storage 탭에서 `.env.local` 탭을 열고 `POSTGRES_URL` 변수를 복사할 수 있습니다.
+</Callout>
+
+#### 3단계 - Drizzle ORM을 데이터베이스에 연결
+
+<ConnectVercel/>
+
+#### 4단계 - 테이블 생성
+
+<CreateTable />
+
+#### 5단계 - Drizzle config 파일 설정
+
+<SetupConfig dialect='postgresql' env_variable='POSTGRES_URL'/>
+
+#### 6단계 - 데이터베이스에 변경 사항 적용
+
+<ApplyChanges />
+
+#### 7단계 - 데이터베이스 시드 및 쿼리
+
+```typescript copy filename="src/index.ts"
+import 'dotenv/config';
+import { eq } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/vercel-postgres';
+import { usersTable } from './db/schema';
+
+async function main() {
+  const db = drizzle();
+
+  const user: typeof usersTable.$inferInsert = {
+    name: 'John',
+    age: 30,
+    email: 'john@example.com',
+  };
+
+  await db.insert(usersTable).values(user);
+  console.log('New user created!')
+
+  const users = await db.select().from(usersTable);
+  console.log('Getting all users from the database: ', users)
+  /*
+  const users: {
+    id: number;
+    name: string;
+    age: number;
+    email: string;
+  }[]
+  */
+
+  await db
+    .update(usersTable)
+    .set({
+      age: 31,
+    })
+    .where(eq(usersTable.email, user.email));
+  console.log('User info updated!')
+
+  await db.delete(usersTable).where(eq(usersTable.email, user.email));
+  console.log('User deleted!')
+}
+
+main();
+```
+
+#### 8단계 - index.ts 파일 실행
+
+<RunFile/>

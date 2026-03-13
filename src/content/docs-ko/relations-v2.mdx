@@ -1,0 +1,971 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import IsSupportedChipGroup from '@mdx-ko/IsSupportedChipGroup.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Section from '@mdx-ko/Section.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import Npm from '@mdx-ko/Npm.astro';
+
+# Drizzle relations
+
+<Callout type='error'>
+이 페이지는 drizzle `1.0.0-beta.1` 이상 버전에서 사용할 수 있는 개념을 설명합니다.
+</Callout>
+
+<Npm>
+drizzle-orm@beta
+drizzle-kit@beta -D
+</Npm>
+
+<br/>
+
+<Prerequisites>  
+  - **Relations 기초** - foreign key constraint, soft relation, 데이터베이스 정규화 등의 개념에 익숙해지세요 - [여기서 읽기](/docs/rqb-fundamentals)
+  - **스키마 선언** - drizzle 스키마를 정의하는 방법에 익숙해지세요 - [여기서 읽기](/docs/sql-schema-declaration)
+  - **데이터베이스 연결** - drizzle로 데이터베이스에 연결하는 방법에 익숙해지세요 - [여기서 읽기](/docs/get-started-postgresql)
+</Prerequisites>
+
+Drizzle relations의 유일한 목적은 관계형 데이터를 가장 단순하고 간결한 방식으로 조회할 수 있게 해주는 것입니다:
+
+<CodeTabs items={["Relational queries", "Select with joins"]}>
+<Section>
+```ts
+import { drizzle } from 'drizzle-orm/…';
+import { defineRelations } from 'drizzle-orm';
+import * as p from 'drizzle-orm/pg-core';
+
+export const users = p.pgTable('users', {
+	id: p.integer().primaryKey(),
+	name: p.text().notNull()
+});
+
+export const posts = p.pgTable('posts', {
+	id: p.integer().primaryKey(),
+	content: p.text().notNull(),
+	ownerId: p.integer('owner_id'),
+});
+
+const relations = defineRelations({ users, posts }, (r) => ({
+	posts: {
+		author: r.one.users({
+			from: r.posts.ownerId,
+			to: r.users.id,
+		}),
+	}
+}))
+
+const db = drizzle(client, { relations });
+
+const result = db.query.posts.findMany({
+  with: {
+    author: true,
+  },
+});
+```
+```ts
+[{
+  id: 10,
+  content: "My first post!",
+  author: {
+    id: 1,
+    name: "Alex"
+  }
+}]
+```
+</Section>
+<Section>
+```ts
+import { drizzle } from 'drizzle-orm/…';
+import { eq } from 'drizzle-orm';
+import { posts, users } from './schema';
+
+const db = drizzle(client);
+
+const res = await db.select()
+                    .from(posts)
+                    .leftJoin(users, eq(posts.ownerId, users.id))
+                    .orderBy(posts.id)
+const mappedResult =  
+```
+</Section>
+</CodeTabs>
+
+### `one()`
+다음은 drizzle relations에서 `.one()`에 사용할 수 있는 모든 필드 목록입니다.
+
+```ts {3-11}
+const relations = defineRelations({ users, posts }, (r) => ({
+	posts: {
+		author: r.one.users({
+			from: r.posts.ownerId,
+			to: r.users.id,
+			optional: false,
+      alias: 'custom_name',
+			where: {
+				verified: true,
+			}
+		}),
+	}
+}))
+```
+
+- `author` 키는 Drizzle relational query를 사용할 때 `posts` 객체에 나타나는 사용자 정의 키입니다.
+- `r.one.users`는 `author`가 `users` 테이블의 객체 배열이 아니라 단일 객체가 되도록 정의합니다.
+- `from: r.posts.ownerId`는 soft relation을 설정하는 출발 테이블을 지정합니다.  
+이 경우 relation은 `posts` 테이블의 `ownerId` 컬럼에서 시작됩니다.
+- `to: r.users.id`는 soft relation을 연결할 대상 테이블을 지정합니다.  
+이 경우 relation은 `users` 테이블의 `id` 컬럼을 가리킵니다.
+- `optional: false`는 타입 수준에서 posts 객체의 `author` 키를 `required`로 만듭니다.  
+이 엔티티가 항상 존재한다고 확신할 수 있을 때 사용해야 합니다.
+- `alias`는 테이블 간 관계에 특정 alias를 추가할 때 사용합니다. 두 테이블 사이에 동일한 관계가 여러 개 있다면 `alias`를 사용해 구분해야 합니다.
+- `where` 조건은 polymorphic relation에 사용할 수 있습니다. `where` 문을 기준으로 relation을 가져옵니다.  
+예를 들어 위 경우에는 `verified authors`만 조회됩니다. polymorphic relation에 대한 자세한 내용은 [여기](/docs/relations-schema-declaration#polymorphic-relations)를 참고하세요.
+
+### `many()`
+
+다음은 drizzle relations에서 `.many()`에 사용할 수 있는 모든 필드 목록입니다.
+
+```ts {3-11}
+const relations = defineRelations({ users, posts }, (r) => ({
+	users: {
+		feed: r.many.posts({
+			from: r.users.id,
+			to: r.posts.ownerId,
+			optional: false,
+      alias: 'custom_name',
+			where: {
+				approved: true,
+			}
+		}),
+	}
+}))
+```
+
+- `feed` 키는 Drizzle relational query를 사용할 때 `users` 객체에 나타나는 사용자 정의 키입니다.
+- `r.many.posts`는 `feed`가 단일 객체가 아니라 `posts` 테이블 객체의 배열이 되도록 정의합니다.
+- `from: r.users.id`는 soft relation을 설정하는 출발 테이블을 지정합니다.  
+이 경우 relation은 `users` 테이블의 `id` 컬럼에서 시작됩니다.
+- `to: r.posts.ownerId`는 soft relation을 연결할 대상 테이블을 지정합니다.  
+이 경우 relation은 `posts` 테이블의 `ownerId` 컬럼을 가리킵니다.
+- `optional: false`는 타입 수준에서 posts 객체의 `feed` 키를 `required`로 만듭니다.  
+이 엔티티가 항상 존재한다고 확신할 수 있을 때 사용해야 합니다.
+- `alias`는 테이블 간 관계에 특정 alias를 추가할 때 사용합니다. 두 테이블 사이에 동일한 관계가 여러 개 있다면 `alias`를 사용해 구분해야 합니다.
+- `where` 조건은 polymorphic relation에 사용할 수 있습니다. `where` 문을 기준으로 relation을 가져옵니다.  
+예를 들어 위 경우에는 `approved posts`만 조회됩니다. polymorphic relation에 대한 자세한 내용은 [여기](/docs/relations-schema-declaration#polymorphic-relations)를 참고하세요.
+
+## ---
+
+### One-to-one
+Drizzle ORM은 `defineRelations` 함수를 사용해 테이블 간 `one-to-one` relation을 정의할 수 있는 API를 제공합니다.
+
+한 사용자가 다른 사용자를 초대할 수 있는 users와 users 사이의 `one-to-one` relation 예시는 다음과 같습니다. 이 예시는 self reference를 사용합니다:
+
+```typescript copy {10-17}
+import { pgTable, serial, text, boolean } from 'drizzle-orm/pg-core';
+import { defineRelations } from 'drizzle-orm';
+
+export const users = pgTable('users', {
+	id: integer().primaryKey(),
+	name: text(),
+	invitedBy: integer('invited_by'),
+});
+
+export const relations = defineRelations({ users }, (r) => ({
+	users: {
+		invitee: r.one.users({
+			from: r.users.invitedBy,
+			to: r.users.id,
+		})
+	}
+}));
+```
+
+또 다른 예로는 사용자 프로필 정보가 별도의 테이블에 저장되는 경우가 있습니다. 이 경우 foreign key가 `"profile_info"` 테이블에 저장되므로 user relation에는 fields나 references가 없습니다. 이는 Typescript에 `user.profileInfo`가 nullable이라는 사실을 알려줍니다:
+
+```typescript copy {15-22}
+import { pgTable, serial, text, integer, jsonb } from 'drizzle-orm/pg-core';
+import { defineRelations } from 'drizzle-orm';
+
+export const users = pgTable('users', {
+	id: integer().primaryKey(),
+	name: text(),
+});
+
+export const profileInfo = pgTable('profile_info', {
+	id: serial().primaryKey(),
+	userId: integer('user_id').references(() => users.id),
+	metadata: jsonb(),
+});
+
+export const relations = defineRelations({ users, profileInfo }, (r) => ({
+	users: {
+		profileInfo: r.one.profileInfo({
+			from: r.users.id,
+			to: r.profileInfo.userId,
+		})
+	}
+}));
+
+const user = await db.query.posts.findFirst({ with: { profileInfo: true } });
+//____^? type { id: number, profileInfo: { ... } | null  }
+```
+
+### One-to-many
+Drizzle ORM은 `defineRelations` 함수를 사용해 테이블 간 `one-to-many` relation을 정의할 수 있는 API를 제공합니다. 
+
+users와 사용자가 작성한 posts 사이의 `one-to-many` relation 예시는 다음과 같습니다:
+
+```typescript copy {15-25}
+import { pgTable, serial, text, integer } from 'drizzle-orm/pg-core';
+import { defineRelations } from 'drizzle-orm';
+
+export const users = pgTable('users', {
+	id: integer('id').primaryKey(),
+	name: text('name'),
+});
+
+export const posts = pgTable('posts', {
+	id: integer('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id'),
+});
+
+export const relations = defineRelations({ users, posts }, (r) => ({
+  posts: {
+    author: r.one.users({
+      from: r.posts.authorId,
+      to: r.users.id,
+    }),
+  },
+  users: {
+    posts: r.many.posts(),
+  },
+}));
+```
+
+이제 posts에 comments를 추가해 보겠습니다:
+```typescript copy {9-14,22,27-32}
+...
+
+export const posts = pgTable('posts', {
+	id: integer('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id'),
+});
+
+export const comments = pgTable("comments", {
+  id: integer().primaryKey(),
+  text: text(),
+  authorId: integer("author_id"),
+  postId: integer("post_id"),
+});
+
+export const relations = defineRelations({ users, posts, comments }, (r) => ({
+  posts: {
+    author: r.one.users({
+      from: r.posts.authorId,
+      to: r.users.id,
+    }),
+    comments: r.many.comments(),
+  },
+  users: {
+    posts: r.many.posts(),
+  },
+  comments: {
+    post: r.one.posts({
+      from: r.comments.postId,
+      to: r.posts.id,
+    }),
+  },
+}));
+```
+
+
+### Many-to-many
+Drizzle ORM은 이른바 `junction` 또는 `join` 테이블을 통해 테이블 간 `many-to-many` relation을 정의할 수 있는 API를 제공합니다.  
+이 테이블은 명시적으로 정의해야 하며, 관련 테이블 간의 연결을 저장합니다.  
+
+users와 groups 사이의 `many-to-many` relation 예시는 다음과 같습니다. 여기서는 `through`를 사용해 junction table 선택을 우회하고 각 `user`에 대해 여러 `groups`를 직접 선택합니다.
+```typescript copy {27-39}
+import { defineRelations } from 'drizzle-orm';
+import { integer, pgTable, primaryKey, text } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+  id: integer().primaryKey(),
+  name: text(),
+});
+
+export const groups = pgTable('groups', {
+  id: integer().primaryKey(),
+  name: text(),
+});
+
+export const usersToGroups = pgTable(
+  'users_to_groups',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    groupId: integer('group_id')
+      .notNull()
+      .references(() => groups.id),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.groupId] })],
+);
+
+export const relations = defineRelations({ users, groups, usersToGroups },
+  (r) => ({
+    users: {
+      groups: r.many.groups({
+        from: r.users.id.through(r.usersToGroups.userId),
+        to: r.groups.id.through(r.usersToGroups.groupId),
+      }),
+    },
+    groups: {
+      participants: r.many.users(),
+    },
+  })
+);
+```
+
+**쿼리 예시:**
+```ts
+const res = await db.query.users.findMany({
+  with: { 
+    groups: true 
+  },
+});
+
+// response type
+type Response = {
+  id: number;
+  name: string | null;
+  groups: {
+    id: number;
+    name: string | null;
+  }[];
+}[];
+```
+
+<Callout type='error' title='Relational Queries v1'>
+이전에는 `junction` 테이블을 통해 조회한 뒤 각 응답마다 직접 매핑해야 했습니다.
+
+❌ 이제는 그렇게 할 필요가 없습니다!
+```ts
+const response = await db._query.users.findMany({
+	with: {
+		usersToGroups: {
+			columns: {},
+			with: {
+				groups: true,
+			},
+		},
+	},
+});
+
+// response type
+type Response = {
+  id: number;
+  name: string | null;
+  usersToGroups: {
+    groups: {
+       id: number;
+       name: string | null;
+    }
+  }[];
+}[];
+```
+</Callout>
+
+### Predefined filters
+
+Drizzle relation 정의에서 미리 정의한 `where` 문은 polymorphic relation 구현의 한 형태이지만, 그것과 완전히 동일하지는 않습니다. 핵심적으로는 특정 컬럼을 선택해서 테이블을 연결하는 것뿐 아니라, 사용자 정의 `where` 문을 통해서도 테이블을 연결할 수 있게 해줍니다. 몇 가지 예를 살펴보겠습니다:
+
+`groups`와 `users` 사이에 relation을 정의해서, 그룹의 사용자를 조회할 때 `verified` 컬럼이 `true`인 사용자만 가져오도록 만들 수 있습니다.
+<CodeTabs items={["Relations", "Schema"]}>
+<Section>
+```ts
+import { defineRelations } from "drizzle-orm";
+import * as p from "drizzle-orm/pg-core";
+import * as schema from './schema';
+
+export const relations = defineRelations(schema,(r) => ({
+    groups: {
+      verifiedUsers: r.many.users({
+        from: r.groups.id.through(r.usersToGroups.groupId),
+        to: r.users.id.through(r.usersToGroups.userId),
+        where: {
+          verified: true,
+        },
+      }),
+    },
+  })
+);
+
+...
+
+await db.query.groups.findMany({
+    with: {
+      verifiedUsers: true,
+    },
+});
+```
+</Section>
+<Section>
+```ts
+import { defineRelations } from "drizzle-orm";
+import * as p from "drizzle-orm/pg-core";
+
+export const users = p.pgTable("users", {
+  id: p.integer().primaryKey(),
+  name: p.text().notNull(),
+  verified: p.boolean().notNull(),
+});
+
+export const groups = p.pgTable("groups", {
+  id: p.integer().primaryKey(),
+  title: p.text().notNull(),
+});
+
+export const usersToGroups = p.pgTable(
+  "users_to_groups",
+  {
+    userId: p
+      .integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    groupId: p
+      .integer("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+  },
+  (t) => [p.primaryKey({ columns: [t.groupId, t.userId] })]
+);
+```
+</Section>
+</CodeTabs>
+
+<Callout type='warning'>
+필터는 대상(`to`) 테이블에서만 지정할 수 있습니다. 따라서 이 예시에서는 relation을 **users로 향하게** 설정하고 있으므로 `where` 절에는 `users` 테이블의 컬럼만 포함됩니다.
+
+```ts {7}
+export const relations = defineRelations(schema,(r) => ({
+    groups: {
+      verifiedUsers: r.many.users({
+        from: r.groups.id.through(r.usersToGroups.groupId),
+        to: r.users.id.through(r.usersToGroups.userId),
+        where: {
+          verified: true,
+        },
+      }),
+    },
+  })
+);
+```
+</Callout>
+
+## ---
+
+### Relations Parts
+
+relations 설정을 여러 부분으로 나눠야 하는 경우 `defineRelationsPart` 헬퍼를 사용할 수 있습니다.
+
+```ts
+import { defineRelations, defineRelationsPart } from 'drizzle-orm';
+import * as schema from "./schema";
+
+export const relations = defineRelations(schema, (r) => ({
+  users: {
+    invitee: r.one.users({
+      from: r.users.invitedBy,
+      to: r.users.id,
+    }),
+    posts: r.many.posts(),
+  }
+}));
+
+export const part = defineRelationsPart(schema, (r) => ({
+  posts: {
+    author: r.one.users({
+      from: r.posts.authorId,
+      to: r.users.id,
+    }),
+  }
+}));
+```
+
+그리고 이를 db 인스턴스에 전달할 수 있습니다.
+
+```ts
+const db = drizzle(process.env.DB_URL, { relations: { ...relations, ...part } })
+```
+
+<Callout type='warning'>
+`defineRelationsParts`가 기대한 대로 동작하게 하려면 몇 가지 규칙을 따라야 합니다.
+
+**규칙 1**: relation을 part로 나눠 정의했다면, drizzle db 함수에 전달할 때 올바른 순서로 지정해야 합니다. main relation이 먼저 와야 합니다.
+```ts
+// ✅
+const db = drizzle(process.env.DB_URL, { relations: { ...relations, ...part } })
+
+// ❌
+const db = drizzle(process.env.DB_URL, { relations: { ...part, ...relations } })
+```
+
+<Callout collapsed="왜 중요한가요?">
+타입 오류나 런타임 오류가 발생하지 않더라도, 객체에서 `"..."`가 동작하는 방식은 그대로 적용됩니다. main relation은 모든 테이블 이름을 재귀적으로 추론하기 때문에 autocomplete에서 사용할 수 있게 됩니다. 예시는 다음과 같습니다:
+
+```ts
+export const relations = defineRelations(schema, (r) => ({
+  users: {
+    invitee: r.one.users({
+      from: r.users.invitedBy,
+      to: r.users.id,
+    }),
+    posts: r.many.posts(),
+  }
+}));
+
+export const part = defineRelationsPart(schema, (r) => ({
+  posts: {
+    author: r.one.users({
+      from: r.posts.authorId,
+      to: r.users.id,
+    }),
+  }
+}));
+```
+
+여기서 `relations`와 `part`는 다음과 같은 객체로 표현할 수 있습니다:
+```json
+// relations
+{
+  "users": {"invitee": {...}, "posts": {...}},
+  // added here, so all tables from schema will exist in autocomplete
+  "posts": {}
+}
+
+// part
+{
+  "posts": {"author": {...}}
+}
+```
+
+`{ ...relations, ...part }`를 사용하면 다음 결과를 얻습니다.
+```json
+{
+  "users": {"invitee": {...}, "posts": {...}},
+  "posts": {"author": {...}}
+}
+```
+
+그리고 `{ ...relations, ...part }`를 사용하면 다음 결과가 나옵니다.
+```json
+{
+  "users": {"invitee": {...}, "posts": {...}},
+  // As you can see in the final object, posts relations information will be lost
+  "posts": {}
+}
+```
+
+</Callout>
+
+**규칙 2**: drizzle이 autocomplete용으로 모든 테이블을 추론할 수 있도록 최소한의 relation이 있어야 합니다. part만 두고 싶다면 part 중 하나는 다음처럼 비어 있어야 합니다:
+
+```ts
+export const mainPart = defineRelationsPart(schema);
+```
+
+이 경우 모든 테이블이 올바르게 추론되며, 스키마에 대한 완전한 정보를 얻을 수 있습니다.
+</Callout>
+
+## ---
+
+### Performance
+
+Drizzle ORM에서 relations를 다룰 때, 특히 데이터가 많거나 쿼리가 복잡한 애플리케이션에서는 데이터베이스 성능 최적화가 매우 중요합니다.  
+인덱스는 데이터 조회 속도를 높이는 데 중요한 역할을 하며, 특히 관련 데이터를 조회할 때 더욱 그렇습니다. 이 섹션에서는 Drizzle ORM으로 정의한 각 relation 유형에 권장되는 인덱싱 전략을 설명합니다.
+
+##### One-to-one Relationships
+
+`user invites user` 예시나 `user has profile info` 예시 같은 one-to-one relation에서는 관련 테이블을 효율적으로 JOIN하는 것이 핵심 성능 포인트입니다.
+
+<Callout>
+one-to-one relation에서 최적의 성능을 얻으려면 참조되는 테이블의 foreign key 컬럼에 인덱스를 생성해야 합니다.  
+즉 relation에서 "target" 테이블에 해당하는 컬럼입니다.
+</Callout>
+
+<Callout collapsed='왜 중요한가요?'>
+one-to-one 관련 정보를 포함해 데이터를 조회할 때 Drizzle은 JOIN 연산을 수행합니다. foreign key 컬럼에 인덱스가 있으면 데이터베이스가 target 테이블에서 관련 row를 빠르게 찾을 수 있으므로 join 과정이 훨씬 빨라집니다.
+</Callout>
+
+**예시:**
+```typescript
+import * as p from 'drizzle-orm/pg-core';
+import { defineRelations } from 'drizzle-orm';
+
+export const users = p.pgTable('users', {
+	id: p.integer().primaryKey(),
+	name: p.text(),
+});
+
+export const profileInfo = p.pgTable('profile_info', {
+	id: p.integer().primaryKey(),
+	userId: p.integer('user_id').references(() => users.id),
+	metadata: p.jsonb(),
+});
+
+export const relations = defineRelations({ users, profileInfo }, (r) => ({
+	users: {
+		profileInfo: r.one.profileInfo({
+			from: r.users.id,
+			to: r.profileInfo.userId,
+		})
+	}
+}));
+```
+
+사용자 데이터와 프로필 정보를 함께 조회하는 쿼리를 최적화하려면 `profile_info` 테이블의 `userId` 컬럼에 인덱스를 생성해야 합니다.
+
+```typescript {13-15,21}
+import * as p from 'drizzle-orm/pg-core';
+import { defineRelations } from 'drizzle-orm';
+
+export const users = p.pgTable('users', {
+	id: p.integer().primaryKey(),
+	name: p.text(),
+});
+
+export const profileInfo = pgTable('profile_info', {
+	id: p.integer().primaryKey(),
+	userId: p.integer('user_id').references(() => users.id),
+	metadata: p.jsonb(),
+}, (table) => [
+  p.index('profile_info_user_id_idx').on(table.userId)
+]);
+
+export const relations = defineRelations({ users, profileInfo }, (r) => ({
+	users: {
+		profileInfo: r.one.profileInfo({
+			from: r.users.id,
+			to: r.profileInfo.userId,
+		})
+	}
+}));
+```
+```sql
+CREATE INDEX idx_profile_info_user_id ON profile_info (user_id);
+```
+
+#### One-to-many Relationships
+
+one-to-many relation도 join 연산을 최적화하기 위해 인덱싱의 이점을 크게 얻습니다. 한 사용자가 여러 개의 post를 가질 수 있는 `users and posts` 예시를 생각해 봅시다.
+
+<Callout>
+one-to-many relation에서는 관계의 "many" 쪽에 해당하는 테이블, 즉 "one" 쪽을 참조하는 foreign key를 가진 테이블의 foreign key 컬럼에 인덱스를 생성하세요.
+</Callout>
+
+<Callout collapsed='왜 중요한가요?'>
+사용자와 그 사용자의 posts를 가져오거나, posts와 작성자를 함께 가져올 때는 join이 수행됩니다.  
+foreign key(`posts` 테이블의 `authorId`)에 인덱스를 두면 데이터베이스가 특정 사용자와 연관된 모든 post를 효율적으로 가져오거나, post의 작성자를 빠르게 찾을 수 있습니다.
+</Callout>
+
+**예시:**
+```typescript
+import * as p from "drizzle-orm/pg-core";
+import { defineRelations } from 'drizzle-orm';
+
+export const users = p.pgTable('users', {
+	id: p.integer().primaryKey(),
+	name: p.text(),
+});
+
+export const posts = p.pgTable('posts', {
+	id: p.integer().primaryKey(),
+	content: p.text(),
+	authorId: p.integer('author_id'),
+});
+
+export const relations = defineRelations({ users, posts }, (r) => ({
+  posts: {
+    author: r.one.users({
+      from: r.posts.authorId,
+      to: r.users.id,
+    }),
+  },
+  users: {
+    posts: r.many.posts(),
+  },
+}));
+```
+
+사용자와 그 사용자의 posts가 관련된 쿼리를 최적화하려면 `posts` 테이블의 `authorId` 컬럼에 인덱스를 생성하세요.
+
+```typescript {13-15}
+import * as p from "drizzle-orm/pg-core";
+import { defineRelations } from 'drizzle-orm';
+
+export const users = p.pgTable('users', {
+	id: p.integer().primaryKey(),
+	name: p.text(),
+});
+
+export const posts = p.pgTable('posts', {
+	id: p.integer().primaryKey(),
+	content: p.text(),
+	authorId: p.integer('author_id'),
+}, (t) => [
+  index('posts_author_id_idx').on(table.authorId)
+]);
+
+export const relations = defineRelations({ users, posts }, (r) => ({
+  posts: {
+    author: r.one.users({
+      from: r.posts.authorId,
+      to: r.users.id,
+    }),
+  },
+  users: {
+    posts: r.many.posts(),
+  },
+}));
+```
+```sql
+CREATE INDEX idx_posts_author_id ON posts (author_id);
+```
+
+#### Many-to-many Relationships
+
+junction table을 사용해 구현하는 many-to-many relation은 최적의 쿼리 성능을 위해 조금 더 세심한 인덱싱 전략이 필요합니다.  
+`usersToGroups` junction table을 사용하는 `users and groups` 예시를 생각해 봅시다.
+
+<Callout>
+many-to-many relation에서는 일반적으로 junction table에 다음 인덱스를 생성하는 것이 권장됩니다:
+1.  **각 foreign key 컬럼에 대한 개별 인덱스:** relation의 한쪽 기준으로 필터링하거나 join하는 쿼리를 최적화합니다.  
+예: "특정 사용자의 모든 그룹 찾기" 또는 "특정 그룹의 모든 사용자 찾기"
+2.  **두 foreign key 컬럼을 함께 사용하는 composite index:** many-to-many relation 자체를 효율적으로 해결하는 데 중요합니다. 두 엔티티 사이의 연결을 찾아야 하는 쿼리의 속도를 높입니다.
+</Callout>
+
+<Callout collapsed='왜 중요한가요?'>
+many-to-many relation을 조회할 때, 특히 Drizzle ORM에서 `through`를 사용할 경우 데이터베이스는 junction table을 효율적으로 탐색해야 합니다.
+
+- 개별 foreign key 컬럼(`usersToGroups`의 `userId`, `groupId`) 인덱스는 한쪽에서 다른 쪽을 찾는 쿼리에 도움이 됩니다. 예: "사용자의 그룹 찾기"
+- `usersToGroups`의 `(userId, groupId)` composite index는 junction table에 정의된 모든 relation을 빠르게 찾는 데 특히 중요합니다. Drizzle ORM이 `many-to-many` relation을 해석해 관련 엔티티를 가져올 때 사용됩니다.
+</Callout>
+
+**예시:**
+
+`users and groups` 예시에서 `usersToGroups` junction table은 `users`와 `groups`를 연결합니다.
+
+```typescript
+import { defineRelations } from 'drizzle-orm';
+import * as p from 'drizzle-orm/pg-core';
+
+export const users = p.pgTable('users', {
+  id: p.integer().primaryKey(),
+  name: p.text(),
+});
+
+export const groups = p.pgTable('groups', {
+  id: p.integer().primaryKey(),
+  name: p.text(),
+});
+
+export const usersToGroups = p.pgTable(
+  'users_to_groups',
+  {
+    userId: p.integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    groupId: p.integer('group_id')
+      .notNull()
+      .references(() => groups.id),
+  },
+  (t) => [p.primaryKey({ columns: [t.userId, t.groupId] })],
+);
+
+export const relations = defineRelations({ users, groups, usersToGroups },
+  (r) => ({
+    users: {
+      groups: r.many.groups({
+        from: r.users.id.through(r.usersToGroups.userId),
+        to: r.groups.id.through(r.usersToGroups.groupId),
+      }),
+    },
+    groups: {
+      participants: r.many.users(),
+    },
+  })
+);
+```
+
+사용자와 그룹 관련 쿼리를 최적화하려면 `usersToGroups` 테이블에 다음과 같이 인덱스를 생성하세요:
+
+```typescript {26-28}
+import { defineRelations } from 'drizzle-orm';
+import * as p from 'drizzle-orm/pg-core';
+
+export const users = p.pgTable('users', {
+  id: p.integer().primaryKey(),
+  name: p.text(),
+});
+
+export const groups = p.pgTable('groups', {
+  id: p.integer().primaryKey(),
+  name: p.text(),
+});
+
+export const usersToGroups = p.pgTable(
+  'users_to_groups',
+  {
+    userId: p.integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    groupId: p.integer('group_id')
+      .notNull()
+      .references(() => groups.id),
+  },
+  (t) => [
+    p.primaryKey({ columns: [t.userId, t.groupId] }),
+    p.index('users_to_groups_user_id_idx').on(table.userId),
+    p.index('users_to_groups_group_id_idx').on(table.groupId),
+    p.index('users_to_groups_composite_idx').on(table.userId, table.groupId),
+  ],
+);
+
+export const relations = defineRelations({ users, groups, usersToGroups },
+  (r) => ({
+    users: {
+      groups: r.many.groups({
+        from: r.users.id.through(r.usersToGroups.userId),
+        to: r.groups.id.through(r.usersToGroups.groupId),
+      }),
+    },
+    groups: {
+      participants: r.many.users(),
+    },
+  })
+);
+```
+```sql
+CREATE INDEX idx_users_to_groups_user_id ON users_to_groups (user_id);
+CREATE INDEX idx_users_to_groups_group_id ON users_to_groups (group_id);
+CREATE INDEX idx_users_to_groups_composite ON users_to_groups (userId, groupId);
+```
+
+이러한 인덱싱 전략을 적용하면, 특히 데이터 양이 증가하고 쿼리가 더 복잡해질수록 관계형 데이터를 다루는 Drizzle ORM 애플리케이션의 성능을 크게 향상시킬 수 있습니다. 애플리케이션의 실제 쿼리 패턴에 가장 잘 맞는 인덱스를 선택해야 한다는 점을 기억하세요.
+
+## ---
+
+### Foreign keys
+
+`relations`가 foreign key와 비슷하게 보인다는 점을 눈치채셨을 수도 있습니다. 실제로 `references` 속성도 있으니까요. 그렇다면 차이는 무엇일까요?
+
+foreign key도 비슷한 목적, 즉 테이블 간 relation을 정의하는 데 사용되지만, `relations`와는 다른 수준에서 동작합니다.
+
+foreign key는 데이터베이스 수준의 constraint입니다. 모든 `insert`/`update`/`delete` 연산마다 검사되며, constraint가 위반되면 에러를 발생시킵니다.  
+반면 `relations`는 더 높은 수준의 추상화로, 애플리케이션 수준에서만 테이블 간 relation을 정의하는 데 사용됩니다.  
+데이터베이스 스키마에는 어떤 영향도 주지 않으며, 암묵적으로 foreign key를 생성하지도 않습니다.
+
+즉 `relations`와 foreign key는 함께 사용할 수 있지만 서로 의존하지는 않습니다.  
+foreign key 없이 `relations`를 정의할 수도 있고, 그 반대도 가능합니다. 따라서 foreign key를 지원하지 않는 데이터베이스에서도 사용할 수 있습니다.
+
+다음 두 예시는 Drizzle relational query를 사용해 데이터를 조회하는 측면에서는 완전히 동일하게 동작합니다.
+
+<CodeTabs items={["schema1.ts", "schema2.ts"]}>
+<CodeTab>
+```ts {15}
+export const users = p.pgTable("users", {
+  id: p.integer().primaryKey(),
+  name: p.text(),
+});
+
+export const profileInfo = p.pgTable("profile_info", {
+  id: p.integer().primaryKey(),
+  userId: p.integer("user_id"),
+  metadata: p.jsonb(),
+});
+
+export const relations = defineRelations({ users, profileInfo }, (r) => ({
+  users: {
+    profileInfo: r.one.profileInfo({
+      from: r.users.id,
+      to: r.profileInfo.userId,
+    }),
+  },
+}));
+```
+</CodeTab>
+<CodeTab>
+```ts {15}
+export const users = p.pgTable("users", {
+  id: p.integer().primaryKey(),
+  name: p.text(),
+});
+
+export const profileInfo = p.pgTable("profile_info", {
+  id: p.integer().primaryKey(),
+  userId: p.integer("user_id").references(() => users.id),
+  metadata: p.jsonb(),
+});
+
+export const relations = defineRelations({ users, profileInfo }, (r) => ({
+  users: {
+    profileInfo: r.one.profileInfo({
+      from: r.users.id,
+      to: r.profileInfo.userId,
+    }),
+  },
+}));
+```
+</CodeTab>
+</CodeTabs>
+
+### Disambiguating relations
+
+Drizzle은 또한 동일한 두 테이블 사이에 여러 relation을 정의할 때 이를 구분할 수 있도록 `alias` 옵션을 제공합니다.  
+예를 들어 `posts` 테이블에 `author`와 `reviewer` relation이 모두 있는 경우입니다.
+
+```ts {19,22,29,34}
+import { pgTable, integer, text } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+ 
+export const users = pgTable('users', {
+	id: integer('id').primaryKey(),
+	name: text('name'),
+});
+
+export const posts = pgTable('posts', {
+	id: integer('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id'),
+	reviewerId: integer('reviewer_id'),
+});
+ 
+export const relations = defineRelations({ users, posts }, (r) => ({
+  users: {
+    posts: r.many.posts({
+      alias: "author",
+    }),
+    reviewedPosts: r.many.posts({
+      alias: "reviewer",
+    }),
+  },
+  posts: {
+    author: r.one.users({
+      from: r.posts.authorId,
+      to: r.users.id,
+      alias: "author",
+    }),
+    reviewer: r.one.users({
+      from: r.posts.authorId,
+      to: r.users.id,
+      alias: "reviewer",
+    }),
+  },
+}));
+```
+
+### Troubleshooting

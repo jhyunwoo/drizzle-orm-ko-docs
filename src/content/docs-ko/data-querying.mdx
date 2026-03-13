@@ -1,0 +1,167 @@
+import Callout from '@mdx-ko/Callout.astro';
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from '@mdx-ko/Section.astro';
+import Flex from "@mdx-ko/Flex.astro"
+import LinksList from "@mdx-ko/LinksList.astro"
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+
+# Drizzle Queries + CRUD
+
+<Prerequisites>
+  - 스키마를 정의하는 방법 - [Schema Fundamentals](/docs/sql-schema-declaration)
+  - 데이터베이스에 연결하는 방법 - [Connection Fundamentals](/docs/connect-overview)
+</Prerequisites>
+
+Drizzle은 데이터베이스를 조회하는 몇 가지 방법을 제공하며, 다음 프로젝트에서 어떤 방법이 필요한지는 여러분이 결정하면 됩니다.
+SQL-like syntax일 수도 있고 Relational Syntax일 수도 있습니다. 함께 살펴보겠습니다:
+
+## 왜 SQL-like인가?
+\
+**SQL을 안다면, Drizzle도 압니다.**
+
+다른 ORM과 데이터 프레임워크는 SQL에서 벗어나거나 SQL을 추상화하는 경향이 있어서, SQL과 프레임워크의 API를 모두 배워야 하는 이중 학습 곡선이 생깁니다.
+
+Drizzle은 반대입니다.
+저희는 SQL을 받아들이고 Drizzle의 핵심을 SQL-like하게 설계했기 때문에 학습 곡선이 거의 없거나 전혀 없으며, SQL의 강력한 기능을 온전히 활용할 수 있습니다.
+
+<Section>
+```typescript copy
+// Access your data
+await db
+  .select()
+	.from(posts)
+	.leftJoin(comments, eq(posts.id, comments.post_id))
+	.where(eq(posts.id, 10))
+```
+```sql
+SELECT * 
+FROM posts
+LEFT JOIN comments ON posts.id = comments.post_id
+WHERE posts.id = 10
+```
+</Section>
+
+SQL-like syntax를 사용하면 순수 SQL로 할 수 있는 많은 작업을 그대로 재현할 수 있고, 
+Drizzle이 정확히 무엇을 하고 어떤 query를 생성할지 정확히 알 수 있습니다. select, insert, update, delete는 물론 alias, WITH clause, subquery, prepared statement, 
+그 밖의 다양한 기능까지 사용할 수 있습니다. 더 많은 예제를 살펴보겠습니다.
+
+<CodeTabs items={['insert', 'update', 'delete']}>
+<Section>
+```ts
+await db.insert(users).values({ email: 'user@gmail.com' })
+```
+```sql
+INSERT INTO users (email) VALUES ('user@gmail.com')
+```
+</Section>
+<Section>
+```ts
+await db.update(users)
+        .set({ email: 'user@gmail.com' })
+        .where(eq(users.id, 1))
+```
+```sql
+UPDATE users 
+SET email = 'user@gmail.com'
+WHERE users.id = 1
+```
+</Section>
+<Section>
+```ts
+await db.delete(users).where(eq(users.id, 1))
+```
+```sql
+DELETE FROM users WHERE users.id = 1
+```
+</Section>
+</CodeTabs>
+
+## 왜 SQL-like가 아닌 방식도 있나?
+
+저희는 항상 완벽하게 균형 잡힌 해법을 추구합니다. SQL-like query는 여러분의 요구를 100% 충족하지만, 
+데이터를 더 효율적으로 조회할 수 있는 몇 가지 흔한 시나리오도 존재합니다.
+
+저희는 Queries API를 만들어, join이나 데이터 매핑을 신경 쓰지 않고도 데이터베이스에서 relational하고 nested한 데이터를 가장 편리하고 
+성능 좋은 방식으로 가져올 수 있게 했습니다.
+
+**Drizzle은 항상 정확히 하나의 SQL query만 출력합니다**. serverless database와 함께 안심하고 사용해도 되고,
+성능이나 roundtrip 비용을 걱정할 필요가 없습니다!
+
+<Section>
+```ts
+const result = await db.query.users.findMany({
+	with: {
+		posts: true
+	},
+});
+```
+{/* ```sql
+SELECT * FROM users ...
+``` */}
+</Section>
+
+## Advanced
+Drizzle에서는 원하는 어떤 방식으로든 query를 조합하고 분리할 수 있습니다. main query와 독립적으로 filter를 조합하고, subquery나 조건문을 따로 분리하는 등 훨씬 다양한 구성이 가능합니다. 
+몇 가지 고급 예제를 살펴보겠습니다:
+
+#### WHERE statement를 조합한 뒤 query에서 사용하기
+```ts
+async function getProductsBy({
+  name,
+  category,
+  maxPrice,
+}: {
+  name?: string;
+  category?: string;
+  maxPrice?: string;
+}) {
+  const filters: SQL[] = [];
+
+  if (name) filters.push(ilike(products.name, name));
+  if (category) filters.push(eq(products.category, category));
+  if (maxPrice) filters.push(lte(products.price, maxPrice));
+
+  return db
+    .select()
+    .from(products)
+    .where(and(...filters));
+}
+```
+
+#### subquery를 다른 변수로 분리한 뒤 main query에서 사용하기
+```ts
+const subquery = db
+	.select()
+	.from(internalStaff)
+	.leftJoin(customUser, eq(internalStaff.userId, customUser.id))
+	.as('internal_staff');
+
+const mainQuery = await db
+	.select()
+	.from(ticket)
+	.leftJoin(subquery, eq(subquery.internal_staff.userId, ticket.staffId));
+```
+
+#### 다음 단계는?
+<br/>
+<Flex>
+  <LinksList 
+    title='데이터에 접근하기'
+    links={[
+        ["Query", "/docs/rqb"], 
+        ["Select", "/docs/select"],
+        ["Insert", "/docs/insert"],
+        ["Update", "/docs/update"],
+        ["Delete", "/docs/delete"],
+        ["Filters", "/docs/operators"],
+        ["Joins", "/docs/joins"],
+        ["sql`` 연산자", "/docs/sql"],
+      ]}
+  />
+  <LinksList 
+    title='Zero to Hero'
+    links={[
+        ["Migrations", "/docs/migrations"], 
+      ]}
+  />
+</Flex>

@@ -1,0 +1,15 @@
+생성된 `drizzle/schema.ts`와 `drizzle/relations.ts`의 코드를 실제 스키마 파일로 옮기는 것을 권장합니다. 이 가이드에서는 코드를 `src/db/schema.ts`로 옮겼습니다. 생성된 스키마 및 relations 파일은 삭제해도 됩니다. 이렇게 하면 스키마를 더 구조적으로 관리할 수 있습니다.
+```plaintext {5-6}
+ ├ 📂 drizzle
+ │ ├ 📂 20242409125510_premium_mister_fear
+ │ │ ├ 📜 snapshot.json
+ │ │ └ 📜 migration.sql
+ │ ├ 📜 relations.ts ────────┐
+ │ └ 📜 schema.ts ───────────┤
+ ├ 📂 src                    │ 
+ │ ├ 📂 db                   │
+ │ │ ├ 📜 relations.ts <─────┤
+ │ │ └ 📜 schema.ts <────────┘
+ │ └ 📜 index.ts         
+ └ …
+```

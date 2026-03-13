@@ -1,0 +1,70 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> Vercel Postgres
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- Vercel Postgres 데이터베이스 - [웹사이트](https://vercel.com/docs/storage/vercel-postgres)
+- Vercel Postgres 드라이버 - [docs](https://vercel.com/docs/storage/vercel-postgres/sdk) & [GitHub](https://github.com/vercel/storage/tree/main/packages/postgres)
+- Drizzle PostgreSQL 드라이버 - [docs](/docs/get-started-postgresql)
+</Prerequisites>
+
+**[공식 웹사이트](https://vercel.com/docs/storage/vercel-postgres)**에 따르면,
+Vercel Postgres는 Vercel Functions와 통합되도록 설계된 serverless SQL 데이터베이스입니다.
+
+Drizzle ORM은 `drizzle-orm/vercel-postgres` 패키지를 통해 **[@vercel/postgres](https://vercel.com/docs/storage/vercel-postgres)** serverless
+드라이버를 기본 지원하며, `postgesql://`를 통해 Vercel Postgres에 접근하는 **[`postgres`](#postgresjs)** 또는 **[`pg`](#node-postgres)**
+드라이버도 지원합니다.
+
+공식 **[Vercel Postgres + Drizzle](https://vercel.com/docs/storage/vercel-postgres/using-an-orm#drizzle)** 문서를 확인해 보세요.
+
+#### 1단계 - 패키지 설치
+
+<Npm>
+drizzle-orm @vercel/postgres
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - Vercel Postgres 준비
+
+**[공식 docs.](https://vercel.com/docs/storage/vercel-postgres/quickstart)**에 따라 프로젝트를 설정하세요.
+
+#### 3단계 - 드라이버 초기화 및 쿼리 실행
+
+```typescript copy
+import { drizzle } from 'drizzle-orm/vercel-postgres';
+
+const db = drizzle();
+
+const result = await db.execute('select 1');
+```
+
+기존 드라이버를 직접 제공해야 하는 경우:
+
+```typescript copy
+import { sql } from '@vercel/postgres';
+import { drizzle } from 'drizzle-orm/vercel-postgres';
+
+const db = drizzle({ client: sql })
+
+const result = await db.execute('select 1');
+```
+
+**[@vercel/postgres](https://vercel.com/docs/storage/vercel-postgres)** severless 패키지를 사용하면
+TCP를 사용할 수 없는 Cloudflare Workers 같은 환경에서도 websockets를 통해,
+serverful 환경과 serverless 환경 모두에서 Vercel Postgres에 접근할 수 있습니다.
+
+Vercel Postgres를 _serverfull_ 환경에서 사용하려는 경우에도
+`@vercel/postgres`를 사용할 수 있고, 또는 `postgesql://`를 통해 DB에 직접 접근하면서
+**[`postgres`](#postgresjs)** 또는 **[`pg`](#node-postgres)**를 사용할 수도 있습니다.
+
+#### 다음 단계
+
+<WhatsNextPostgres/>

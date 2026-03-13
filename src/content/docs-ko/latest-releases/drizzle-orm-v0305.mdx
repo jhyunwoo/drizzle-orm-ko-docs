@@ -1,0 +1,29 @@
+---
+title: DrizzleORM v0.30.5 릴리스
+pubDate: 2024-03-27
+description: PostgreSQL, MySQL, SQLite용 `$onUpdate` 기능을 추가했고 smallserial 데이터형 컬럼에 대한 insert 문제를 수정했습니다.
+---
+
+## 새 기능
+
+### PostgreSQL, MySQL, SQLite용 `$onUpdate` 기능
+
+컬럼에 동적인 update 값을 추가합니다.  
+행이 업데이트될 때 함수가 호출되며, 값이 제공되지 않은 경우 반환된 값이 컬럼 값으로 사용됩니다.  
+`default`(또는 `$defaultFn`) 값이 제공되지 않으면, 행이 삽입될 때도 함수가 호출되고 반환된 값이 컬럼 값으로 사용됩니다.
+
+> 참고: 이 값은 `drizzle-kit` 동작에는 영향을 주지 않으며, `drizzle-orm`의 런타임에서만 사용됩니다.
+
+```ts copy {4,5,6}
+const usersOnUpdate = pgTable('users_on_update', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  updateCounter: integer('update_counter').default(sql`1`).$onUpdateFn(() => sql`update_counter + 1`),
+  updatedAt: timestamp('updated_at', { mode: 'date', precision: 3 }).$onUpdate(() => new Date()),
+  alwaysNull: text('always_null').$type<string | null>().$onUpdate(() => null),
+});
+```
+
+## 수정 사항
+
+- smallserial 데이터형 컬럼에 대한 insert는 optional이 아닙니다 - [#1848](https://github.com/drizzle-team/drizzle-orm/issues/1848)

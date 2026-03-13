@@ -1,0 +1,427 @@
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Section from '@mdx-ko/Section.astro';
+
+# Joins [SQL]
+SQL의 Join clause는 테이블 사이의 관련 column을 기준으로 2개 이상의 테이블을 결합하는 데 사용됩니다.
+Drizzle ORM의 joins 문법은 SQL스러움과 타입 안전성 사이의 균형을 맞춥니다.
+
+## Join 유형
+Drizzle ORM은 `INNER JOIN [LATERAL]`, `FULL JOIN`, `LEFT JOIN [LATERAL]`, `RIGHT JOIN`, `CROSS JOIN [LATERAL]`에 대한 API를 제공합니다.
+아래 테이블 스키마를 기준으로 예제를 빠르게 살펴보겠습니다:
+```typescript copy
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+});
+
+export const pets = pgTable('pets', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  ownerId: integer('owner_id').notNull().references(() => users.id),
+})
+```
+
+### Left Join
+<Section>
+```typescript copy
+const result = await db.select().from(users).leftJoin(pets, eq(users.id, pets.ownerId))
+```
+```sql
+select ... from "users" left join "pets" on "users"."id" = "pets"."owner_id"
+```
+```typescript
+// result type
+const result: {
+    user: {
+        id: number;
+        name: string;
+    };
+    pets: {
+        id: number;
+        name: string;
+        ownerId: number;
+    } | null;
+}[];
+```
+</Section>
+
+### Left Join Lateral
+<Section>
+```typescript copy
+const subquery = db.select().from(pets).where(gte(users.age, 16)).as('userPets')
+const result = await db.select().from(users).leftJoinLateral(subquery, sql`true`)
+```
+```sql
+select ... from "users" left join lateral (select ... from "pets" where "users"."age" >= 16) "userPets" on true
+```
+```typescript
+// result type
+const result: {
+    user: {
+        id: number;
+        name: string;
+    };
+    userPets: {
+        id: number;
+        name: string;
+        ownerId: number;
+    } | null;
+}[];
+```
+</Section>
+
+### Right Join
+<Section>
+```typescript copy
+const result = await db.select().from(users).rightJoin(pets, eq(users.id, pets.ownerId))
+```
+```sql
+select ... from "users" right join "pets" on "users"."id" = "pets"."owner_id"
+```
+```typescript
+// result type
+const result: {
+    user: {
+        id: number;
+        name: string;
+    } | null;
+    pets: {
+        id: number;
+        name: string;
+        ownerId: number;
+    };
+}[];
+```
+</Section>
+
+### Inner Join
+<Section>
+```typescript copy
+const result = await db.select().from(users).innerJoin(pets, eq(users.id, pets.ownerId))
+```
+```sql
+select ... from "users" inner join "pets" on "users"."id" = "pets"."owner_id"
+```
+```typescript
+// result type
+const result: {
+    user: {
+        id: number;
+        name: string;
+    };
+    pets: {
+        id: number;
+        name: string;
+        ownerId: number;
+    };
+}[];
+```
+</Section>
+
+### Inner Join Lateral
+<Section>
+```typescript copy
+const subquery = db.select().from(pets).where(gte(users.age, 16)).as('userPets')
+const result = await db.select().from(users).innerJoinLateral(subquery, sql`true`)
+```
+```sql
+select ... from "users" inner join lateral (select ... from "pets" where "users"."age" >= 16) "userPets" on true
+```
+```typescript
+// result type
+const result: {
+    user: {
+        id: number;
+        name: string;
+    };
+    userPets: {
+        id: number;
+        name: string;
+        ownerId: number;
+    };
+}[];
+```
+</Section>
+
+### Full Join
+<Section>
+```typescript copy
+const result = await db.select().from(users).fullJoin(pets, eq(users.id, pets.ownerId))
+```
+```sql
+select ... from "users" full join "pets" on "users"."id" = "pets"."owner_id"
+```
+```typescript
+// result type
+const result: {
+    user: {
+        id: number;
+        name: string;
+    } | null;
+    pets: {
+        id: number;
+        name: string;
+        ownerId: number;
+    } | null;
+}[];
+```
+</Section>
+
+### Cross Join
+<Section>
+```typescript copy
+const result = await db.select().from(users).crossJoin(pets)
+```
+```sql
+select ... from "users" cross join "pets"
+```
+```typescript
+// result type
+const result: {
+    user: {
+        id: number;
+        name: string;
+    };
+    pets: {
+        id: number;
+        name: string;
+        ownerId: number;
+    };
+}[];
+```
+</Section>
+
+### Cross Join Lateral
+<Section>
+```typescript copy
+const subquery = db.select().from(pets).where(gte(users.age, 16)).as('userPets')
+const result = await db.select().from(users).crossJoinLateral(subquery)
+```
+```sql
+select ... from "users" cross join lateral (select ... from "pets" where "users"."age" >= 16) "userPets"
+```
+```typescript
+// result type
+const result: {
+    user: {
+        id: number;
+        name: string;
+    };
+    userPets: {
+        id: number;
+        name: string;
+        ownerId: number;
+    };
+}[];
+```
+</Section>
+
+## 부분 선택
+특정 field의 부분 집합만 선택하거나 평평한 응답 타입을 갖고 싶다면, Drizzle ORM은
+partial select와 함께 joins를 지원하며 `.select({ ... })` 구조를 기준으로 반환 타입을 자동으로 추론합니다.
+<Section>
+```typescript copy
+await db.select({
+  userId: users.id,
+  petId: pets.id,
+}).from(user).leftJoin(pets, eq(users.id, pets.ownerId))
+```
+```sql
+select "users"."id", "pets"."id" from "users" left join "pets" on "users"."id" = "pets"."owner_id"
+```
+```typescript
+// result type
+const result: {
+  userId: number;
+  petId: number | null;
+}[];
+```
+</Section>
+이제 `petId`가 null이 될 수 있다는 점을 눈치챘을 수 있습니다. left join을 사용하고 있기 때문에 pet이 없는 사용자도 있을 수 있기 때문입니다.
+
+필요할 때 partial selection field와 aggregation에 `sql` operator를 사용할 때는,
+올바른 결과 타입 추론을 위해 `sql<type | null>`을 사용해야 한다는 점을 꼭 기억해야 합니다. 이 부분은 직접 지정해야 합니다!
+<Section>
+```typescript copy
+const result = await db.select({
+  userId: users.id,
+  petId: pets.id,
+  petName1: sql`upper(${pets.name})`,
+  petName2: sql<string | null>`upper(${pets.name})`,
+  //˄we should explicitly tell 'string | null' in type, since we're left joining that field
+}).from(user).leftJoin(pets, eq(users.id, pets.ownerId))
+```
+```sql
+select "users"."id", "pets"."id", upper("pets"."name")... from "users" left join "pets" on "users"."id" = "pets"."owner_id"
+```
+```typescript
+// result type
+const result: {
+  userId: number;
+  petId: number | null;
+  petName1: unknown;
+  petName2: string | null;
+}[];
+```
+</Section>
+column이 많은 테이블을 join할 때 nullable field가 너무 많아지는 것을 피하려면 **nested select object syntax**를 활용할 수 있습니다.
+Drizzle의 똑똑한 타입 추론은 모든 테이블 field를 nullable로 만드는 대신 전체 object를 nullable로 만듭니다!
+<Section>
+```typescript copy
+await db.select({
+  userId: users.id,
+  userName: users.name,
+  pet: {
+    id: pets.id,
+    name: pets.name,
+    upperName: sql<string>`upper(${pets.name})`
+  }
+}).from(user).fullJoin(pets, eq(users.id, pets.ownerId))
+```
+```sql
+select ... from "users" full join "pets" on "users"."id" = "pets"."owner_id"
+```
+```typescript
+// result type
+const result: {
+    userId: number | null;
+    userName: string | null;
+    pet: {
+        id: number;
+        name: string;
+        upperName: string;
+    } | null;
+}[];
+```
+</Section>
+
+## Alias & Self join
+Drizzle ORM은 self join이 필요할 때 매우 유용한 table alias를 지원합니다.
+
+사용자와 그 부모를 함께 가져와야 한다고 가정해 보겠습니다:
+<CodeTabs items={["index.ts", "schema.ts"]}>
+<CodeTab>
+```typescript copy
+import { user } from "./schema";
+
+const parent = alias(user, "parent");
+const result = db
+  .select()
+  .from(user)
+  .leftJoin(parent, eq(parent.id, user.parentId));
+```
+```sql
+select ... from "user" left join "user" "parent" on "parent"."id" = "user"."parent_id"
+```
+```typescript
+// result type
+const result: {
+    user: {
+        id: number;
+        name: string;
+        parentId: number;
+    };
+    parent: {
+        id: number;
+        name: string;
+        parentId: number;
+    } | null;
+}[];
+```
+</CodeTab>
+
+```typescript
+export const user = pgTable("user", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  parentId: integer("parent_id").notNull().references((): AnyPgColumn => user.id)
+});
+```
+
+</CodeTabs>
+
+## 결과 집계
+Drizzle ORM은 구조를 바꾸지 않고 driver에서 받은 name-mapped 결과를 전달합니다.
+
+결과를 원하는 방식으로 자유롭게 다룰 수 있으며, 아래는 many-one 관계 데이터를 매핑하는 예시입니다:
+```typescript
+type User = typeof users.$inferSelect;
+type Pet = typeof pets.$inferSelect;
+
+const rows = db.select({
+    user: users,
+    pet: pets,
+  }).from(users).leftJoin(pets, eq(users.id, pets.ownerId)).all();
+
+const result = rows.reduce<Record<number, { user: User; pets: Pet[] }>>(
+  (acc, row) => {
+    const user = row.user;
+    const pet = row.pet;
+
+    if (!acc[user.id]) {
+      acc[user.id] = { user, pets: [] };
+    }
+
+    if (pet) {
+      acc[user.id].pets.push(pet);
+    }
+
+    return acc;
+  },
+  {}
+);
+
+// result type
+const result: Record<number, {
+    user: User;
+    pets: Pet[];
+}>;
+```
+
+## Many-to-one 예시
+```typescript
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+
+const cities = sqliteTable('cities', {
+  id: integer('id').primaryKey(),
+  name: text('name'),
+});
+
+const users = sqliteTable('users', {
+  id: integer('id').primaryKey(),
+  name: text('name'),
+  cityId: integer('city_id').references(() => cities.id)
+});
+
+const db = drizzle();
+
+const result = db.select().from(cities).leftJoin(users, eq(cities.id, users.cityId)).all();
+```
+## Many-to-many 예시
+```typescript
+const users = sqliteTable('users', {
+  id: integer('id').primaryKey(),
+  name: text('name'),
+});
+
+const chatGroups = sqliteTable('chat_groups', {
+  id: integer('id').primaryKey(),
+  name: text('name'),
+});
+
+const usersToChatGroups = sqliteTable('usersToChatGroups', {
+  userId: integer('user_id').notNull().references(() => users.id),
+  groupId: integer('group_id').notNull().references(() => chatGroups.id),
+});
+
+
+// id가 1인 user group과 그 안의 모든 participant(users)를 조회
+db.select()
+  .from(usersToChatGroups)
+  .leftJoin(users, eq(usersToChatGroups.userId, users.id))
+  .leftJoin(chatGroups, eq(usersToChatGroups.groupId, chatGroups.id))
+  .where(eq(chatGroups.id, 1))
+  .all();
+```

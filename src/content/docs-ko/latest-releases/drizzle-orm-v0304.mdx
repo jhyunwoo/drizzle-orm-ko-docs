@@ -1,0 +1,36 @@
+---
+title: DrizzleORM v0.30.4 릴리스
+pubDate: 2024-03-19 12:00:00
+description: Xata 드라이버 지원을 추가했습니다.
+---
+
+import Npm from "@mdx-ko/Npm.astro";
+
+## 새 기능
+
+### 🎉 xata-http 드라이버 지원
+
+**[공식 웹사이트](https://xata.io)**에 따르면, Xata는 안정성, 확장성, 개발자 경험에 초점을 맞춘 Postgres 데이터 플랫폼입니다. Xata Postgres 서비스는 현재 beta이므로, 계정에서 이를 활성화하는 방법은 [Xata docs](https://xata.io/docs/postgres)를 참고하세요.
+
+Drizzle ORM은 `drizzle-orm/xata` 패키지의 `xata` 드라이버와, Xata Postgres 데이터베이스에 접근하기 위한 **`postgres`** 또는 **`pg`** 드라이버를 모두 네이티브하게 지원합니다.
+
+다음 예시는 [xata init](https://xata.io/docs/getting-started/installation) CLI 명령을 실행해 얻는 Xata 생성 클라이언트를 사용합니다.
+
+<Npm>
+drizzle-orm @xata.io/client
+-D drizzle-kit
+</Npm>
+
+```ts
+import { drizzle } from 'drizzle-orm/xata-http';
+import { getXataClient } from './xata'; // Generated client
+
+const xata = getXataClient();
+const db = drizzle(xata);
+
+const result = await db.select().from(...);
+```
+
+`pg` 또는 `postgres.js` 드라이버를 사용해 Xata에 연결할 수도 있습니다.
+
+Xata와 Drizzle을 시작하려면 [documentation](/docs/get-started-postgresql#xata)을 따라 주세요.

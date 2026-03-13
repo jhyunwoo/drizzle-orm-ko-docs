@@ -1,0 +1,15 @@
+테이블 스키마를 업데이트하려면 `schema.ts` 파일에서 업데이트할 수 있습니다. 예를 들어, `users_table`에 새 열 `phone`을 추가해 보겠습니다.
+```typescript copy filename="src/db/schema.ts" {8}
+import { mssqlTable, int, varchar, unique, primaryKey } from "drizzle-orm/mssql-core"
+
+export const users = mssqlTable("users", {
+ id: int(),
+ name: varchar({ length: 255 }).notNull(),
+ age: int().notNull(),
+ email: varchar({ length: 255 }).notNull(),
+ phone: varchar({ length: 255 })
+}, (table) => [
+ primaryKey({ columns: [table.id], name: "users_pkey"}),
+ unique("users_email_key").on(table.email)
+]);
+```

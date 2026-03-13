@@ -1,0 +1,71 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from "@mdx-ko/Section.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> Prisma Postgres
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- Prisma Postgres serverless 데이터베이스 - [웹사이트](https://prisma.io/postgres)
+- Prisma Postgres direct connections - [docs](https://www.prisma.io/docs/postgres/database/direct-connections)
+- Drizzle PostgreSQL 드라이버 - [docs](/docs/get-started-postgresql)
+</Prerequisites>
+
+Prisma Postgres는 [unikernels](https://www.prisma.io/blog/announcing-prisma-postgres-early-access) 위에 구축된 serverless 데이터베이스입니다. 넉넉한 무료 요금제, [operation-based pricing](https://www.prisma.io/blog/operations-based-billing), 그리고 콜드 스타트가 없다는 특징을 제공합니다.
+
+PostgreSQL용 [`node-postgres`](https://node-postgres.com/) 또는 [`postgres.js`](https://github.com/porsager/postgres) 드라이버를 사용해 연결할 수 있습니다.
+
+<Callout type="info">
+Prisma Postgres에는 [serverless driver](https://www.prisma.io/docs/postgres/database/serverless-driver)도 있으며, 향후 Drizzle ORM에서 지원될 예정입니다.
+</Callout>
+
+#### 1단계 - 패키지 설치
+<CodeTabs items={["node-postgres (pg)", "postgres.js"]}>
+<Npm>
+drizzle-orm pg
+-D drizzle-kit
+</Npm>
+
+<Npm>
+drizzle-orm postres
+-D drizzle-kit
+</Npm>
+
+</CodeTabs>
+
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+<CodeTabs items={["node-postgres (pg)", "postgres.js"]}>
+```typescript
+// Make sure to install the 'pg' package
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+const db = drizzle({ client: pool });
+
+const result = await db.execute('select 1');
+```
+```typescript
+// Make sure to install the 'postgres' package
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+
+const queryClient = postgres(process.env.DATABASE_URL);
+const db = drizzle({ client: queryClient });
+
+const result = await db.execute('select 1');
+```
+</CodeTabs>
+
+#### 다음 단계
+
+<WhatsNextPostgres/>

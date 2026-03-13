@@ -1,0 +1,238 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from "@mdx-ko/Section.astro";
+
+# Drizzle HTTP 프록시
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+</Prerequisites>
+
+HTTP 프록시가 어떻게 동작하는지, 그리고 왜 필요할 수 있는지
+
+Drizzle Proxy는 데이터베이스와의 자체 드라이버 통신을 구현해야 할 때 사용됩니다. 
+기존 드라이버로 쿼리 단계에 사용자 정의 로직을 추가하는 것처럼, 여러 경우에 활용할 수 있습니다. 
+가장 일반적인 사용 방식은 HTTP 드라이버와 함께 사용하는 것으로, 데이터베이스가 있는 서버로 쿼리를 보내고, 데이터베이스에서 쿼리를 실행한 뒤 
+Drizzle ORM이 결과로 매핑할 수 있는 원시 데이터를 응답으로 돌려받습니다.
+
+<Callout collapsed="내부적으로는 어떻게 동작하나요?">
+```                                  
+┌───────────────────────────┐                 ┌─────────────────────────────┐              
+│       Drizzle ORM         │                 │  HTTP Server with Database  │             
+└─┬─────────────────────────┘                 └─────────────────────────┬───┘             
+  │                                                ^                    │
+  │-- 1. Build query         2. Send built query --│                    │
+  │                                                │                    │
+  │              ┌───────────────────────────┐     │                    │
+  └─────────────>│                           │─────┘                    │ 
+                 │      HTTP Proxy Driver    │                          │
+  ┌──────────────│                           │<─────────────┬───────────┘
+  │              └───────────────────────────┘              │
+  │                                                  3. Execute a query + send raw results back
+  │-- 4. Map data and return        
+  │                   
+  v
+```
+</Callout>
+
+Drizzle ORM은 SQL 실행을 위해 비동기 콜백 함수를 간단히 사용하는 방식도 지원합니다.
+
+- `sql`은 플레이스홀더가 포함된 쿼리 문자열입니다.
+- `params`는 파라미터 배열입니다.
+- SQL 문에 따라 `method`에는 `run`, `all`, `values`, `get` 중 하나가 설정됩니다.
+
+Drizzle은 반환값으로 항상 `{rows: string[][]}` 또는 `{rows: string[]}`를 기다립니다.
+
+- `method`가 `get`인 경우 `{rows: string[]}` 형태로 값을 반환해야 합니다.
+- 그 외의 경우에는 `{rows: string[][]}`를 반환해야 합니다.
+
+<br/>
+
+<CodeTabs items={['PostgreSQL', 'MySQL', 'SQLite']}>
+<Section>
+```typescript copy
+// Example of driver implementation
+import { drizzle } from 'drizzle-orm/pg-proxy';
+
+const db = drizzle(async (sql, params, method) => {
+  try {
+    const rows = await axios.post('http://localhost:3000/query', { sql, params, method });
+
+    return { rows: rows.data };
+  } catch (e: any) {
+    console.error('Error from pg proxy server: ', e.response.data)
+    return { rows: [] };
+  }
+});
+```
+```ts
+// Example of server implementation
+import { Client } from 'pg';
+import express from 'express';
+
+const app = express();
+
+app.use(express.json());
+const port = 3000;
+
+const client = new Client('postgres://postgres:postgres@localhost:5432/postgres');
+
+app.post('/query', async (req, res) => {
+  const { sql, params, method } = req.body;
+
+  // prevent multiple queries
+  const sqlBody = sql.replace(/;/g, '');
+
+  try {
+    const result = await client.query({
+      text: sqlBody,
+      values: params,
+      rowMode: method === 'all' ? 'array': undefined,
+    });
+    res.send(result.rows);
+  } catch (e: any) {
+    res.status(500).json({ error: e });
+  }
+
+  res.status(500).json({ error: 'Unknown method value' });
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
+```
+</Section>
+<Section>
+```typescript copy
+// Example of driver implementation
+import { drizzle } from 'drizzle-orm/mysql-proxy';
+
+const db = drizzle(async (sql, params, method) => {
+  try {
+    const rows = await axios.post('http://localhost:3000/query', { sql, params, method });
+
+    return { rows: rows.data };
+  } catch (e: any) {
+    console.error('Error from mysql proxy server: ', e.response.data)
+    return { rows: [] };
+  }
+});
+```
+```ts
+// Example of server implementation
+import * as mysql from 'mysql2/promise';
+import express from 'express';
+
+const app = express();
+
+app.use(express.json());
+const port = 3000;
+
+const main = async () => {
+    const connection = await mysql.createConnection('mysql://root:mysql@127.0.0.1:5432/drizzle');
+
+    app.post('/query', async (req, res) => {
+      const { sql, params, method } = req.body;
+
+      // prevent multiple queries
+      const sqlBody = sql.replace(/;/g, '');
+
+      try {
+            const result = await connection.query({
+                sql: sqlBody,
+                values: params,
+                rowsAsArray: method === 'all',
+                typeCast: function(field: any, next: any) {
+                    if (field.type === 'TIMESTAMP' || field.type === 'DATETIME' || field.type === 'DATE') {
+                        return field.string();
+                    }
+                    return next();
+                },
+            });
+      } catch (e: any) {
+        res.status(500).json({ error: e });
+      }
+
+      if (method === 'all') {
+        res.send(result[0]);
+      } else if (method === 'execute') {
+        res.send(result);
+      }
+      res.status(500).json({ error: 'Unknown method value' });
+    });
+
+    app.listen(port, () => {
+      console.log(`Example app listening on port ${port}`);
+    });
+}
+
+main();
+```
+</Section>
+<Section>
+```typescript copy
+import { drizzle } from 'drizzle-orm/sqlite-proxy';
+
+const db = drizzle(async (sql, params, method) => {
+  try {
+    const rows = await axios.post('http://localhost:3000/query', { sql, params, method });
+
+    return { rows: rows.data };
+  } catch (e: any) {
+    console.error('Error from sqlite proxy server: ', e.response.data)
+    return { rows: [] };
+  }
+});
+```
+
+**배치 지원**
+
+Sqlite Proxy는 다른 모든 드라이버와 동일한 방식으로 배치 요청을 지원합니다. 전체 내용은 [문서](/docs/batch-api)를 확인하세요.
+
+배치 쿼리를 위한 별도의 콜백을 지정하고 프록시 서버에 대한 요청을 처리해야 합니다:
+
+```ts
+import { drizzle } from 'drizzle-orm/sqlite-proxy';
+
+type ResponseType = { rows: any[][] | any[] }[];
+
+const db = drizzle(async (sql, params, method) => {
+  // single queries logic. Same as in code above
+}, async (queries: { sql: string, params: any[], method: 'all' | 'run' | 'get' | 'values'}[]) => {
+    try {
+      const result: ResponseType = await axios.post('http://localhost:3000/batch', { queries });
+
+      return result;
+    } catch (e: any) {
+      console.error('Error from sqlite proxy server:', e);
+      throw e;
+    }
+  });
+```
+
+그런 다음 `db.batch([])` 메서드를 사용하면 모든 쿼리가 프록시됩니다.
+
+<Callout>
+  배치 응답은 프록시 서버로 전송한 순서와 동일한 순서의 원시 값 배열(배열 안의 배열)이어야 합니다.
+</Callout>
+
+모든 SQL 쿼리를 손으로 직접 작성할 계획이 아니라면, 테이블 선언이 도움이 됩니다:
+```typescript copy
+import { sql } from "drizzle-orm";
+import { text, integer, sqliteTable } from "drizzle-orm/sqlite-core";
+
+const users = sqliteTable('users', {
+  id: text('id'),
+  textModifiers: text('text_modifiers').notNull().default(sql`CURRENT_TIMESTAMP`),
+  intModifiers: integer('int_modifiers', { mode: 'boolean' }).notNull().default(false),
+});
+```
+컬럼 타입에 대한 자세한 내용은 **[Drizzle의 SQLite 컬럼 타입](/docs/column-types/sqlite)**를 참고하세요.
+</Section>
+</CodeTabs>

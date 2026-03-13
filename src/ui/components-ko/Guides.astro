@@ -1,0 +1,84 @@
+---
+import guideMap from "@/content/docs-ko/guides/_map.json";
+
+const guides = await Astro.glob("../../content/docs-ko/guides/*.mdx");
+const sortedGuides = [];
+
+guideMap.forEach((key) => {
+  const item = guides.find((guide) => (guide.frontmatter.slug ?? guide.file?.split("/").at(-1)?.replace(/\.mdx$/, "")) === key[0]);
+  if (item) sortedGuides.push(item);
+});
+---
+
+<div class="guides_title">가이드</div>
+<div class="guides_description">
+  자주 쓰는 작업을 단계별로 따라갈 수 있도록 정리한 코드 예제와 실전 안내 모음입니다.
+</div>
+<div class="guides__items">
+  {
+    sortedGuides.map((guide) => (
+      <div class="guides__item">
+        <a class="guides__item_link" href={`/docs/guides/${guide.frontmatter.slug ?? ""}`}>
+          {guide.frontmatter.title}
+        </a>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  html.dark .guides_title {
+    color: #e2e6f0;
+  }
+
+  .guides_title {
+    color: #0f172a;
+    margin-top: 8px;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 48px;
+    letter-spacing: -0.48px;
+  }
+
+  html.dark .guides_description {
+    color: #f3f4f6;
+  }
+
+  .guides_description {
+    color: #1e1e1e;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: -0.176px;
+    margin-top: 8px;
+    line-height: 150%;
+    opacity: 0.7;
+    margin-bottom: 16px;
+  }
+
+  .guides__items {
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.dark .guides__item:not(:last-child) {
+    border-bottom: 1px solid #262626;
+  }
+
+  .guides__item:not(:last-child) {
+    border-bottom: 1px solid #efefef;
+  }
+
+  .guides__item {
+    padding: 8px 0;
+  }
+
+  html.dark .guides__item_link {
+    color: #e2e6f0;
+  }
+
+  .guides__item_link {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 1px;
+  }
+</style>

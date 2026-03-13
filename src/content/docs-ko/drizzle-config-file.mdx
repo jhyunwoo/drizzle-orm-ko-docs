@@ -1,0 +1,724 @@
+import CodeTab from "@mdx-ko/CodeTab.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from "@mdx-ko/Section.astro";
+import Tab from "@mdx-ko/Tab.astro";
+import Tabs from "@mdx-ko/Tabs.astro";
+import Callout from "@mdx-ko/Callout.astro";
+import SchemaFilePaths from "@mdx-ko/SchemaFilePaths.mdx"
+import Prerequisites from "@mdx-ko/Prerequisites.astro"
+import Dialects from "@mdx-ko/Dialects.mdx"
+import Drivers from "@mdx-ko/Drivers.mdx"
+import DriversExamples from "@mdx-ko/DriversExamples.mdx"
+import Npx from "@mdx-ko/Npx.astro"
+
+# Drizzle Kit 구성 파일
+<Prerequisites>
+- Drizzle 및 `drizzle-kit` 시작하기 - [여기를 읽으세요](/docs/get-started)
+- Drizzle 스키마 기본 사항 - [여기 읽기](/docs/sql-schema-declaration)
+- 데이터베이스 연결 기본 사항 - [여기를 읽어보세요](/docs/connect-overview)
+- Drizzle 마이그레이션 기본 사항 - [여기에서 읽기](/docs/migrations)
+- Drizzle Kit [개요](/docs/kit-overview) 및 [구성 파일](/docs/drizzle-config-file)
+</Prerequisites>
+
+Drizzle Kit를 사용하면 `TypeScript` 또는 `JavaScript` 구성 파일에서 구성 옵션을 선언할 수 있습니다.
+
+<Section>
+```plaintext {5}
+📦 <project root>
+ ├ ...
+ ├ 📂 drizzle
+ ├ 📂 src
+ ├ 📜 drizzle.config.ts
+ └ 📜 package.json
+```
+<CodeTabs items={["drizzle.config.ts", "drizzle.config.js"]}>
+<CodeTab>
+```ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  schema: "./src/schema.ts",
+  out: "./drizzle",
+});
+```
+</CodeTab>
+<CodeTab>
+```js
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  schema: "./src/schema.ts",
+  out: "./drizzle",
+});
+```
+</CodeTab>
+</CodeTabs>
+</Section>
+
+확장 구성 파일의 예
+```ts collapsable
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  out: "./drizzle",
+  dialect: "postgresql",
+  schema: "./src/schema.ts",
+
+  driver: "pglite",
+  dbCredentials: {
+    url: "./database/",
+  },
+
+  extensionsFilters: ["postgis"],
+  schemaFilter: "public",
+  tablesFilter: "*",
+
+  introspect: {
+    casing: "camel",
+  },
+
+  migrations: {
+    prefix: "timestamp",
+    table: "__drizzle_migrations__",
+    schema: "public",
+  },
+
+  entities: {
+    roles: {
+      provider: '',
+      exclude: [],
+      include: []
+    }
+  },
+
+  breakpoints: true,
+  strict: true,
+  verbose: true,
+});
+```
+
+### 여러 구성 파일
+프로젝트에 여러 구성 파일이 있을 수 있습니다. 이는 동일한 프로젝트에 여러 데이터베이스 단계, 여러 데이터베이스 또는 서로 다른 데이터베이스가 있는 경우 매우 유용합니다.
+<Npx>
+  drizzle-kit generate --config=drizzle-dev.config.ts
+  drizzle-kit generate --config=drizzle-prod.config.ts
+</Npx>
+```plaintext {5-6}
+📦 <project root>
+ ├ 📂 drizzle
+ ├ 📂 src
+ ├ 📜 .env
+ ├ 📜 drizzle-dev.config.ts
+ ├ 📜 drizzle-prod.config.ts
+ ├ 📜 package.json
+ └ 📜 tsconfig.json
+```
+
+### 마이그레이션 폴더
+`out` 매개변수를 사용하면 마이그레이션을 위한 폴더를 정의할 수 있습니다. 이는 선택 사항이며 기본적으로 `drizzle`입니다.  
+동일한 프로젝트의 서로 다른 데이터베이스에 대해 별도의 스키마를 많이 가질 수 있으므로 매우 유용합니다. 
+서로 다른 마이그레이션 폴더가 있습니다.  
+  
+마이그레이션 폴더에는 `drizzle-kit`에서 사용되는 `.sql` 마이그레이션 파일이 있는 폴더가 포함되어 있습니다.
+
+<Section>
+```plaintext {3}
+📦 <project root>
+ ├ ...
+ ├ 📂 drizzle
+ │ ├ 📂 20242409125510_premium_mister_fear
+ │ ├ 📜 user.ts 
+ │ ├ 📜 post.ts 
+ │ └ 📜 comment.ts 
+ ├ 📂 src
+ ├ 📜 drizzle.config.ts
+ └ 📜 package.json
+```
+```ts {5}
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql", // "mysql" | "sqlite" | "postgresql" | "turso" | "singlestore" | "mssql"
+  schema: "./src/schema/*",
+  out: "./drizzle",
+});
+```
+</Section>
+
+## ---
+
+### `dialect`
+<rem025/>
+
+사용 중인 데이터베이스의 방언 
+|               |                                                 |
+| :------------ | :---------------------- |
+| 유형 | <Dialects/> |
+| 기본값 | -- |
+| 명령 | `generate` `migrate` `push` `pull` `check` `up` |
+
+<rem025/>
+```ts {4}
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "mysql", 
+});
+```
+
+
+### `schema`
+<rem025/>
+
+[`glob`](https://www.digitalocean.com/community/tools/glob?comments=true&glob=/**/*.js&matches=false&tests=//%20This%20will%20match%20as%20it%20ends%20with%20'.js'&tests=/hello/world.js&tests=//%20This%20won't%20match!&tests=/test/some/globs)
+ Drizzle 스키마 파일 또는 스키마 파일이 포함된 폴더에 대한 기반 경로입니다.
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `string` `string[]` |
+| 기본값 | -- |
+| 명령 | `generate` `push` |
+
+<rem025/>
+<SchemaFilePaths />
+### `out`
+<rem025/>
+
+SQL 마이그레이션 파일의 출력 폴더, 스키마의 json 스냅샷 및 `drizzle-kit pull` 명령의 `schema.ts`을 정의합니다.
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `string` `string[]` |
+| 기본값 | `drizzle` |
+| 명령 | `generate` `migrate` `push` `pull` `check` `up` |
+
+<rem025/>
+```ts {4}
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  out: "./drizzle", 
+});
+```
+
+### `driver`
+<rem025/>
+
+Drizzle Kit는 제공된 `dialect`을 기반으로 현재 프로젝트에서 사용 가능한 데이터베이스 드라이버를 자동으로 선택합니다. 
+그러나 일부 공급업체별 데이터베이스에는 연결 매개변수의 다른 하위 집합이 필요합니다.
+
+`driver` 옵션을 사용하면 해당 예외 드라이버를 명시적으로 선택할 수 있습니다.
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | <Drivers/> |
+| 기본값 | -- |
+| 명령 | `migrate` `push` `pull` |
+
+<rem025/>
+
+<DriversExamples/>
+## ---
+
+### `dbCredentials`
+<rem025/>
+
+`url` 형식의 데이터베이스 연결 자격 증명, 
+`user:password@host:port/db` 매개변수 또는 예외 드라이버(<Drivers/>) 특정 연결 옵션.
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | 드라이버 연결 옵션 통합 |
+| 기본값 | -- |
+| 명령 | `migrate` `push` `pull` |
+
+<rem025/>
+
+<CodeTabs items={["포스트그레SQL", "MySQL", "SQLite", "투르소", "클라우드플레어 D1", "AWS 데이터 API", "PGLite"]}>
+<Section>
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+export default defineConfig({
+  dialect: "postgresql",
+  dbCredentials: {
+    url: "postgres://user:password@host:port/db",
+  }
+});
+```
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+// via connection params
+export default defineConfig({
+  dialect: "postgresql",
+  dbCredentials: {
+    host: "host",
+    port: 5432,
+    user: "user",
+    password: "password",
+    database: "dbname",
+    ssl: true, // can be boolean | "require" | "allow" | "prefer" | "verify-full" | options from node:tls
+  }
+});
+```
+</Section>
+<Section>
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+export default defineConfig({
+  dialect: "mysql",
+  dbCredentials: {
+    url: "mysql://user:password@host:port/db",
+  }
+});
+```
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+// via connection params
+export default defineConfig({
+  dialect: "mysql",
+  dbCredentials: {
+    host: "host",
+    port: 5432,
+    user: "user",
+    password: "password",
+    database: "dbname",
+    ssl: "...", // can be: string | SslOptions (ssl options from mysql2 package)
+  }
+});
+```
+</Section>
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+export default defineConfig({
+  dialect: "sqlite",
+  dbCredentials: {
+    url: ":memory:", // inmemory database
+    // or
+    url: "sqlite.db", 
+    // or
+    url: "file:sqlite.db" // file: prefix is required by libsql
+  }
+});
+```
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+export default defineConfig({
+  dialect: "turso",
+  dbCredentials: {
+    url: "libsql://acme.turso.io" // remote Turso database url
+    authToken: "...",
+
+    // or if you need local db
+
+    url: ":memory:", // inmemory database
+    // or
+    url: "file:sqlite.db", // file: prefix is required by libsql
+  }
+});
+```
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+export default defineConfig({
+  dialect: "sqlite",
+  driver: "d1-http",
+  dbCredentials: {
+    accountId: "",
+    databaseId: "",
+    token: "",
+  }
+});
+```
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+export default defineConfig({
+  dialect: "postgresql",
+  driver: "aws-data-api",
+  dbCredentials: {
+    database: "database",
+    resourceArn: "resourceArn",
+    secretArn: "secretArn",
+  },
+});
+```
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+export default defineConfig({
+  dialect: "postgresql",
+  driver: "pglite",
+  dbCredentials: {
+    url: "./database/", // database folder path
+  }
+});
+```
+</CodeTabs>
+
+### `migrations`
+<rem025/>
+
+`drizzle-kit migrate`을 실행할 때 - drizzle은 다음을 기록합니다. 
+`public` 스키마(PostgreSQL에만 해당)의 `__drizzle_migrations` 로그 테이블에 있는 데이터베이스에 마이그레이션이 성공적으로 적용되었습니다.
+
+`migrations` 구성 옵션을 사용하면 마이그레이션 로그 `table` 이름과 `schema`을 모두 변경할 수 있습니다.
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `{ table: string, schema: string }` |
+| 기본값 | `{ table: "__drizzle_migrations", schema: "drizzle" }` |
+| 명령 | `migrate` |
+
+<rem025/>
+```ts
+export default defineConfig({
+  dialect: "postgresql",
+  schema: "./src/schema.ts",
+  migrations: {
+    table: 'my-migrations-table', // `__drizzle_migrations` by default
+    schema: 'public', // used in PostgreSQL only, `drizzle` by default
+  },
+});
+```
+
+### `introspect`
+<rem025/>
+
+`drizzle-kit pull` 명령에 대한 구성입니다.
+
+`casing`은 코드 내 열 키 대소문자 구분을 담당합니다.
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `{ casing: "preserve" \| "camel" }` |
+| 기본값 | `{ casing: "camel" }` |
+| 명령 | `pull` |
+
+<rem025/>
+
+<CodeTabs items={["camel", "preserve"]}>
+<Section>
+```ts
+import * as p from "drizzle-orm/pg-core"
+
+export const users = p.pgTable("users", {
+  id: p.serial(),
+  firstName: p.text("first-name"),
+  lastName: p.text("LastName"),
+  email: p.text(),
+  phoneNumber: p.text("phone_number"),
+});
+```
+```sql
+SELECT a.attname AS column_name, format_type(a.atttypid, a.atttypmod) as data_type FROM pg_catalog.pg_attribute a;
+```
+``` 
+ column_name   | data_type        
+---------------+------------------------
+ id            | serial
+ first-name    | text
+ LastName      | text
+ email         | text
+ phone_number  | text
+```
+</Section>
+<Section>
+```ts
+import * as p from "drizzle-orm/pg-core"
+
+export const users = p.pgTable("users", {
+  id: p.serial(),
+  "first-name": p.text("first-name"),
+  LastName: p.text("LastName"),
+  email: p.text(),
+  phone_number: p.text("phone_number"),
+});
+```
+```sql
+SELECT a.attname AS column_name, format_type(a.atttypid, a.atttypmod) as data_type FROM pg_catalog.pg_attribute a;
+```
+``` 
+ column_name   | data_type        
+---------------+------------------------
+ id            | serial
+ first-name    | text
+ LastName      | text
+ email         | text
+ phone_number  | text
+```
+</Section>
+</CodeTabs>
+
+
+## --- 
+
+### `tablesFilter`
+<Callout>
+하나의 데이터베이스로 여러 프로젝트를 실행하려면 [가이드](/docs/goodies#multi-project-schema)를 확인하세요.
+</Callout>
+<rem025/>
+`drizzle-kit push` 및 `drizzle-kit pull`은 기본적으로 `public` 스키마의 모든 테이블을 관리합니다.
+`tablesFilters`, `schemaFilter` 및 `extensionFilters` 옵션을 통해 테이블, 스키마 및 확장 목록을 구성할 수 있습니다.
+
+`tablesFilter` 옵션을 사용하면 [`glob`](https://www.digitalocean.com/community/tools/glob?comments=true&glob=/**/*.js&matches=false&tests=//%20This%20will%20match%20as%20it%20ends%20with%20'.js'&tests=/hello/world.js&tests=//%20This%20won't%20match!&tests=/test/some/globs)을 지정할 수 있습니다. 
+기반 테이블 이름 필터(예: `["users", "user_info"]` 또는 `"user*"`
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `string` `string[]` |
+| 기본값 | -- |
+| 명령 | `generate` `push` `pull` |
+
+<rem025/>
+```ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  tablesFilter: ["users", "posts", "project1_*"],
+});
+```
+
+### `schemaFilter`
+
+`1.0.0-beta.1` 버전부터 변경되었습니다!
+
+<Callout type='warning' collapsed="0.x 버전에서 작동하는 방식">
+`drizzle-kit push` 및 `drizzle-kit pull`은 기본적으로 `public` 스키마의 모든 테이블을 관리합니다.
+`tablesFilters`, `schemaFilter` 및 `extensionFilters` 옵션을 통해 테이블, 스키마 및 확장 목록을 구성할 수 있습니다.
+
+`schemaFilter` 옵션을 사용하면 Drizzle Kit가 관리할 스키마 목록을 지정할 수 있습니다.
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `string[]` |
+| 기본값 | `["public"]` |
+| 명령 | `push` `pull` |
+
+</Callout>
+
+<Callout>
+하나의 데이터베이스로 여러 프로젝트를 실행하려면 [가이드](/docs/goodies#multi-project-schema)를 확인하세요.
+</Callout>
+
+`drizzle-kit push` 및 `drizzle-kit pull`은 기본적으로 모든 스키마를 관리합니다.
+
+`schemaFilter` 옵션을 사용하면 [`glob`](https://www.digitalocean.com/community/tools/glob?comments=true&glob=/**/*.js&matches=false&tests=//%20This%20will%20match%20as%20it%20ends%20with%20'.js'&tests=/hello/world.js&tests=//%20This%20won't%20match!&tests=/test/some/globs)을 지정할 수 있습니다. 
+기반 스키마 이름 필터(예: `["public", "auth"]` 또는 `"tenant_*"`
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `string[]` |
+| 명령 | `push` `pull` |
+
+<rem025/>
+```ts
+export default defineConfig({
+  dialect: "postgresql",
+  schemaFilter: ["public", "schema1", "schema2"],
+});
+```
+
+### `extensionsFilters`
+<rem025/>
+
+[`postgis`](https://postgis.net/)과 같은 일부 확장은 데이터베이스에 설치되면 공개 스키마에 자체 테이블을 생성합니다. 
+해당 테이블은 `drizzle-kit push` 또는 `drizzle-kit pull`에서 무시되어야 합니다.
+
+`extensionsFilters` 옵션을 사용하면 Drizzle Kit에 설치된 확장 목록을 선언하여 스키마의 해당 테이블을 무시할 수 있습니다.
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `["postgis"]` |
+| 기본값 | `[]` |
+| 명령 | `push` `pull` |
+
+<rem025/>
+```ts
+export default defineConfig({
+  dialect: "postgresql",
+  extensionsFilters: ["postgis"],
+});
+```
+
+## ---
+
+### `entities`
+
+이 구성은 데이터베이스의 특정 `entities`에 대한 관리 설정을 지정하기 위해 생성됩니다. 
+
+현재는 `roles`만 포함되어 있지만 결국 `tables`, `schemas`, `extensions`, `functions`, `triggers` 등과 같은 모든 데이터베이스 엔터티가 여기로 마이그레이션됩니다.
+#### `roles`
+
+<rem025/>
+
+Drizzle Kit를 사용하여 스키마, 특히 정의된 역할을 관리하는 경우 Drizzle 스키마에 정의되지 않은 일부 역할이 있는 상황이 있을 수 있습니다. 
+이러한 경우 Drizzle 스키마에 각 역할을 작성하고 `.existing()`로 표시할 필요 없이 Drizzle Kit가 해당 `roles`을 건너뛰도록 할 수 있습니다.
+
+`roles` 옵션을 사용하면 다음을 수행할 수 있습니다.
+
+- Drizzle Kit로 역할 관리를 활성화 또는 비활성화합니다.
+- Drizzle Kit의 관리에서 특정 역할을 제외합니다.
+- Drizzle Kit의 관리를 위한 특정 역할을 포함합니다.
+- 특정 역할을 관리하지 않는 `Neon` 및 `Supabase`과 같은 공급자에 대한 모드를 활성화합니다.
+- 위의 모든 옵션을 결합하세요
+
+|               |                       |
+| :------------ | :----------------- |
+| 유형 | `boolean \| { provider: "neon" \| "supabase", include: string[], exclude: string[]}`|
+| 기본값 | `false` |
+| 명령 | `push` `pull` `generate` |
+
+<rem025/>
+
+기본적으로 `drizzle-kit`은 역할을 관리하지 않으므로 이를 활성화해야 합니다. `drizzle.config.ts`에서
+```ts
+export default defineConfig({
+  dialect: "postgresql",
+  entities: {
+    roles: true
+  }
+});
+```
+**귀하에게는 `admin` 역할이 있으며 관리 가능한 역할 목록에서 이를 제외하려고 합니다**
+```ts
+// drizzle.config.ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  ...
+  entities: {
+    roles: {
+      exclude: ['admin']
+    }
+  }
+});
+```
+**귀하에게는 `admin` 역할이 있으며 관리 가능한 역할 목록에 포함하려고 합니다**
+```ts
+// drizzle.config.ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  ...
+  entities: {
+    roles: {
+      include: ['admin']
+    }
+  }
+});
+```
+**`Neon`을 사용 중이고 `Neon`에 의해 정의된 역할을 제외하려는 경우 공급자 옵션을 사용할 수 있습니다**
+```ts
+// drizzle.config.ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  ...
+  entities: {
+    roles: {
+      provider: 'neon'
+    }
+  }
+});
+```
+**`Supabase`을 사용 중이고 `Supabase`에 의해 정의된 역할을 제외하려는 경우 공급자 옵션을 사용할 수 있습니다**
+```ts
+// drizzle.config.ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  ...
+  entities: {
+    roles: {
+      provider: 'supabase'
+    }
+  }
+});
+```
+<Callout title='중요한'>
+데이터베이스 공급자가 지정한 새로운 역할에 비해 Drizzle이 약간 오래된 상황이 발생할 수 있습니다. 
+따라서 `provider` 옵션과 `exclude` 추가 역할을 모두 사용해야 할 수도 있습니다. Drizzle을 사용하면 이 작업을 쉽게 수행할 수 있습니다.
+```ts
+// drizzle.config.ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  ...
+  entities: {
+    roles: {
+      provider: 'supabase',
+      exclude: ['new_supabase_role']
+    }
+  }
+});
+```
+</Callout>
+
+## ---
+
+### `strict`
+<rem025/>
+
+`drizzle-kit push` 명령을 실행할 때 인쇄된 SQL 문을 실행하라는 확인 메시지를 표시합니다.
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `boolean` |
+| 기본값 | `false` |
+| 명령 | `push` |
+
+<rem025/>
+```ts
+export default defineConfig({
+  dialect: "postgresql",
+  strict: false,
+});
+```
+
+### `verbose`
+<rem025/>
+
+`drizzle-kit push` 명령 중에 모든 SQL 문을 인쇄합니다.
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `boolean` |
+| 기본값 | `true` |
+| 명령 | `generate` `pull` |
+
+<rem025/>
+```ts
+export default defineConfig({
+  dialect: "postgresql",
+  verbose: false,
+});
+```
+
+### `breakpoints`
+<rem025/>
+
+Drizzle Kit는 생성된 SQL 마이그레이션 파일에 `--> statement-breakpoint`을 자동으로 포함합니다. 
+이는 하나의 트랜잭션(MySQL 및 SQLite)에서 여러 DDL 대체 문을 지원하지 않는 데이터베이스에 필요합니다.
+
+`breakpoints` 옵션 플래그를 사용하면 켜거나 끌 수 있습니다.
+
+|               |                      |
+| :------------ | :----------------- |
+| 유형 | `boolean` |
+| 기본값 | `true` |
+| 명령 | `generate` `pull` |
+
+<rem025/>
+```ts
+export default defineConfig({
+  dialect: "postgresql",
+  breakpoints: false,
+});
+```

@@ -1,0 +1,51 @@
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import LibsqlTable from "@mdx-ko/LibsqlTable.mdx";
+import LibsqlTabs from "@mdx-ko/LibsqlTabs.mdx";
+
+# Drizzle \<\> Turso Database
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- Turso Database - [웹사이트](https://docs.turso.tech/introduction)
+- Turso Database 드라이버 - [웹사이트](https://docs.turso.tech/connect/javascript) & [GitHub](https://github.com/tursodatabase/turso/tree/main/bindings/javascript)
+</Prerequisites>
+
+**[공식 웹사이트](https://docs.turso.tech/introduction)**에 따르면,
+Turso는 AI 시대의 큰 꿈을 실현하기 위한 작은 데이터베이스입니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm@beta @tursodatabase/database
+-D drizzle-kit@beta
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+```typescript
+import { drizzle } from 'drizzle-orm/tursodatabase/database';
+
+const db = drizzle('sqlite.db');
+
+const result = await db.execute('select 1');
+```
+
+기존 드라이버를 직접 제공해야 하는 경우:
+
+```typescript
+import { Database } from '@tursodatabase/drivers';
+import { drizzle } from 'drizzle-orm/tursodatabase/database';
+
+const client = new Database('sqlite.db');
+const db = drizzle({ client });
+
+const result = await db.execute('select 1');
+```
+
+#### 다음 단계
+
+<WhatsNextPostgres/>

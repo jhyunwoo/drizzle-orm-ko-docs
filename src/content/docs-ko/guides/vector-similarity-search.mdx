@@ -1,0 +1,154 @@
+---
+title: pgvector extension을 사용한 벡터 유사도 검색
+slug:  vector-similarity-search
+---
+
+import Section from "@mdx-ko/Section.astro";
+import IsSupportedChipGroup from "@mdx-ko/IsSupportedChipGroup.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Npm from "@mdx-ko/Npm.astro";
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql) 시작하기
+- [Select statement](/docs/select)
+- [Indexes](/docs/indexes-constraints#indexes)
+- [sql operator](/docs/sql)
+- [pgvector extension](/docs/extensions/pg#pg_vector)
+- [Drizzle kit](/docs/kit-overview)
+- embedding 생성을 위해 `openai` [package](https://www.npmjs.com/package/openai)를 설치해야 합니다.
+<Npm>
+  openai
+</Npm>
+- `drizzle-orm@0.31.0`, `drizzle-kit@0.22.0` 이상이 필요합니다.
+</Prerequisites>
+
+PostgreSQL에서 Drizzle ORM으로 벡터 유사도 검색을 구현하려면 `pgvector` extension을 사용할 수 있습니다. 이 extension은 벡터를 다루고 유사도 검색을 수행하기 위한 함수 집합을 제공합니다.
+
+현재로서는 Drizzle이 extension을 자동으로 만들지 않으므로, 직접 생성해야 합니다. 빈 migration file을 만든 뒤 SQL query를 추가하세요:
+
+<Section>
+```bash
+npx drizzle-kit generate --custom
+```
+
+```sql
+CREATE EXTENSION vector;
+```
+</Section>
+
+유사도 검색을 수행하려면, 벡터 컬럼이 있는 테이블을 만들고 더 나은 성능을 위해 이 컬럼에 `HNSW` 또는 `IVFFlat` index를 만들어야 합니다:
+
+<CodeTabs items={["schema.ts", "migration.sql"]}>
+  <CodeTab>
+  ```ts copy {10, 13}
+  import { index, pgTable, serial, text, vector } from 'drizzle-orm/pg-core';
+
+  export const guides = pgTable(
+    'guides',
+    {
+      id: serial('id').primaryKey(),
+      title: text('title').notNull(),
+      description: text('description').notNull(),
+      url: text('url').notNull(),
+      embedding: vector('embedding', { dimensions: 1536 }),
+    },
+    (table) => [
+      index('embeddingIndex').using('hnsw', table.embedding.op('vector_cosine_ops')),
+    ]
+  );
+  ```
+  </CodeTab>
+  ```sql
+  CREATE TABLE IF NOT EXISTS "guides" (
+    "id" serial PRIMARY KEY NOT NULL,
+    "title" text NOT NULL,
+    "description" text NOT NULL,
+    "url" text NOT NULL,
+    "embedding" vector(1536)
+  );
+  --> statement-breakpoint
+  CREATE INDEX IF NOT EXISTS "embeddingIndex" ON "guides" USING hnsw (embedding vector_cosine_ops);
+  ```
+</CodeTabs>
+
+`embedding` 컬럼은 가이드 설명의 벡터 임베딩을 저장하는 데 사용됩니다. 벡터 임베딩은 어떤 데이터의 표현에 불과합니다. 서로 다른 종류의 데이터를 언어 모델이 처리할 수 있는 공통 형식(벡터)으로 변환합니다. 덕분에 두 벡터 사이의 거리를 측정하는 등 수학적 연산을 수행해, 두 데이터 항목이 얼마나 비슷하거나 다른지를 판단할 수 있습니다.
+
+이 예제에서는 설명에 대한 [embeddings](https://platform.openai.com/docs/guides/embeddings)를 생성하기 위해 `OpenAI` 모델을 사용합니다:
+```ts copy
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env['OPENAI_API_KEY'],
+});
+
+export const generateEmbedding = async (value: string): Promise<number[]> => {
+  const input = value.replaceAll('\n', ' ');
+
+  const { data } = await openai.embeddings.create({
+    model: 'text-embedding-ada-002',
+    input,
+  });
+
+  return data[0].embedding;
+};
+```
+
+embedding으로 비슷한 가이드를 검색하려면, `gt`와 `sql` 연산자, 그리고 `cosineDistance` 함수를 사용해 `embedding` 컬럼과 생성된 embedding 사이의 유사도를 계산할 수 있습니다:
+
+<Section>
+```ts copy {10,15,16}
+import { cosineDistance, desc, gt, sql } from 'drizzle-orm';
+import { generateEmbedding } from './embedding';
+import { guides } from './schema';
+
+const db = drizzle(...);
+
+const findSimilarGuides = async (description: string) => {
+  const embedding = await generateEmbedding(description);
+
+  const similarity = sql<number>`1 - (${cosineDistance(guides.embedding, embedding)})`;
+
+  const similarGuides = await db
+    .select({ name: guides.title, url: guides.url, similarity })
+    .from(guides)
+    .where(gt(similarity, 0.5))
+    .orderBy((t) => desc(t.similarity))
+    .limit(4);
+
+  return similarGuides;
+};
+```
+
+```ts
+const description = 'Guides on using Drizzle ORM with different platforms';
+
+const similarGuides = await findSimilarGuides(description);
+```
+
+```json
+[
+  {
+    name: 'Drizzle with Turso',
+    url: '/docs/tutorials/drizzle-with-turso',
+    similarity: 0.8642314333984994
+  },
+  {
+    name: 'Drizzle with Supabase Database',
+    url: '/docs/tutorials/drizzle-with-supabase',
+    similarity: 0.8593631126014918
+  },
+  {
+    name: 'Drizzle with Neon Postgres',
+    url: '/docs/tutorials/drizzle-with-neon',
+    similarity: 0.8541051184461372
+  },
+  {
+    name: 'Drizzle with Vercel Edge Functions',
+    url: '/docs/tutorials/drizzle-with-vercel-edge-functions',
+    similarity: 0.8481551084241092
+  }
+]
+```
+</Section>

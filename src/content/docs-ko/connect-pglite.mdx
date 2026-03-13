@@ -1,0 +1,73 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> PGlite
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- ElectricSQL - [웹사이트](https://electric-sql.com/)
+- PGlite 드라이버 - [docs](https://pglite.dev/) & [GitHub](https://github.com/electric-sql/pglite)
+</Prerequisites>
+
+**[공식 repo](https://github.com/electric-sql/pglite)**에 따르면, PGlite는 WASM으로 빌드된 Postgres를 TypeScript 클라이언트 라이브러리로 패키징한 것으로, 별도의 의존성을 설치하지 않고도 브라우저, Node.js, Bun에서 Postgres를 실행할 수 있게 해줍니다. gzip 기준 크기는 2.6mb에 불과합니다.
+
+임시 in-memory 데이터베이스로 사용할 수도 있고, 파일 시스템(Node/Bun)이나 indexedDB(브라우저)에 영속화해서 사용할 수도 있습니다.
+
+이전의 "Postgres in the browser" 프로젝트들과 달리, PGlite는 Linux 가상 머신을 사용하지 않습니다. 단순히 WASM으로 동작하는 Postgres입니다.
+
+#### 1단계 - 패키지 설치
+
+<Npm>
+drizzle-orm @electric-sql/pglite
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+<CodeTabs items={["In-Memory", "디렉터리 사용", "추가 config 옵션 사용"]}>
+```typescript copy"
+import { drizzle } from 'drizzle-orm/pglite';
+
+const db = drizzle();
+
+await db.select().from(...);
+```
+```typescript copy"
+import { drizzle } from 'drizzle-orm/pglite';
+
+const db = drizzle('path-to-dir');
+
+await db.select().from(...);
+```
+```typescript copy"
+import { drizzle } from 'drizzle-orm/pglite';
+
+// connection is a native PGLite configuration
+const db = drizzle({ connection: { dataDir: 'path-to-dir' }});
+
+await db.select().from(...);
+```
+</CodeTabs>
+
+기존 드라이버를 직접 제공해야 하는 경우:
+
+```typescript copy"
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+
+// In-memory Postgres
+const client = new PGlite();
+const db = drizzle({ client });
+
+await db.select().from(users);
+```
+
+#### 다음 단계
+
+<WhatsNextPostgres/>

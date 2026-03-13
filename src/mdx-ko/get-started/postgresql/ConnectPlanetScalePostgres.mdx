@@ -1,0 +1,41 @@
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Callout from '@mdx-ko/Callout.astro';
+
+`src` 디렉터리에 `index.ts` 파일을 생성하고 연결을 초기화합니다.
+
+<CodeTabs items={["node-postgres", "설정이 포함된 node-postgres", "기존 node-postgres 드라이버"]}>
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+
+const db = drizzle(process.env.DATABASE_URL!);
+```
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+
+// You can specify any property from the node-postgres connection options
+const db = drizzle({ 
+  connection: { 
+    connectionString: process.env.DATABASE_URL!,
+    ssl: true
+  }
+});
+```
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL!,
+});
+const db = drizzle({ client: pool });
+```
+</CodeTabs>
+
+<Callout title='Connection ports' type='info'>
+PlanetScale Postgres는 두 개의 연결 포트를 지원합니다:
+- **포트 5432** - PostgreSQL에 직접 연결합니다. 총 연결 수는 클러스터의 `max_connections` 설정에 의해 제한됩니다.
+- **포트 6432** - 연결 풀링을 위한 PgBouncer를 통해 연결합니다. 동시 연결이 많은 경우 권장됩니다.
+</Callout>

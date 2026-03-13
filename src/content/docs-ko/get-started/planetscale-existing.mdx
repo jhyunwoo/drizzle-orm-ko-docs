@@ -1,0 +1,131 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+import ConnectPlanetScale from '@mdx-ko/get-started/mysql/ConnectPlanetScale.mdx';
+import CreateTable from '@mdx-ko/get-started/mysql/CreateTable.mdx';
+import UpdateSchema from '@mdx-ko/get-started/mysql/UpdateSchema.mdx';
+import IntrospectMySQL from '@mdx-ko/get-started/mysql/IntrospectMySQL.mdx';
+import QueryPlanetScale from '@mdx-ko/get-started/mysql/QueryPlanetScale.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import TransferCode from '@mdx-ko/get-started/TransferCode.mdx';
+
+<Breadcrumbs/>
+
+# 기존 프로젝트에서 Drizzle과 PlanetScale로 시작하기
+
+<Prerequisites>  
+  - **dotenv** - 환경 변수를 관리하는 패키지 - [여기에서 읽기](https://www.npmjs.com/package/dotenv)
+  - **tsx** - TypeScript 파일을 실행하는 패키지 - [여기에서 읽기](https://tsx.is)
+  - **PlanetScale** - MySQL 데이터베이스 플랫폼 - [여기에서 읽기](https://planetscale.com)
+  - **database-js** - PlanetScale 서버리스 드라이버 - [여기에서 읽기](https://github.com/planetscale/database-js)
+</Prerequisites>
+
+<Callout title='PlanetScale은 Postgres도 제공합니다' type='info'>
+PostgreSQL을 찾고 있나요? [PlanetScale Postgres 가이드](/docs/get-started/planetscale-postgres-existing)를 확인해 보세요.
+</Callout>
+
+<Callout title='중요' type='warning'>
+이 튜토리얼에서는 `database-js` 드라이버를 사용해 PlanetScale 데이터베이스에 **HTTP** 호출을 보냅니다. TCP로 PlanetScale에 연결해야 한다면 [MySQL 시작하기](/docs/get-started/mysql-new) 페이지를 참고하세요.
+</Callout>
+
+<FileStructure/>
+
+#### 1단계 - **@planetscale/database** 패키지 설치
+
+<InstallPackages lib='@planetscale/database'/>
+
+#### 2단계 - 연결 변수 설정
+
+<SetupEnv env_variable='DATABASE_URL' />
+
+#### 3단계 - Drizzle config 파일 설정
+
+<SetupConfig dialect='mysql' env_variable='DATABASE_URL'/>
+
+#### 4단계 - 데이터베이스 introspect
+
+<IntrospectMySQL/>
+
+#### 5단계 - 실제 schema 파일로 코드 옮기기
+
+<TransferCode/>
+
+#### 6단계 - Drizzle ORM을 데이터베이스에 연결
+
+<ConnectPlanetScale/>
+
+#### 7단계 - 데이터베이스 쿼리
+
+<QueryPlanetScale />
+
+#### 8단계 - index.ts 파일 실행
+
+<RunFile/>
+
+#### 9단계 - 테이블 스키마 업데이트 (선택 사항)
+
+<UpdateSchema/>
+
+#### 10단계 - 데이터베이스에 변경 사항 적용 (선택 사항)
+
+<ApplyChanges/>
+
+#### 11단계 - 새 필드로 데이터베이스 쿼리 (선택 사항)
+
+```typescript copy filename="src/index.ts"
+import 'dotenv/config';
+import { eq } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/planetscale-serverless';
+import { usersTable } from './db/schema';
+
+async function main() {
+  const db = drizzle({ connection: {
+      host: process.env.DATABASE_HOST!,
+      username: process.env.DATABASE_USERNAME!,
+      password: process.env.DATABASE_PASSWORD!,
+    }});
+
+  const user: typeof usersTable.$inferInsert = {
+    name: 'John',
+    age: 30,
+    email: 'john@example.com',
+    phone: '123-456-7890',
+  };
+
+  await db.insert(usersTable).values(user);
+  console.log('New user created!')
+
+  const users = await db.select().from(usersTable);
+  console.log('Getting all users from the database: ', users)
+  /*
+  const users: {
+    id: number;
+    name: string;
+    age: number;
+    email: string;
+    phone: string | null;
+  }[]
+  */
+
+  await db
+    .update(usersTable)
+    .set({
+      age: 31,
+    })
+    .where(eq(usersTable.email, user.email));
+  console.log('User info updated!')
+
+  await db.delete(usersTable).where(eq(usersTable.email, user.email));
+  console.log('User deleted!')
+}
+
+main();
+```

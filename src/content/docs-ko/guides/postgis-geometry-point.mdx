@@ -1,0 +1,149 @@
+---
+title: PostGIS geometry point
+slug: postgis-geometry-point
+---
+
+import Section from "@mdx-ko/Section.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import Callout from "@mdx-ko/Callout.astro";
+import CodeTab from '@mdx-ko/CodeTab.astro';
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql) 시작하기
+- [Postgis extension](/docs/extensions/pg#postgis)
+- [Indexes](/docs/indexes-constraints#indexes)
+- [Filtering in select statement](/docs/select#filtering)
+- [sql operator](/docs/sql)
+</Prerequisites>
+
+`PostGIS`는 PostgreSQL 관계형 데이터베이스의 기능을 확장하여 geospatial 데이터를 저장하고, 인덱싱하고, 조회할 수 있도록 지원합니다.
+
+현재로서는 Drizzle이 extension을 자동으로 만들지 않으므로, 직접 생성해야 합니다. 빈 migration file을 만든 뒤 SQL query를 추가하세요:
+
+<Section>
+```bash
+npx drizzle-kit generate --custom
+```
+
+```sql
+CREATE EXTENSION postgis;
+```
+</Section>
+
+아래는 Drizzle에서 `geometry` datatype과 spatial index를 사용해 테이블을 만드는 방법입니다:
+
+<CodeTabs items={["schema.ts", "migration.sql"]}>
+  <CodeTab>
+  ```ts copy {8, 11}
+  import { geometry, index, pgTable, serial, text } from 'drizzle-orm/pg-core';
+
+  export const stores = pgTable(
+    'stores',
+    {
+      id: serial('id').primaryKey(),
+      name: text('name').notNull(),
+      location: geometry('location', { type: 'point', mode: 'xy', srid: 4326 }).notNull(),
+    },
+    (t) => [
+      index('spatial_index').using('gist', t.location),
+    ]
+  );
+  ```
+  </CodeTab>
+  ```sql
+  CREATE TABLE IF NOT EXISTS "stores" (
+	  "id" serial PRIMARY KEY NOT NULL,
+	  "name" text NOT NULL,
+	  "location" geometry(point) NOT NULL
+  );
+  --> statement-breakpoint
+  CREATE INDEX IF NOT EXISTS "spatial_index" ON "stores" USING gist ("location");
+  ```
+</CodeTabs>
+
+아래는 Drizzle에서 테이블에 `geometry` 데이터를 삽입하는 방법입니다. PostGIS의 `ST_MakePoint()`는 지정한 좌표를 사용해 `point` 타입의 geometric object를 생성합니다.
+`ST_SetSRID()`는 geometry에 특정 integer 값의 `SRID`(특정 좌표계, 허용 오차, 해상도에 연결된 고유 식별자)를 설정합니다:
+
+```ts {4, 10, 16}
+// mode: 'xy'
+await db.insert(stores).values({
+  name: 'Test',
+  location: { x: -90.9, y: 18.7 },
+});
+
+// mode: 'tuple'
+await db.insert(stores).values({
+  name: 'Test',
+  location: [-90.9, 18.7],
+});
+
+// sql raw
+await db.insert(stores).values({
+  name: 'Test',
+  location: sql`ST_SetSRID(ST_MakePoint(-90.9, 18.7), 4326)`,
+});
+```
+
+객체 사이의 거리를 계산하려면 `<->` 연산자와 `ST_Distance()` 함수를 사용할 수 있습니다. `geometry types`에 대해서는 두 geometry 사이의 최소 평면 거리를 반환합니다. 아래는 Drizzle과 PostGIS에서 좌표 기준으로 가장 가까운 위치를 조회하는 방법입니다:
+
+<Callout type='warning'>
+`getColumns`는 `drizzle-orm@1.0.0-beta.2`부터 사용할 수 있습니다([여기](/docs/upgrade-v1)에서 더 읽어보기)
+
+pre-1 버전(예: `0.45.1`)을 사용 중이라면 `getTableColumns`를 사용하세요
+</Callout>
+
+<Section>
+```ts copy {9, 14, 17}
+import { getColumns, sql } from 'drizzle-orm';
+import { stores } from './schema';
+
+const point = {
+  x: -73.935_242,
+  y: 40.730_61,
+};
+
+const sqlPoint = sql`ST_SetSRID(ST_MakePoint(${point.x}, ${point.y}), 4326)`;
+
+await db
+  .select({
+    ...getColumns(stores),
+    distance: sql`ST_Distance(${stores.location}, ${sqlPoint})`,
+  })
+  .from(stores)
+  .orderBy(sql`${stores.location} <-> ${sqlPoint}`)
+  .limit(1);
+```
+
+```sql
+select *, ST_Distance(location, ST_SetSRID(ST_MakePoint(-73.935_242, 40.730_61), 4326))
+from stores order by location <-> ST_SetSRID(ST_MakePoint(-73.935_242, 40.730_61), 4326)
+limit 1;
+```
+</Section>
+
+특정 직사각형 영역 안에 있는 store만 필터링하려면 `ST_MakeEnvelope()`와 `ST_Within()` 함수를 사용할 수 있습니다. `ST_MakeEnvelope()`는 X와 Y의 최소/최대 값으로 직사각형 Polygon을 생성합니다. `ST_Within()`은 geometry A가 geometry B 내부에 있으면 TRUE를 반환합니다.
+
+<Section>
+```ts copy {13}
+const point = {
+  x1: -88,
+  x2: -73,
+  y1: 40,
+  y2: 43,
+};
+
+await db
+  .select()
+  .from(stores)
+  .where(
+    sql`ST_Within(
+      ${stores.location}, ST_MakeEnvelope(${point.x1}, ${point.y1}, ${point.x2}, ${point.y2}, 4326)
+    )`,
+  );
+```
+
+```sql
+select * from stores where ST_Within(location, ST_MakeEnvelope(-88, 40, -73, 43, 4326));
+```
+</Section>

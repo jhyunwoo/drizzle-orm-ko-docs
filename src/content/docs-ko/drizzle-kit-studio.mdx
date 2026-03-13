@@ -1,0 +1,97 @@
+import CodeTab from "@mdx-ko/CodeTab.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from "@mdx-ko/Section.astro";
+import Tab from "@mdx-ko/Tab.astro";
+import Tabs from "@mdx-ko/Tabs.astro";
+import Callout from "@mdx-ko/Callout.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import Npm from "@mdx-ko/Npm.astro";
+import Npx from "@mdx-ko/Npx.astro";
+
+
+# `drizzle-kit studio`
+<Prerequisites>
+- Drizzle Kit [개요](/docs/kit-overview) 및 [구성 파일](/docs/drizzle-config-file)
+- 데이터베이스 브라우저인 Drizzle Studio - [여기에서 읽어보세요](/drizzle-studio/overview)
+</Prerequisites>
+
+`drizzle-kit studio` 명령은 [local.drizzle.studio](https://local.drizzle.studio)에서 호스팅되는 [Drizzle Studio](/drizzle-studio/overview)용 서버를 가동합니다. 
+[drizzle.config.ts](/docs/drizzle-config-file) 구성 파일을 통해 데이터베이스 연결 자격 증명을 지정해야 합니다.
+
+기본적으로 `127.0.0.1:4983`에서 Drizzle Studio 서버가 시작됩니다.
+<Section>
+```ts {6}
+// drizzle.config.ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  dbCredentials: {
+    url: "postgresql://user:password@host:port/dbname"
+  },
+});
+```
+```shell
+npx drizzle-kit migrate
+```
+</Section>
+
+### `host` 및 `port` 구성
+기본적으로 Drizzle Studio 서버는 `127.0.0.1:4983`에서 시작됩니다. 
+CLI 옵션을 통해 `host` 및 `port`을 구성할 수 있습니다.
+
+<Npx>
+drizzle-kit studio --port=3000
+drizzle-kit studio --host=0.0.0.0
+drizzle-kit studio --host=0.0.0.0 --port=3000
+</Npx>
+### 로깅
+`verbose` 플래그를 제공하여 모든 SQL 문의 로깅을 활성화할 수 있습니다.
+
+<Npx>
+drizzle-kit studio --verbose
+</Npx>
+### Safari 및 Brave 지원
+Safari 및 Brave는 기본적으로 localhost에 대한 액세스를 차단합니다. 
+[mkcert](https://github.com/FiloSottile/mkcert)를 설치하고 자체 서명된 인증서를 생성해야 합니다.
+
+1. mkcert [설치 단계](https://github.com/FiloSottile/mkcert#installation)를 따르세요.
+2. `mkcert -install`을 실행하세요.
+3. `drizzle-kit studio`을 다시 시작하세요.
+### Drizzle Studio의 삽입 가능한 버전
+로컬 개발을 위한 Drizzle Studio의 호스팅 버전은 영원히 무료이며 Drizzle 생태계를 풍요롭게 하기 위한 것입니다. 
+우리는 기업용 Drizzle Studio 내장형 버전의 B2B 제품을 보유하고 있습니다.
+
+**Drizzle Studio 구성 요소** - Drizzle Studio의 사전 번들 프레임워크 독립적 웹 구성 요소입니다. 
+UI `React` `Vue` `Svelte` `VanillaJS` 등에 삽입할 수 있습니다. 
+
+이는 귀하의 제품을 향상시킬 수 있는 매우 강력한 UI 요소입니다. 
+데이터베이스를 SaaS로 제공하거나 데이터 중심 SaaS 솔루션 기반으로 제공하는 경우 
+SQL 또는 고객이 아닌 내부에서 사용하는 개인용.
+
+Drizzle Studio를 사용하는 데이터베이스 플랫폼:
+- [Turso](https://turso.tech/), 2023년 10월 이후 첫 고객!
+- [네온](https://neon.tech/), [런칭 포스트](https://neon.tech/docs/changelog/2024-05-24)
+- [히드라](https://www.hydra.so/)
+
+Drizzle Studio를 사용하는 데이터 중심 플랫폼:
+- [Nuxt Hub](https://hub.nuxt.com/), Sébastien Chopin의 [런칭 포스트](https://x.com/Atinux/status/1768663789832929520)
+- [Deco.cx](https://deco.cx/)
+
+자세한 개요는 [여기](https://www.npmjs.com/package/@drizzle-team/studio)에서 읽을 수 있으며 
+관심이 있으시면 [Twitter](https://x.com/drizzleorm)의 DM이나 [Discord #drizzle-studio](https://driz.link/discord) 채널을 통해 문의해 주세요.
+### Drizzle Studio 크롬 확장 프로그램
+Drizzle Studio [크롬 확장 프로그램](https://chromewebstore.google.com/detail/drizzle-studio/mjkojjodijpaneehkgmeckeljgkimnmd) 
+[PlanetScale](https://planetscale.com)을 탐색할 수 있습니다. 
+[Cloudflare](https://developers.cloudflare.com/d1/) 및 [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres)
+공급업체 관리 패널에서 직접 서버리스 데이터베이스를 사용할 수 있습니다!
+### 제한사항
+호스팅 버전 Drizzle Studio는 로컬 개발에 사용하기 위한 것이며 원격(VPS 등)에서 사용하기 위한 것이 아닙니다.
+
+Drizzle Studio를 VPS에 배포하려는 경우 Drizzle Studio Gateway의 알파 버전이 있습니다. 
+[Twitter](https://x.com/drizzleorm) 또는 [Discord #drizzle-studio](https://driz.link/discord) 채널의 DM을 통해 문의해 주세요.
+### 오픈소스인가요?
+아니요. Drizzle ORM 및 Drizzle Kit는 완전히 오픈 소스이지만 Studio는 그렇지 않습니다. 
+
+로컬 개발을 위한 Drizzle Studio는 Drizzle 생태계를 풍요롭게 하기 위해 영원히 무료로 사용할 수 있으며, 
+불행히도 오픈 소스를 사용하면 B2B 제품을 제공하고 이를 통해 수익을 창출하는 능력이 손상될 수 있습니다.

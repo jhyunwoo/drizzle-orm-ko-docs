@@ -1,0 +1,41 @@
+---
+title: SQL 값 토글
+slug: toggling-a-boolean-field
+---
+import Section from "@mdx-ko/Section.astro";
+import IsSupportedChipGroup from "@mdx-ko/IsSupportedChipGroup.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+
+<IsSupportedChipGroup chips={{PostgreSQL: true, MySQL: true, SQLite: true}}/>
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql), [SQLite](/docs/get-started-sqlite) 시작하기
+- [Update statement](/docs/update)
+- [Filters](/docs/operators)와 [not operator](/docs/operators#not)
+- [MySQL](/docs/column-types/mysql#boolean)과 [SQLite](/docs/column-types/sqlite#boolean)의 Boolean data type
+</Prerequisites>
+
+컬럼 값을 토글하려면 아래처럼 `update().set()` 메서드를 사용할 수 있습니다:
+
+<Section>
+```tsx copy {8}
+import { eq, not } from 'drizzle-orm';
+
+const db = drizzle(...);
+
+await db
+  .update(table)
+  .set({
+    isActive: not(table.isActive),
+  })
+  .where(eq(table.id, 1));
+```
+
+```sql
+update "table" set "is_active" = not "is_active" where "id" = 1;
+```
+</Section>
+
+MySQL과 SQLite에는 boolean type이 없다는 점에 유의하세요.
+MySQL은 tinyint(1)을 사용합니다.
+SQLite는 정수 0 (false)와 1 (true)을 사용합니다.

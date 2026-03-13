@@ -1,0 +1,222 @@
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+# Drizzle \<\> Effect Postgres
+
+<Callout type='error'>
+이 페이지는 drizzle 버전 `1.0.0-beta.9` 이상에서 사용할 수 있는 개념을 설명합니다.
+
+Effect는 현재 PostgreSQL에서만 사용할 수 있으며, 곧 다른 모든 방언에도 구현될 예정입니다.
+
+업그레이드 방법은 ([여기](/docs/upgrade-v1))를 참고하세요.
+</Callout>
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- Effect - [웹사이트](https://effect.website/docs)
+- **@effect/sql-pg** - Effect용 PostgreSQL 툴킷 - [여기서 읽기](https://effect-ts.github.io/effect/docs/sql-pg)
+</Prerequisites>
+
+Drizzle은 `@effect/sql-pg` 드라이버를 사용한 Effect PostgreSQL 연결을 네이티브하게 지원합니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm effect @effect/sql-pg pg
+-D drizzle-kit @types/pg
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+
+Drizzle은 Effect의 서비스 패턴과 통합되는 Effect 네이티브 API를 제공합니다. `PgDrizzle.makeWithDefaults()`를 사용하면 
+적절한 기본값(로깅 없음, 캐싱 없음)으로 Drizzle 데이터베이스 인스턴스를 빠르게 만들 수 있습니다.
+
+```typescript copy
+import 'dotenv/config';
+import * as PgDrizzle from 'drizzle-orm/effect-postgres';
+import { PgClient } from '@effect/sql-pg';
+import * as Effect from 'effect/Effect';
+import * as Redacted from 'effect/Redacted';
+import { sql } from 'drizzle-orm';
+import { types } from 'pg';
+
+// Configure the PgClient layer with type parsers
+const PgClientLive = PgClient.layer({
+  url: Redacted.make(process.env.DATABASE_URL!),
+  types: {
+    getTypeParser: (typeId, format) => {
+      // Return raw values for date/time types to let Drizzle handle parsing
+      if ([1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182].includes(typeId)) {
+        return (val: any) => val;
+      }
+      return types.getTypeParser(typeId, format);
+    },
+  },
+});
+
+const program = Effect.gen(function*() {
+  // Create the database with default services (no logging, no caching)
+  const db = yield* PgDrizzle.makeWithDefaults();
+
+  // Execute queries
+  const result = yield* db.execute<{ id: number }>(sql`SELECT 1 as id`);
+  console.log(result);
+});
+
+// Run the program with the PgClient layer
+Effect.runPromise(program.pipe(Effect.provide(PgClientLive)));
+```
+
+#### 3단계 - 의존성 주입을 위한 DB Layer 만들기
+
+더 큰 애플리케이션에서는 다른 서비스와 조합할 수 있는 재사용 가능한 DB layer를 만드세요. 이는 Effect가 권장하는 
+의존성 주입 패턴을 따릅니다:
+
+```typescript copy
+import * as PgDrizzle from 'drizzle-orm/effect-postgres';
+import { PgClient } from '@effect/sql-pg';
+import * as Context from 'effect/Context';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as Redacted from 'effect/Redacted';
+import { types } from 'pg';
+import * as relations from './schema/relations';
+
+// Configure the PgClient layer
+const PgClientLive = PgClient.layer({
+  url: Redacted.make(process.env.DATABASE_URL!),
+  types: {
+    getTypeParser: (typeId, format) => {
+      if ([1184, 1114, 1082, 1186, 1231, 1115, 1185, 1187, 1182].includes(typeId)) {
+        return (val: any) => val;
+      }
+      return types.getTypeParser(typeId, format);
+    },
+  },
+});
+
+// Create the DB effect with default services
+const dbEffect = PgDrizzle.make({ relations }).pipe(
+  Effect.provide(PgDrizzle.DefaultServices)
+);
+
+// Define a DB service tag for dependency injection
+class DB extends Context.Tag('DB')<DB, Effect.Effect.Success<typeof dbEffect>>() {}
+
+// Create a layer that provides the DB service
+const DBLive = Layer.effect(
+  DB,
+  Effect.gen(function*() {
+    return yield* dbEffect;
+  }),
+);
+
+// Compose all layers together
+const AppLive = Layer.provideMerge(DBLive, PgClientLive);
+
+// Use the DB service in your application
+const program = Effect.gen(function*() {
+  const db = yield* DB;
+  const users = yield* db.select().from(usersTable);
+  return users;
+});
+
+// Run with all dependencies provided
+Effect.runPromise(program.pipe(Effect.provide(AppLive)));
+```
+
+#### 고급: 사용자 정의 로거 및 캐시 설정
+
+로깅과 캐싱을 더 세밀하게 제어하려면 `PgDrizzle.make()`를 직접 사용하고, 원하는 서비스 구현을 제공하세요.
+
+##### 로거 설정
+
+기본적으로 `makeWithDefaults()`는 no-op 로거(로깅 없음)를 사용합니다. 다른 `EffectLogger` 구현을 제공하면 
+로깅을 활성화할 수 있습니다:
+
+```typescript copy
+import * as PgDrizzle from 'drizzle-orm/effect-postgres';
+import { EffectLogger } from 'drizzle-orm/effect-postgres';
+import * as Effect from 'effect/Effect';
+
+const program = Effect.gen(function*() {
+  const db = yield* PgDrizzle.make({ /* schema, relations, casing */ }).pipe(
+    // Enable Effect-based logging (uses Effect.log with annotations)
+    Effect.provide(EffectLogger.layer),
+    // Provide remaining default services (cache)
+    Effect.provide(PgDrizzle.DefaultServices),
+  );
+
+  const users = yield* db.select().from(usersTable);
+  return users;
+});
+```
+
+**사용 가능한 로거 옵션:**
+- `EffectLogger.Default` - no-op 로거(로그가 기록되지 않음) - 이것이 기본값입니다
+- `EffectLogger.layer` - 쿼리 SQL과 파라미터에 대한 어노테이션과 함께 Effect의 `Effect.log()`를 사용해 쿼리를 기록합니다. Effect의 로깅 인프라와 통합됩니다.
+- `EffectLogger.fromDrizzle(logger)` - Effect에서 사용할 수 있도록 Drizzle `Logger` 인스턴스를 감쌉니다
+- `EffectLogger.layerFromDrizzle(logger)` - Drizzle 로거로부터 Effect Layer를 생성합니다
+
+<Callout type='info'>
+`EffectLogger.layer`를 사용하면 쿼리가 Effect의 로깅 시스템을 통해 기록됩니다. 다른 Effect 로거 layer를 제공해 출력 
+형식을 설정할 수 있습니다. (예: 개발용 `Logger.pretty`, 운영용 `Logger.json`)
+</Callout>
+
+**Drizzle 로거 사용하기:**
+
+```typescript copy
+import * as PgDrizzle from 'drizzle-orm/effect-postgres';
+import { EffectLogger } from 'drizzle-orm/effect-postgres';
+import * as Effect from 'effect/Effect';
+import { DefaultLogger } from 'drizzle-orm';
+
+const program = Effect.gen(function*() {
+  const db = yield* PgDrizzle.make({ /* schema, relations, casing */ }).pipe(
+    // Use a Drizzle logger wrapped for Effect
+    Effect.provide(EffectLogger.layerFromDrizzle(new DefaultLogger())),
+    // Provide remaining default services (cache)
+    Effect.provide(PgDrizzle.DefaultServices),
+  );
+
+  const users = yield* db.select().from(usersTable);
+  return users;
+});
+```
+
+##### 캐시 설정
+
+마찬가지로 사용자 정의 캐시 구현을 제공할 수도 있습니다:
+
+```typescript copy
+import * as PgDrizzle from 'drizzle-orm/effect-postgres';
+import { EffectLogger } from 'drizzle-orm/effect-postgres';
+import { EffectCache } from 'drizzle-orm/cache/core/cache-effect';
+import * as Effect from 'effect/Effect';
+import { MyCustomCache } from './cache';
+
+const program = Effect.gen(function*() {
+  const db = yield* PgDrizzle.make({ /* schema, relations, casing */ }).pipe(
+    // Provide a custom cache wrapped for Effect
+    Effect.provide(EffectCache.layerFromDrizzle(new MyCustomCache())),
+    // Provide remaining default services (logger)
+    Effect.provide(PgDrizzle.DefaultServices),
+  );
+
+  const users = yield* db.select().from(usersTable);
+  return users;
+});
+```
+
+**사용 가능한 캐시 옵션:**
+- `EffectCache.Default` - no-op 캐시(캐싱이 발생하지 않음) - 이것이 기본값입니다
+- `EffectCache.fromDrizzle(cache)` - Effect에서 사용할 수 있도록 Drizzle `Cache` 인스턴스를 감쌉니다
+- `EffectCache.layerFromDrizzle(cache)` - Drizzle 캐시로부터 Effect Layer를 생성합니다 (다른 layer와 조합할 때 유용합니다)
+
+#### 다음 단계는?
+
+<WhatsNextPostgres/>

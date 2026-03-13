@@ -1,0 +1,214 @@
+---
+pubDate: 2022-07-20
+title: DrizzleORM v0.11.0 릴리스
+description: DrizzleORM은 오픈 소스 TypeScript ORM으로, PostgreSQL을 지원하며 몇 주 안에 MySQL과 SQLite 지원도 추가될 예정입니다. 이제 이를 공개할 때가 되었다고 판단했습니다.
+---
+import Section from "@mdx/Section.astro";
+
+DrizzleORM은 오픈 소스 TypeScript ORM으로, PostgreSQL을 지원하며 몇 주 안에 MySQL과 SQLite 지원도 추가될 예정입니다. 이제 이를 공개할 때가 되었다고 판단했습니다.
+
+drizzle을 사용하면 코드 안에 완전한 타입이 적용된 SQL 스키마를 가질 수 있고, 이는 여러 가지 중요한 방식으로 이점을 제공하며, 이에 대해서는 뒤에서 다루겠습니다.
+
+```ts
+// declaring enum in database
+export const popularityEnum = createEnum({ alias: 'popularity', values: ['unknown', 'known', 'popular'] });
+
+export class CountriesTable extends PgTable<CountriesTable> {
+  id = this.serial("id").primaryKey();
+  name = this.varchar("name", { size: 256 })
+
+  // declaring index
+  nameIndex = this.uniqueIndex(this.name)
+
+  public tableName(): string {
+    return 'countries';
+  }
+}
+
+export class CitiesTable extends PgTable<CitiesTable> {
+  id = this.serial("id").primaryKey();
+  name = this.varchar("name", { size: 256 })
+  countryId = this.int("country_id").foreignKey(CountriesTable, (country) => country.id)
+
+  // declaring enum column in table
+  popularity = this.type(popularityEnum, "popularity")
+
+  public tableName(): string {
+    return 'cities';
+  }
+}
+```
+
+다음은 데이터베이스에 연결하고, 타입이 지정된 결과와 함께 첫 쿼리를 실행하는 방법에 대한 빠른 시작 예제입니다.
+
+```ts
+import { drizzle, PgTable } from 'drizzle-orm'
+
+export class UsersTable extends PgTable<UsersTable> {
+  public id = this.serial('id').primaryKey();
+  public fullName = this.text('full_name');
+  public phone = this.varchar('phone', { size: 256 });
+
+  public tableName(): string {
+    return 'users';
+  }
+}
+export type User = InferType<UsersTable>
+
+const db = await drizzle.connect("postgres://user:password@host:port/db");
+const usersTable = new UsersTable(db);
+
+const users: User[] = await usersTable.select().execute();
+```
+
+다음은 필터와 함께 `WHERE` 문을 사용하고, 부분 선택 쿼리를 실행하며, `limit/offset`과 `orderBy`를 사용하는 방법입니다.
+
+```ts
+await table.select().where(
+  eq(table.id, 42)
+).execute();
+
+// you can combine filters with eq(...) or or(...)
+await table.select().where(
+  and([eq(table.id, 42), eq(table.name, "Dan")])
+).execute();
+
+await table.select().where(
+  or([eq(table.id, 42), eq(table.id, 1)])
+).execute();
+
+// partial select
+const result = await table.select({
+     mapped1: table.id,
+     mapped2: table.name,
+}).execute();
+const { mapped1, mapped2 } = result[0];
+
+// limit offset & order by
+await table.select().limit(10).offset(10).execute()
+await table.select().orderBy((table) => table.name, Order.ASC)
+await table.select().orderBy((table) => table.name, Order.DESC)
+```
+
+다음은 `insert`, `update`, `delete`를 실행하는 방법입니다.
+
+```ts
+const result = await usersTable.insert({
+  name: "Andrew",
+  createdAt: new Date(),
+}).execute();
+
+const result = await usersTable.insertMany([{
+  name: "Andrew",
+  createdAt: new Date(),
+}, {
+  name: "Dan",
+  createdAt: new Date(),
+}]).execute();
+
+await usersTable.update()
+  .where(eq(usersTable.name, 'Dan'))
+  .set({ name: 'Mr. Dan' })
+  .execute();
+
+await usersTable.delete()
+  .where(eq(usersTable.name, 'Dan'))
+  .execute();
+```
+
+우리 ORM의 가장 강력한 기능 중 하나는 완전한 타입이 적용된 조인이며, 컴파일러는 실수를 허용하지 않습니다.
+
+```ts
+const usersTable = new UsersTable(db);
+const citiesTable = new CitiesTable(db);
+
+const result = await citiesTable.select()
+  .leftJoin(usersTable, (cities, users) => eq(cities.userId, users.id))
+  .where((cities, users) => eq(cities.id, 1))
+  .execute();
+
+const citiesWithUsers: { city: City, user: User }[] = result.map((city, user) => ({ city, user }));
+```
+
+다음은 `many to many` 관계의 예제입니다.
+
+```ts
+export class UsersTable extends PgTable<UsersTable> {
+  id = this.serial("id").primaryKey();
+    name = this.varchar("name");
+}
+
+export class ChatGroupsTable extends PgTable<ChatGroupsTable> {
+  id = this.serial("id").primaryKey();
+}
+
+export class ManyToManyTable extends PgTable<ManyToManyTable> {
+  userId = this.int('user_id').foreignKey(UsersTable, (table) => table.id, { onDelete: 'CASCADE' });
+  groupId = this.int('group_id').foreignKey(ChatGroupsTable, (table) => table.id, { onDelete: 'CASCADE' });
+}
+
+...
+const usersTable = new UsersTable(db);
+const chatGroupsTable = new ChatGroupsTable(db);
+const manyToManyTable = new ManyToManyTable(db);
+
+// querying user group with id 1 and all the participants(users)
+const usersWithUserGroups = await manyToManyTable.select()
+  .leftJoin(usersTable, (manyToMany, users) => eq(manyToManyTable.userId, users.id))
+  .leftJoin(chatGroupsTable, (manyToMany, _users, chatGroups) => eq(manyToManyTable.groupId, chatGroups.id))
+  .where((manyToMany, _users, userGroups) => eq(userGroups.id, 1))
+  .execute();
+```
+
+마지막으로 마이그레이션이 있습니다. 우리는 자동 마이그레이션 생성을 위한 CLI 도구를 구현했으며, 이 도구는 이름 변경과 삭제를 처리하면서 사용자가 직접 해결하도록 프롬프트를 제공합니다.
+
+아래와 같은 typescript 스키마에 대해
+
+<Section>
+```ts
+import { PgTable } from "drizzle-orm";
+
+export class UsersTable extends PgTable<UsersTable> {
+  public id = this.serial("id").primaryKey();
+  public fullName = this.varchar("full_name", { size: 256 });
+
+  public fullNameIndex = this.index(this.fullName);
+
+  public tableName(): string {
+    return "users";
+  }
+}
+
+export class AuthOtpTable extends PgTable<AuthOtpTable> {
+  public id = this.serial("id").primaryKey();
+  public phone = this.varchar("phone", { size: 256 });
+  public userId = this.int("user_id").foreignKey(UsersTable, (t) => t.id);
+
+  public tableName(): string {
+    return "auth_otp";
+  }
+}
+```
+
+```sql
+-- SQL migration
+CREATE TABLE IF NOT EXISTS auth_otp (
+    "id" SERIAL PRIMARY KEY,
+    "phone" character varying(256),
+    "user_id" INT
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    "id" SERIAL PRIMARY KEY,
+    "full_name" character varying(256)
+);
+
+DO $$ BEGIN
+ ALTER TABLE auth_otp ADD CONSTRAINT auth_otp_user_id_fkey FOREIGN KEY ("user_id") REFERENCES users(id);
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+
+CREATE INDEX IF NOT EXISTS users_full_name_index ON users (full_name);
+```
+</Section>

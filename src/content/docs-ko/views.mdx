@@ -1,0 +1,475 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import IsSupportedChipGroup from '@mdx-ko/IsSupportedChipGroup.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Section from '@mdx-ko/Section.astro';
+
+# 뷰
+
+<IsSupportedChipGroup chips={{ 'PostgreSQL': true, 'SQLite': true, 'MySQL': true, 'SingleStore': false, 'MSSQL': true, 'CockroachDB': true }} />
+Drizzle ORM에서는 여러 방식으로 뷰를 선언할 수 있습니다.  
+
+생성해야 하는 뷰를 선언할 수도 있고, 데이터베이스에 이미 존재하는 뷰를 선언할 수도 있습니다. 
+
+인라인 `query builder` 문법, `standalone query builder`, raw `sql` 연산자를 사용해 뷰 구문을 선언할 수 있습니다. 
+
+인라인 또는 standalone query builder로 뷰를 생성하면 뷰 컬럼 스키마가 자동으로 추론됩니다.
+반면 `sql`을 사용할 때는 뷰 컬럼 스키마를 명시적으로 선언해야 합니다.
+
+### 뷰 선언하기
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    <Section>
+      ```ts filename="schema.ts" copy {13-14}
+      import { pgTable, pgView, serial, text, timestamp } from "drizzle-orm/pg-core";
+
+      export const user = pgTable("user", {
+        id: serial(),
+        name: text(),
+        email: text(),
+        password: text(),
+        role: text().$type<"admin" | "customer">(),
+        createdAt: timestamp("created_at"),
+        updatedAt: timestamp("updated_at"),
+      });
+
+      export const userView = pgView("user_view").as((qb) => qb.select().from(user));
+      export const customersView = pgView("customers_view").as((qb) => qb.select().from(user).where(eq(user.role, "customer")));
+      ```
+      ```sql
+      CREATE VIEW "user_view" AS SELECT * FROM "user";
+      CREATE VIEW "customers_view" AS SELECT * FROM "user" WHERE "role" = 'customer';
+      ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+      ```ts filename="schema.ts" copy {13-14}
+      import { text, mysqlTable, mysqlView, int, timestamp } from "drizzle-orm/mysql-core";
+
+      export const user = mysqlTable("user", {
+        id: int().primaryKey().autoincrement(),
+        name: text(),
+        email: text(),
+        password: text(),
+        role: text().$type<"admin" | "customer">(),
+        createdAt: timestamp("created_at"),
+        updatedAt: timestamp("updated_at"),
+      });
+
+      export const userView = mysqlView("user_view").as((qb) => qb.select().from(user));
+      export const customersView = mysqlView("customers_view").as((qb) => qb.select().from(user).where(eq(user.role, "customer")));
+      ```
+      ```sql
+      CREATE VIEW "user_view" AS SELECT * FROM "user";
+      CREATE VIEW "customers_view" AS SELECT * FROM "user" WHERE "role" = 'customer';
+      ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+      ```ts filename="schema.ts" copy {13-14}
+      import { integer, text, sqliteView, sqliteTable } from "drizzle-orm/sqlite-core";
+
+      export const user = sqliteTable("user", {
+        id: integer().primaryKey({ autoIncrement: true }),
+        name: text(),
+        email: text(),
+        password: text(),
+        role: text().$type<"admin" | "customer">(),
+        createdAt: integer("created_at"),
+        updatedAt: integer("updated_at"),
+      });
+
+      export const userView = sqliteView("user_view").as((qb) => qb.select().from(user));
+      export const customersView = sqliteView("customers_view").as((qb) => qb.select().from(user).where(eq(user.role, "customer")));
+      ```
+      ```sql
+      CREATE VIEW "user_view" AS SELECT * FROM "user";
+      CREATE VIEW "customers_view" AS SELECT * FROM "user" WHERE "role" = 'customer';
+      ```
+    </Section>
+  </Tab>
+    <Tab>
+    <Section>
+      ```ts filename="schema.ts" copy {13-14}
+      import { mssqlTable, mssqlView, int, text, timestamp } from "drizzle-orm/mssql-core";
+
+      export const user = mssqlTable("user", {
+        id: int(),
+        name: text(),
+        email: text(),
+        password: text(),
+        role: text().$type<"admin" | "customer">(),
+        createdAt: timestamp("created_at"),
+        updatedAt: timestamp("updated_at"),
+      });
+
+      export const userView = mssqlView("user_view").as((qb) => qb.select().from(user));
+      export const customersView = mssqlView("customers_view").as((qb) => qb.select().from(user).where(eq(user.role, "customer")));
+      ```
+      ```sql
+      CREATE VIEW [user_view] AS (SELECT * FROM "user");
+      CREATE VIEW [customers_view] AS (SELECT * FROM "user" WHERE "role" = 'customer');
+      ```
+    </Section>
+    컬럼의 일부만 필요하다면 query builder에서 `.select({ ... })` 메서드를 다음과 같이 사용할 수 있습니다:
+<Section>
+  ```ts {4-6}
+  export const customersView = mssqlView("customers_view").as((qb) => {
+    return qb
+      .select({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      })
+      .from(user);
+  });
+  ```
+  ```sql
+  CREATE VIEW [customers_view] AS (SELECT "id", "name", "email" FROM "user" WHERE "role" = 'customer');
+  ```
+</Section>
+  </Tab>
+  <Tab>
+    <Section>
+      ```ts filename="schema.ts" copy {13-14}
+      import { cockroachTable, cockroachView, int4, text, timestamp } from "drizzle-orm/cockroach-core";
+
+      export const user = cockroachTable("user", {
+        id: int4(),
+        name: text(),
+        email: text(),
+        password: text(),
+        role: text().$type<"admin" | "customer">(),
+        createdAt: timestamp("created_at"),
+        updatedAt: timestamp("updated_at"),
+      });
+
+      export const userView = cockroachView("user_view").as((qb) => qb.select().from(user));
+      export const customersView = cockroachView("customers_view").as((qb) => qb.select().from(user).where(eq(user.role, "customer")));
+      ```
+      ```sql
+      CREATE VIEW "user_view" AS SELECT * FROM "user";
+      CREATE VIEW "customers_view" AS SELECT * FROM "user" WHERE "role" = 'customer';
+      ```
+    </Section>
+  </Tab>
+</Tabs>
+
+`standalone query builder`를 사용해서도 뷰를 선언할 수 있으며, 동일한 방식으로 동작합니다:
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    <Section>
+      ```ts filename="schema.ts" copy {3, 15-16}
+      import { pgTable, pgView, serial, text, timestamp, QueryBuilder} from "drizzle-orm/pg-core";
+      
+      const qb = new QueryBuilder();
+
+      export const user = pgTable("user", {
+        id: serial(),
+        name: text(),
+        email: text(),
+        password: text(),
+        role: text().$type<"admin" | "customer">(),
+        createdAt: timestamp("created_at"),
+        updatedAt: timestamp("updated_at"),
+      });
+
+      export const userView = pgView("user_view").as(qb.select().from(user));
+      export const customersView = pgView("customers_view").as(qb.select().from(user).where(eq(user.role, "customer")));
+      ```
+      ```sql
+      CREATE VIEW "user_view" AS SELECT * FROM "user";
+      CREATE VIEW "customers_view" AS SELECT * FROM "user" WHERE "role" = 'customer';
+      ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+      ```ts filename="schema.ts" copy {3, 15-16}
+      import { text, mysqlTable, mysqlView, int, timestamp, QueryBuilder } from "drizzle-orm/mysql-core";
+
+      const qb = new QueryBuilder();
+
+      export const user = mysqlTable("user", {
+        id: int().primaryKey().autoincrement(),
+        name: text(),
+        email: text(),
+        password: text(),
+        role: text().$type<"admin" | "customer">(),
+        createdAt: timestamp("created_at"),
+        updatedAt: timestamp("updated_at"),
+      });
+
+      export const userView = mysqlView("user_view").as(qb.select().from(user));
+      export const customersView = mysqlView("customers_view").as(qb.select().from(user).where(eq(user.role, "customer")));
+      ```
+      ```sql
+      CREATE VIEW "user_view" AS SELECT * FROM "user";
+      CREATE VIEW "customers_view" AS SELECT * FROM "user" WHERE "role" = 'customer';
+      ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+      ```ts filename="schema.ts" copy {3, 15-16}
+      import { integer, text, sqliteView, sqliteTable, QueryBuilder } from "drizzle-orm/sqlite-core";
+
+      const qb = new QueryBuilder();
+
+      export const user = sqliteTable("user", {
+        id: integer().primaryKey({ autoIncrement: true }),
+        name: text(),
+        email: text(),
+        password: text(),
+        role: text().$type<"admin" | "customer">(),
+        createdAt: integer("created_at"),
+        updatedAt: integer("updated_at"),
+      });
+
+      export const userView = sqliteView("user_view").as((qb) => qb.select().from(user));
+      export const customerView = sqliteView("customers_view").as((qb) => qb.select().from(user).where(eq(user.role, "customer")));
+      ```
+      ```sql
+      CREATE VIEW "user_view" AS SELECT * FROM "user";
+      CREATE VIEW "customers_view" AS SELECT * FROM "user" WHERE "role" = 'customer';
+      ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+      ```ts filename="schema.ts" copy {3, 15-16}
+      import { int, text, mssqlView, mssqlTable, QueryBuilder } from "drizzle-orm/mssql-core";
+
+      const qb = new QueryBuilder();
+
+      export const user = mssqlTable("user", {
+        id: integer().primaryKey(),
+        name: text(),
+        email: text(),
+        password: text(),
+        role: text().$type<"admin" | "customer">(),
+        createdAt: integer("created_at"),
+        updatedAt: integer("updated_at"),
+      });
+
+      export const userView = mssqlView("user_view").as((qb) => qb.select().from(user));
+      export const customerView = mssqlView("customers_view").as((qb) => qb.select().from(user).where(eq(user.role, "customer")));
+      ```
+      ```sql
+      CREATE VIEW [user_view] AS (SELECT * FROM "user");
+      CREATE VIEW [customers_view] AS (SELECT * FROM "user" WHERE "role" = 'customer');
+      ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+      ```ts filename="schema.ts" copy {3, 15-16}
+      import { cockroachTable, cockroachView, int4, text, timestamp, QueryBuilder} from "drizzle-orm/cockroach-core";
+      
+      const qb = new QueryBuilder();
+
+      export const user = cockroachTable("user", {
+        id: int4(),
+        name: text(),
+        email: text(),
+        password: text(),
+        role: text().$type<"admin" | "customer">(),
+        createdAt: timestamp("created_at"),
+        updatedAt: timestamp("updated_at"),
+      });
+
+      export const userView = cockroachView("user_view").as(qb.select().from(user));
+      export const customersView = cockroachView("customers_view").as(qb.select().from(user).where(eq(user.role, "customer")));
+      ```
+      ```sql
+      CREATE VIEW "user_view" AS SELECT * FROM "user";
+      CREATE VIEW "customers_view" AS SELECT * FROM "user" WHERE "role" = 'customer';
+      ```
+    </Section>
+  </Tab>
+</Tabs>
+
+### raw SQL로 뷰 선언하기
+query builder가 지원하지 않는 문법으로 뷰를 선언해야 할 때는 `sql` 연산자를 직접 사용하고 뷰 컬럼 스키마를 명시적으로 지정할 수 있습니다.
+
+```ts copy
+// regular view
+const newYorkers = pgView('new_yorkers', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  cityId: integer('city_id').notNull(),
+}).as(sql`select * from ${users} where ${eq(users.cityId, 1)}`);
+
+// materialized view
+const newYorkers = pgMaterializedView('new_yorkers', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  cityId: integer('city_id').notNull(),
+}).as(sql`select * from ${users} where ${eq(users.cityId, 1)}`);
+```
+
+### 기존 뷰 선언하기
+데이터베이스에 있는 기존 뷰에 대해 읽기 전용 접근 권한만 제공받은 경우에는 `.existing()` 뷰 설정을 사용해야 합니다. `drizzle-kit`은 이를 무시하고 생성된 migration에 `create view` 구문을 만들지 않습니다.
+```ts
+export const user = pgTable("user", {
+  id: serial(),
+  name: text(),
+  email: text(),
+  password: text(),
+  role: text().$type<"admin" | "customer">(),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+});
+
+// regular view
+export const trimmedUser = pgView("trimmed_user", {
+  id: serial("id"),
+  name: text("name"),
+  email: text("email"),
+}).existing();
+
+// materialized view won't make any difference, yet you can use it for consistency
+export const trimmedUser = pgMaterializedView("trimmed_user", {
+  id: serial("id"),
+  name: text("name"),
+  email: text("email"),
+}).existing();
+```
+
+### 머티리얼라이즈드 뷰
+<IsSupportedChipGroup chips={{ 'PostgreSQL': true, 'MySQL': false, 'SQLite': false, 'MSSQL': false, 'Cockroach': true }} />
+
+공식 문서에 따르면 PostgreSQL과 CockroachDB는 **[`regular`](https://www.postgresql.org/docs/current/sql-createview.html)** 뷰와 **[`materialized`](https://www.postgresql.org/docs/current/sql-creatematerializedview.html)** 뷰를 모두 지원합니다.
+  
+PostgreSQL과 CockroachDB의 머티리얼라이즈드 뷰는 일반 뷰처럼 rule system을 사용하지만, 결과를 테이블과 유사한 형태로 저장합니다.
+{/* This means that when a query is executed against a materialized view, the results are returned directly from the materialized view,
+like from a table, rather than being reconstructed by executing the query against the underlying base tables that make up the view. */}
+
+
+<Tabs items={['PostgreSQL', 'CockroachDB']}>
+<Tab>
+<Section>
+```ts filename="schema.ts" copy
+const newYorkers = pgMaterializedView('new_yorkers').as((qb) => qb.select().from(users).where(eq(users.cityId, 1)));
+```
+```sql
+CREATE MATERIALIZED VIEW "new_yorkers" AS SELECT * FROM "users";
+```
+</Section>
+
+그다음 애플리케이션 런타임에서 머티리얼라이즈드 뷰를 새로고침할 수 있습니다:
+```ts copy
+await db.refreshMaterializedView(newYorkers);
+
+await db.refreshMaterializedView(newYorkers).concurrently();
+
+await db.refreshMaterializedView(newYorkers).withNoData();
+```
+</Tab>
+<Tab>
+<Section>
+```ts filename="schema.ts" copy
+const newYorkers = cockroachMaterializedView('new_yorkers').as((qb) => qb.select().from(users).where(eq(users.cityId, 1)));
+```
+```sql
+CREATE MATERIALIZED VIEW "new_yorkers" AS SELECT * FROM "users";
+```
+</Section>
+
+You can then refresh materialized views in the application runtime:
+```ts copy
+await db.refreshMaterializedView(newYorkers);
+
+await db.refreshMaterializedView(newYorkers).concurrently();
+
+await db.refreshMaterializedView(newYorkers).withNoData();
+```
+</Tab>
+</Tabs>
+
+### 확장 예제
+<Callout type="info" emoji="ℹ️">
+쿼리 내부의 모든 파라미터는 `$1`, `$2` 등으로 치환되지 않고 그대로 인라인됩니다.
+</Callout>
+
+<Tabs items={['PostgreSQL', 'CockroachDB']}>
+<Tab>
+```ts copy
+// regular view
+const newYorkers = pgView('new_yorkers')
+  .with({
+    checkOption: 'cascaded',
+    securityBarrier: true,
+    securityInvoker: true,
+  })
+  .as((qb) => {
+    const sq = qb
+      .$with('sq')
+      .as(
+        qb.select({ userId: users.id, cityId: cities.id })
+          .from(users)
+          .leftJoin(cities, eq(cities.id, users.homeCity))
+          .where(sql`${users.age1} > 18`),
+      );
+    return qb.with(sq).select().from(sq).where(sql`${users.homeCity} = 1`);
+  });
+
+// materialized view
+const newYorkers2 = pgMaterializedView('new_yorkers')
+  .using('btree')
+  .with({
+    fillfactor: 90,
+    toast_tuple_target: 0.5,
+    autovacuum_enabled: true,
+    ...
+  })
+  .tablespace('custom_tablespace')
+  .withNoData()
+  .as((qb) => {
+    const sq = qb
+      .$with('sq')
+      .as(
+        qb.select({ userId: users.id, cityId: cities.id })
+          .from(users)
+          .leftJoin(cities, eq(cities.id, users.homeCity))
+          .where(sql`${users.age1} > 18`),
+      );
+    return qb.with(sq).select().from(sq).where(sql`${users.homeCity} = 1`);
+  });
+```
+</Tab>
+<Tab>
+```ts copy
+// regular view
+const newYorkers = cockroachView('new_yorkers')
+  .as((qb) => {
+    const sq = qb
+      .$with('sq')
+      .as(
+        qb.select({ userId: users.id, cityId: cities.id })
+          .from(users)
+          .leftJoin(cities, eq(cities.id, users.homeCity))
+          .where(sql`${users.age1} > 18`),
+      );
+    return qb.with(sq).select().from(sq).where(sql`${users.homeCity} = 1`);
+  });
+
+// materialized view
+const newYorkers2 = cockroachMaterializedView('new_yorkers')
+  .withNoData()
+  .as((qb) => {
+    const sq = qb
+      .$with('sq')
+      .as(
+        qb.select({ userId: users.id, cityId: cities.id })
+          .from(users)
+          .leftJoin(cities, eq(cities.id, users.homeCity))
+          .where(sql`${users.age1} > 18`),
+      );
+    return qb.with(sq).select().from(sq).where(sql`${users.homeCity} = 1`);
+  });
+```
+</Tab>
+</Tabs>

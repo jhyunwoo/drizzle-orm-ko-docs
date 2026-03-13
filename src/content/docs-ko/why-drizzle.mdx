@@ -1,0 +1,255 @@
+import Callout from '@mdx-ko/Callout.astro';
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import YoutubeCards from '@mdx-ko/YoutubeCards.astro';
+
+# Drizzle ORM
+> Drizzle은 필요할 때 곁에 있어 주고, 혼자만의 시간이 필요할 때는 방해하지 않는 좋은 친구입니다.
+
+Drizzle ORM은 존재감 있는 headless TypeScript ORM입니다. 🐲
+
+Drizzle은 단순해 보이고 단순하게 느껴지며, 프로젝트를 시작한 지 _1000_ 일이 지난 시점에도 잘 작동하고,  
+원하는 방식으로 작업할 수 있게 해 주며, 필요할 때 항상 곁에 있습니다.
+
+**Drizzle은 [관계형](/docs/rqb) 쿼리 API와 [SQL-like](/docs/select) 쿼리 API를 모두 제공하는 유일한 ORM이며**,  
+관계형 데이터를 다룰 때 두 세계의 장점을 모두 누릴 수 있게 해 줍니다.  
+Drizzle은 가볍고, 빠르며, 타입 안전하고, non-lactose, gluten-free, sober, 유연하며, **처음부터 serverless-ready 하도록 설계되었습니다**.  
+Drizzle은 단순한 라이브러리가 아니라 하나의 경험입니다. 🤩
+
+[![Drizzle bestofjs](@/assets/images/bestofjs.jpg)](https://bestofjs.org/projects/drizzle-orm)
+
+## Headless ORM?
+무엇보다도 먼저, Drizzle은 라이브러리이자 상호 보완적인 opt-in 도구들의 모음입니다.
+
+**ORM**은 _object relational mapping_의 약자이며, 개발자들은 Django나 Spring 같은 도구를 ORM이라고 부르는 경향이 있습니다.  
+저희는 이것이 오래된 명명법에서 비롯된 오해라고 생각하며, 그런 도구들을 **data frameworks**라고 부릅니다.
+
+<Callout type="error" emoji="️💔">
+  data frameworks를 사용하면 프로젝트를 **그 도구 중심으로** 만들어야 하지, **그 도구와 함께** 만들 수는 없습니다.
+</Callout>
+
+**Drizzle**은 프로젝트나 구조에 간섭하지 않으면서, 여러분이 원하는 방식으로 프로젝트를 만들 수 있게 해 줍니다.
+
+Drizzle을 사용하면 TypeScript로 데이터베이스 스키마를 정의하고 관리할 수 있고,  
+SQL-like 방식이나 relational 방식으로 데이터에 접근할 수 있으며, opt-in 도구들을 활용해  
+개발자 경험을 _한층 끌어올릴_ 수 있습니다. 🤯
+
+## Why SQL-like?
+**SQL을 안다면, Drizzle도 알 수 있습니다.**
+
+다른 ORM과 data frameworks는 SQL로부터 여러분을 멀어지게 만들거나 추상화해 버리는 경향이 있습니다.  
+그 결과 SQL과 프레임워크 API를 모두 배워야 하는 이중 학습 곡선이 생깁니다.
+
+Drizzle은 그 반대입니다.  
+저희는 SQL을 받아들이고, Drizzle의 핵심을 SQL-like 하게 만들었습니다.  
+그래서 학습 곡선이 거의 없거나 아예 없으며, SQL의 모든 강력함을 그대로 활용할 수 있습니다.
+
+우리는 익숙한 **[SQL schema](/docs/sql-schema-declaration)**, **[queries](/docs/select)**,  
+**[automatic migrations](/docs/migrations)**, 그리고 **[one more thing](/docs/rqb)**까지 모두 제공합니다. ✨
+
+<CodeTabs items={["index.ts", "schema.ts", "migration.sql"]}>
+```typescript copy
+// Access your data
+await db
+	.select()
+	.from(countries)
+	.leftJoin(cities, eq(cities.countryId, countries.id))
+	.where(eq(countries.id, 10))
+```
+```typescript copy
+// manage your schema
+export const countries = pgTable('countries', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 256 }),
+});
+
+export const cities = pgTable('cities', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 256 }),
+  countryId: integer('country_id').references(() => countries.id),
+});
+```
+```sql
+-- generate migrations
+CREATE TABLE IF NOT EXISTS "countries" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar(256)
+);
+
+CREATE TABLE IF NOT EXISTS "cities" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" varchar(256),
+	"country_id" integer
+);
+
+ALTER TABLE "cities" ADD CONSTRAINT "cities_country_id_countries_id_fk" FOREIGN KEY ("country_id") REFERENCES "countries"("id") ON DELETE no action ON UPDATE no action;
+```
+</CodeTabs>
+
+## Why not SQL-like?
+저희는 언제나 완벽하게 균형 잡힌 해법을 추구합니다. SQL-like 방식이 요구 사항의 100%를 충족하긴 하지만,  
+일부 흔한 시나리오에서는 데이터를 더 좋은 방식으로 조회할 수 있는 경우도 있습니다.
+
+그래서 저희는 **[Queries API](/docs/rqb)**를 만들었습니다. 이를 통해 데이터베이스에서 관계형 중첩 데이터를  
+가장 편리하고 성능 좋은 방식으로 가져올 수 있고, 조인과 데이터 매핑을 직접 고민하지 않아도 됩니다.
+
+**Drizzle은 항상 정확히 1개의 SQL 쿼리만 생성합니다.**  
+serverless 데이터베이스와 함께 안심하고 사용해도 되며, 성능이나 roundtrip 비용을 걱정할 필요가 없습니다.
+
+```ts
+const result = await db.query.users.findMany({
+	with: {
+		posts: true
+	},
+});
+```
+
+## Serverless?
+<Callout type="info" emoji="🥳">
+  가장 좋은 부품은 아예 없는 부품입니다. **Drizzle은 의존성이 정확히 0개입니다!**
+</Callout>
+
+
+![Drizzle is slim an Serverless ready](@/assets/images/drizzle31kb.jpg)
+
+Drizzle ORM은 방언별로 특화되어 있고, 가볍고, 빠르며, **처음부터** serverless-ready 하도록 설계되었습니다.
+
+저희는 Postgres, MySQL 등을 포함한 최고 수준의 SQL dialect 지원을 제공할 수 있도록 많은 시간을 들였습니다.
+
+Drizzle은 업계 표준 데이터베이스 드라이버를 통해 네이티브하게 동작합니다.  
+주요 **[PostgreSQL](/docs/get-started-postgresql)**, **[MySQL](/docs/get-started-mysql)**, **[SQLite](/docs/get-started-sqlite)** 드라이버를 모두 지원하며, 새로운 드라이버도 **[아주 빠르게](https://twitter.com/DrizzleORM/status/1653082492742647811?s=20)** 추가하고 있습니다.
+
+## Welcome on board!
+점점 더 많은 회사들이 프로덕션 환경에서 Drizzle을 도입하고 있으며, DX와 성능 양쪽에서 큰 이점을 경험하고 있습니다.
+
+**저희는 언제나 도움을 드릴 준비가 되어 있으니, 부담 없이 연락해 주세요. Drizzle 여정을 기꺼이 도와드리겠습니다!**
+
+저희에게는 훌륭한 **[Discord community](https://driz.link/discord)**가 있고, 모든 빌더를 **[Twitter](https://twitter.com/drizzleorm)**에서도 환영합니다.
+
+이제 Drizzle과 여러분의 **[PostgreSQL](/docs/get-started-postgresql)**, **[MySQL](/docs/get-started-mysql)**, **[SQLite](/docs/get-started-sqlite)** 데이터베이스로 멋진 무언가를 만들어 보세요. 🚀
+
+### 영상 소개
+
+{/* tRPC + NextJS App Router = Simple Typesafe APIs
+Jack Herrington 19:17
+https://www.youtube.com/watch?v=qCLV0Iaq9zU */}
+{/* https://www.youtube.com/watch?v=qDunJ0wVIec */}
+{/* https://www.youtube.com/watch?v=NZpPMlSAez0 */}
+
+ {/* https://www.youtube.com/watch?v=-A0kMiJqQRY */}
+
+<YoutubeCards cards={[
+	{
+		id: "vyU5mJGCJMw",
+		title: "초보자를 위한 Drizzle 전체 강의",
+		description: "Code Genix",
+		time: "1:37:39",
+	},
+	{
+		id: "7-NZ0MlPpJA",
+		title: "60분 만에 배우는 Drizzle",
+		description: "Web Dev Simplified",
+		time: "56:09"
+	},
+	{
+		id: "i_mAHOhpBSA",
+		title: "100초 안에 보는 Drizzle ORM",
+		description: "Fireship",
+		time: "2:55"
+	},
+	{
+		id: "hIYNOiZXQ7Y",
+		title: "13분 만에 배우는 Drizzle ORM (크래시 코스)",
+		description: "Neon",
+		time: "14:00"
+	},
+	{
+		id: "4ZhtoOFKFP8",
+		title: "Next.js 14에서 Turso와 Drizzle로 가장 쉬운 데이터베이스 설정",
+		description: "Sam Meech-Ward",
+		time: '38:08'
+	},
+	{
+		id: "NfVELsEZFsA",
+		title: "Vercel, Neon, Drizzle, TailwindCSS, FlowBite 등으로 만드는 Next.js 프로젝트!",
+		description: "CodingEntrepreneurs",
+		time: '5:46:28'
+	},
+	{
+		id: "_SLxGYzv6jo",
+		title: "내가 가장 좋아하는 새 데이터베이스 도구",
+		description: "Theo - t3.gg",
+		time: '5:46'
+	},
+	{
+		id: "Qo-RXkSwOtc",
+		title: "Drizzle ORM 첫인상 - 마이그레이션, 관계, 쿼리!",
+		description: "Marius Espejo",
+		time: '33:52'
+	},
+	{
+		id: "yXNEqyvA0OY",
+		title: "Drizzle ORM을 배우고 싶어서 또 다른 next14 프로젝트를 시작합니다",
+		description: "Web Dev Cody",
+		time: "9:00"
+	},
+	{
+		id: "h7vVhR-dFYo",
+		title: "ORM 고르기가 점점 더 어려워지고 있다...",
+		description: "Ben Davis",
+		time: "5:18"
+	},
+	{
+		id: "8met6WTk0mQ",
+		title: "이 새로운 데이터베이스 도구는 게임 체인저입니다",
+		description: "Josh tried coding",
+		time: "8:49"
+	},
+	{
+		id: "woWW1T9DXEY",
+		title: "내가 가장 좋아하는 데이터베이스 도구가 훨씬 더 좋아졌습니다",
+		description: "Josh tried coding",
+		time: "4:23"
+	},
+	{
+		id: "A3l6YYkXzzg",
+		title: "Realtime cursors, Nextjs 13, Stripe, Drizzle ORM, Tailwind, Supabase, Sockets로 만드는 SaaS Notion 클론",
+		description: "Web Prodigies",
+		time: "11:41:46"
+	},
+	{
+		id: "EQfaw5bDE1s",
+		title: "SvelteKit + Drizzle 코드 분석",
+		description: "Ben Davis",
+		time: "12:18"
+	},
+	{
+		id: "b6VhN_HHDiQ",
+		title: "멀티 테넌트 RBAC 시스템 구축하기",
+		description: "TomDoesTech",
+		time: "2:01:29"
+	},
+	{
+		id: "3tl9XCiQErA",
+		title: "마침내 등장한 Prisma 킬러",
+		description: "SST",
+		time: "5:42"
+	},
+	{
+		id: "VQFjyEa8vGE",
+		title: "Drizzle ORM을 배우며 next14 프로젝트 작업하기",
+		description: "Web Dev Cody",
+		time: "1:07:41"
+	},
+	{
+		id: "5G0upg4sxgE",
+		title: "이 트릭이 내가 가장 좋아하는 데이터베이스 도구를 더 좋게 만듭니다",
+		description: "Josh tried coding",
+		time: "6:01"
+	},
+	{
+		id: "-JnEuvPmt-Q",
+		title: "Next.js 14에서 Auth.js와 Drizzle ORM으로 손쉽게 인증 구현하기",
+		description: "Sam Meech-Ward",
+		time: "26:29"
+	},
+]} />

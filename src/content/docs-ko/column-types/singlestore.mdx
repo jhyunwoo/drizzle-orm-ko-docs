@@ -1,0 +1,695 @@
+---
+title: SingleStore 열 유형
+---
+import Section from '@mdx-ko/Section.astro';
+import Callout from '@mdx-ko/Callout.astro';
+
+이들 모두에 대해 기본 지원을 제공하지만, 그것만으로 충분하지 않다면 **[custom types](/docs/custom-types)**를 자유롭게 만들어 사용할 수 있습니다.
+
+<Callout title='중요' type='warning'>
+이 문서 섹션의 모든 예제는 데이터베이스 컬럼 이름 별칭을 사용하지 않으며, 컬럼 이름은 TypeScript 키에서 생성됩니다. 
+
+원한다면 컬럼 이름에 데이터베이스 별칭을 사용할 수 있고, `casing` 매개변수를 사용해 Drizzle의 매핑 전략을 정의할 수도 있습니다. 
+
+이에 대해서는 [here](/docs/sql-schema-declaration#shape-your-data-schema)에서 더 자세히 읽을 수 있습니다.
+</Callout>
+
+### integer
+
+값의 크기에 따라 `0`, `1`, `2`, `3`, `4`, `6`, 또는 `8`바이트에 저장되는 부호 있는 정수입니다.
+
+<Section>
+```typescript
+import { int, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	int: int()
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`int` int
+);
+```
+</Section>
+
+### tinyint
+
+<Section>
+```typescript
+import { tinyint, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	tinyint: tinyint()
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`tinyint` tinyint
+);
+```
+</Section>
+
+### smallint
+
+<Section>
+```typescript
+import { smallint, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	smallint: smallint()
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`smallint` smallint
+);
+```
+</Section>
+
+### mediumint
+
+<Section>
+```typescript
+import { mediumint, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	mediumint: mediumint()
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`mediumint` mediumint
+);
+```
+</Section>
+
+### bigint
+
+<Section>
+```typescript
+import { bigint, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	bigint: bigint({ mode: 'number' })
+	bigintUnsigned: bigint({ mode: 'number', unsigned: true })
+});
+
+bigint('...', { mode: 'number' | 'bigint' });
+
+// You can also specify unsigned option for bigint
+bigint('...', { mode: 'number' | 'bigint', unsigned: true })
+```
+
+```sql
+CREATE TABLE `table` (
+	`bigint` bigint,
+	`bigintUnsigned` bigint unsigned
+);
+```
+</Section>
+
+숫자 타입의 표시 너비를 나타내기 때문에 `bigint(M)`에서 `M` 설정은 생략했습니다. 
+
+## ---
+
+### real
+
+<Section>
+```typescript
+import { real, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	real: real()
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`real` real
+);
+```
+</Section>
+
+<Section>
+```typescript
+import { real, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	realPrecision: real({ precision: 1,}),
+	realPrecisionScale: real({ precision: 1, scale: 1,}),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`realPrecision` real(1),
+	`realPrecisionScale` real(1, 1)
+);
+```
+</Section>
+
+### decimal
+
+<Section>
+```typescript
+import { decimal, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	decimal: decimal(),
+	decimalNum: decimal({ scale: 30, mode: 'number' }),
+	decimalBig: decimal({ scale: 30, mode: 'bigint' }),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`decimal` decimal,
+	`decimalNum` decimal(30),
+	`decimalBig` decimal(30)
+);
+```
+</Section>
+
+<Section>
+```typescript
+import { decimal, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	decimalPrecision: decimal({ precision: 1,}),
+	decimalPrecisionScale: decimal({ precision: 1, scale: 1,}),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`decimalPrecision` decimal(1),
+	`decimalPrecisionScale` decimal(1, 1)
+);
+```
+</Section>
+
+### double
+
+<Section>
+```typescript
+import { double, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	double: double('double')
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`double` double
+);
+```
+</Section>
+
+<Section>
+```typescript
+import { double, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	doublePrecision: double({ precision: 1,}),
+	doublePrecisionScale: double({ precision: 1, scale: 1,}),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`doublePrecision` double(1),
+	`doublePrecisionScale` double(1, 1)
+);
+```
+</Section>
+
+### float
+
+<Section>
+```typescript
+import { float, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	float: float()
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`float` float
+);
+```
+</Section>
+
+## ---
+
+### serial
+
+<Section>
+
+`SERIAL`은 `BIGINT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE`의 별칭입니다.
+
+```typescript
+import { serial, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	serial: serial()
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`serial` serial AUTO_INCREMENT
+);
+```
+</Section>
+
+## ---
+
+### binary
+
+<Section>
+```typescript
+import { binary, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	binary: binary()
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`binary` binary
+);
+```
+</Section>
+
+### varbinary
+
+<Section>
+```typescript
+import { varbinary, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	varbinary: varbinary({ length: 2}),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`varbinary` varbinary(2)
+);
+```
+</Section>
+
+## ---
+
+### char
+
+<Section>
+```typescript
+import { char, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	char: char(),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`char` char
+);
+```
+</Section>
+
+### varchar
+`{ enum: ["value1", "value2"] }` 설정을 정의해 `insert` 및 `select` 타입을 추론할 수 있지만, 런타임 값은 검사하지 **않습니다**.
+<Section>
+```typescript
+import { varchar, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	varchar: varchar({ length: 2 }),
+});
+
+// will be inferred as text: "value1" | "value2" | null
+varchar: varchar({ length: 6, enum: ["value1", "value2"] })
+```
+
+```sql
+CREATE TABLE `table` (
+	`varchar` varchar(2)
+);
+```
+</Section>
+
+### text
+
+`{ enum: ["value1", "value2"] }` 설정을 정의해 `insert` 및 `select` 타입을 추론할 수 있지만, 런타임 값은 검사하지 **않습니다**.
+
+<Section>
+```typescript
+import { text, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	text: text(),
+});
+
+// will be inferred as text: "value1" | "value2" | null
+text: text({ enum: ["value1", "value2"] });
+```
+
+```sql
+CREATE TABLE `table` (
+	`text` text
+);
+```
+</Section>
+
+## ---
+
+### boolean
+
+<Section>
+```typescript
+import { boolean, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	boolean: boolean(),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`boolean` boolean
+);
+```
+</Section>
+
+## ---
+
+### date
+
+<Section>
+```typescript
+import { boolean, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	date: date(),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`date` date
+);
+```
+</Section>
+
+### datetime
+
+<Section>
+```typescript
+import { datetime, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	datetime: datetime(),
+});
+
+datetime('...', { mode: 'date' | "string"}),
+```
+
+```sql
+CREATE TABLE `table` (
+	`datetime` datetime
+);
+```
+</Section>
+
+### time 
+
+<Section>
+```typescript
+import { time, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	time: time(),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`time` time
+);
+```
+</Section>
+
+### year
+
+<Section>
+```typescript
+import { year, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	year: year(),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`year` year
+);
+```
+</Section>
+
+### timestamp
+
+<Section>
+```typescript
+import { timestamp, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	timestamp: timestamp(),
+});
+
+timestamp('...', { mode: 'date' | "string"}),
+```
+
+```sql
+CREATE TABLE `table` (
+	`timestamp` timestamp
+);
+```
+</Section>
+
+<Section>
+```typescript
+import { timestamp, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	timestamp: timestamp().defaultNow(),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`timestamp` timestamp DEFAULT (now())
+);
+```
+</Section>
+
+## ---
+
+### json
+
+<Section>
+```typescript
+import { json, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	json: json(),
+});
+
+```
+
+```sql
+CREATE TABLE `table` (
+	`json` json
+);
+```
+</Section>
+
+json 객체 추론을 위해 `.$type<..>()`를 지정할 수 있지만, 런타임 값은 검사하지 **않습니다**. 
+이 기능은 기본값, insert, select 스키마에 대해 컴파일 타임 보호를 제공합니다.
+```typescript
+// will be inferred as { foo: string }
+json: json().$type<{ foo: string }>();
+
+// will be inferred as string[]
+json: json().$type<string[]>();
+
+// won't compile
+json: json().$type<string[]>().default({});
+```
+
+## ---
+
+### enum
+
+<Section>
+```typescript
+import { singlestoreEnum, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	popularity: singlestoreEnum(['unknown', 'known', 'popular']),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`popularity` enum('unknown','known','popular')
+);
+```
+</Section>
+
+## ---
+
+### 데이터 유형 사용자 지정
+
+모든 컬럼 빌더에는 컬럼의 데이터 타입을 사용자 지정할 수 있는 `.$type()` 메서드가 있습니다. 예를 들어 알 수 없는 타입이나 브랜드 타입과 함께 사용할 때 유용합니다.
+
+```ts
+type UserId = number & { __brand: 'user_id' };
+type Data = {
+	foo: string;
+	bar: number;
+};
+
+const users = singlestoreTable('users', {
+  id: int().$type<UserId>().primaryKey(),
+  jsonField: json().$type<Data>(),
+});
+```
+
+### null 아님
+`NOT NULL` 제약 조건은 해당 컬럼에 `NULL` 값이 들어갈 수 없음을 의미합니다.
+
+<Section>
+```typescript
+import { int, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	int: int().notNull(),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`int` int NOT NULL
+);
+```
+</Section>
+
+### 기본값
+
+`DEFAULT` 절은 `INSERT`를 수행할 때 사용자가 명시적으로 값을 제공하지 않은 경우, 해당 컬럼에 사용할 기본값을 지정합니다.
+컬럼 정의에 명시적인 `DEFAULT` 절이 붙어 있지 않다면,
+그 컬럼의 기본값은 `NULL`입니다.
+
+명시적인 `DEFAULT` 절은 기본값으로 `NULL`,
+문자열 상수, blob 상수, 부호 있는 숫자, 혹은 괄호로 둘러싼 상수 표현식을 지정할 수 있습니다.
+
+<Section>
+```typescript
+import { int, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	int: int().default(3),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`int` int DEFAULT 3
+);
+```
+</Section>
+
+같은 함수의 다른 별칭인 `$default()` 또는 `$defaultFn()`을 사용하면, 
+런타임에 기본값을 생성하고 모든 insert 쿼리에서 이 값을 사용할 수 있습니다. 
+이 함수들은 `uuid`, `cuid`, `cuid2` 등 다양한 구현을 활용하는 데 도움이 됩니다.
+
+<Callout type="info" emoji="ℹ️">
+	참고: 이 값은 `drizzle-kit` 동작에 영향을 주지 않으며, `drizzle-orm` 런타임에서만 사용됩니다.
+</Callout>
+
+```ts
+import { varchar, singlestoreTable } from "drizzle-orm/singlestore-core";
+import { createId } from '@paralleldrive/cuid2';
+
+const table = singlestoreTable('table', {
+	id: varchar({ length: 128 }).$defaultFn(() => createId()),
+});
+```
+
+같은 함수의 다른 별칭인 `$onUpdate()` 또는 `$onUpdateFn()`을 사용하면, 
+런타임에 기본값을 생성하고 모든 update 쿼리에서 이 값을 사용할 수 있습니다. 
+
+컬럼에 동적인 업데이트 값을 추가합니다. 행이 업데이트되면 함수가 호출되며, 
+값이 따로 제공되지 않은 경우 반환값이 컬럼 값으로 사용됩니다.
+기본값(또는 `$defaultFn`)이 제공되지 않았다면 함수는
+행이 삽입될 때에도 호출되고, 반환된 값이 컬럼 값으로 사용됩니다.
+
+<Callout type="info" emoji="ℹ️">
+	참고: 이 값은 `drizzle-kit` 동작에 영향을 주지 않으며, `drizzle-orm` 런타임에서만 사용됩니다.
+</Callout>
+
+```ts
+import { text, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+    alwaysNull: text().$type<string | null>().$onUpdate(() => null),
+});
+```
+
+### 기본 키 
+
+<Section>
+```typescript
+import { int, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	int: int().primaryKey(),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`int` int PRIMARY KEY NOT NULL
+);
+```
+</Section>
+
+### 자동 증가
+
+<Section>
+```typescript
+import { int, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+const table = singlestoreTable('table', {
+	int: int().autoincrement(),
+});
+```
+
+```sql
+CREATE TABLE `table` (
+	`int` int AUTO_INCREMENT
+);
+```
+</Section>

@@ -1,0 +1,14 @@
+`src` 디렉터리에 `index.ts` 파일을 생성하고 연결을 초기화합니다.
+```typescript copy
+import { drizzle } from 'drizzle-orm/pglite';
+
+const db = drizzle(process.env.DATABASE_URL!);
+```
+기존 드라이버를 제공해야 하는 경우:
+```typescript copy
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+
+const client = new PGlite(process.env.DATABASE_URL!);
+const db = drizzle({ client });
+```

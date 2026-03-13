@@ -1,0 +1,29 @@
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+`src` 디렉터리에 `index.ts` 파일을 생성하고 연결을 초기화합니다.
+
+<CodeTabs items={["bun:sqlite", "설정이 포함된 bun:sqlite"]}>
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/bun-sqlite';
+
+const db = drizzle(process.env.DB_FILE_NAME!);
+```
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/bun-sqlite';
+
+// You can specify any property from the bun:sql connection options
+const db = drizzle({ connection: { source: process.env.DB_FILE_NAME! }});
+```
+</CodeTabs>
+
+기존 드라이버를 직접 전달해야 하는 경우:
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/bun-sqlite';
+import { Database } from 'bun:sqlite';
+
+const sqlite = new Database(process.env.DB_FILE_NAME!);
+const db = drizzle({ client: sqlite });
+```

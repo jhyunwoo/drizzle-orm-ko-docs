@@ -1,0 +1,86 @@
+---
+title: PostgreSQL 로컬 설정 방법
+slug: postgresql-local-setup
+---
+
+import Section from "@mdx-ko/Section.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Steps from '@mdx-ko/Steps.astro';
+
+<Prerequisites>
+- 최신 [Docker Desktop](https://www.docker.com/products/docker-desktop/)을 설치하세요. 운영체제에 맞는 안내를 따르세요.
+</Prerequisites>
+
+<Steps>
+
+#### PostgreSQL 이미지 가져오기
+
+Docker Hub에서 최신 PostgreSQL 이미지를 가져옵니다. 터미널에서 `docker pull postgres`를 실행해 Docker Hub의 최신 Postgres 버전을 내려받으세요:
+
+```bash copy
+docker pull postgres
+```
+
+원한다면 특정 태그를 붙여 원하는 버전을 내려받을 수도 있습니다:
+
+```bash copy
+docker pull postgres:15
+```
+
+postgres 이미지 다운로드가 끝나면 Docker Desktop의 `Images` 탭에서 확인하거나 `docker images`를 실행해 확인할 수 있습니다:
+
+<Section>
+```bash copy
+docker images
+```
+
+```plaintext
+REPOSITORY   TAG       IMAGE ID       CREATED         SIZE
+postgres     latest    75282fa229a1   6 weeks ago     453MB
+```
+</Section>
+
+#### Postgres 인스턴스 시작하기
+
+새 PostgreSQL 컨테이너를 시작하려면 다음 명령을 실행합니다:
+
+```bash copy
+docker run --name drizzle-postgres -e POSTGRES_PASSWORD=mypassword -d -p 5432:5432 postgres
+```
+
+1. `--name` 옵션은 컨테이너 이름을 `drizzle-postgres`로 지정합니다.
+2. `-e POSTGRES_PASSWORD=` 옵션은 `POSTGRES_PASSWORD` 환경 변수를 지정한 값으로 설정합니다.
+3. `-d` 플래그는 컨테이너를 detached mode(백그라운드)로 실행합니다.
+4. `-p` 옵션은 컨테이너의 `5432` 포트를 호스트 머신의 `5432` 포트에 매핑하여, 이 포트를 통해 호스트 시스템에서 PostgreSQL에 접근할 수 있게 합니다.
+5. `postgres` 인자는 컨테이너에 사용할 이미지를 지정합니다. `postgres:15` 같은 다른 버전도 지정할 수 있습니다.
+
+다음과 같은 다른 파라미터도 지정할 수 있습니다:
+
+1. `-e POSTGRES_USER=` 옵션은 `POSTGRES_USER` 환경 변수를 지정한 값으로 설정합니다. 비어 있으면 Postgres가 기본 사용자를 사용합니다. 대부분의 경우 `postgres`이며, Docker Desktop의 컨테이너 로그나 `docker logs <container_name>`를 실행해 확인할 수 있습니다.
+2. `-e POSTGRES_DB=` 옵션은 `POSTGRES_DB` 환경 변수를 지정한 값으로 설정합니다. 비어 있으면 기본값은 `POSTGRES_USER` 값입니다.
+
+컨테이너가 실행 중인지 확인하려면 Docker Desktop의 `Containers` 탭을 보거나 `docker ps` 명령을 사용하세요:
+
+```plaintext
+CONTAINER ID   IMAGE      COMMAND                  CREATED         STATUS         PORTS                    NAMES
+df957c58a6a3   postgres   "docker-entrypoint.s…"   4 seconds ago   Up 3 seconds   0.0.0.0:5432->5432/tcp   drizzle-postgres
+```
+
+#### 데이터베이스 URL 설정
+
+PostgreSQL 데이터베이스에 연결하려면 데이터베이스 URL을 제공해야 합니다. URL 형식은 다음과 같습니다:
+
+```plaintext
+postgres://<user>:<password>@<host>:<port>/<database>
+```
+
+placeholder를 실제 값으로 바꾸어야 합니다. 예를 들어 위에서 만든 컨테이너의 경우 URL은 다음과 같습니다:
+
+```plaintext
+postgres://postgres:mypassword@localhost:5432/postgres
+```
+
+이제 애플리케이션에서 이 URL을 사용해 데이터베이스에 연결할 수 있습니다.
+</Steps>

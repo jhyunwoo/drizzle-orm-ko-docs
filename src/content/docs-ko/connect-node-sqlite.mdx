@@ -1,0 +1,65 @@
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+# Drizzle \<\> Node SQLite
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- Node - [웹사이트](https://nodejs.org/)
+- Node SQLite driver - [문서](https://nodejs.org/api/sqlite.html)
+</Prerequisites>
+
+Drizzle ORM은 **[`node:sqlite`](https://nodejs.org/api/sqlite.html)** 모듈을 네이티브하게 지원합니다.
+
+저희는 SQL 방언과 방언별 드라이버 및 문법을 받아들이며, 다른 어떤 ORM과도 달리 
+`node:sqlite` 같은 동기식 드라이버에 대해서도 **async**와 **sync** API를 모두 제공하고, 가장 널리 쓰이는 
+SQLite 스타일의 `all`, `get`, `values`, `run` 쿼리 메서드 문법을 그대로 반영합니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+```typescript copy
+import { drizzle } from 'drizzle-orm/node-sqlite';
+
+const db = drizzle("sqlite.db");
+
+const result = await db.select().from(...);
+```
+
+기존 드라이버를 직접 제공해야 하는 경우:
+```typescript copy
+import { drizzle } from 'drizzle-orm/node-sqlite';
+import { DatabaseSync } from 'node:sqlite';
+
+const sqlite = new DatabaseSync('sqlite.db');
+const db = drizzle({ client: sqlite });
+
+const result = await db.select().from(...);
+```
+
+**sync** API를 사용하고 싶다면:
+```typescript copy
+import { drizzle } from 'drizzle-orm/node-sqlite';
+import { DatabaseSync } from 'node:sqlite';
+
+const sqlite = new Database('sqlite.db');
+const db = drizzle({ client: sqlite });
+
+const result = db.select().from(users).all();
+const result = db.select().from(users).get();
+const result = db.select().from(users).values();
+const result = db.select().from(users).run();
+```
+
+#### 다음 단계는?
+
+<WhatsNextPostgres/>

@@ -1,0 +1,1688 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Section from '@mdx-ko/Section.astro';
+
+# Index와 Constraint
+
+## Constraint
+
+SQL constraint는 테이블 column에 적용되는 규칙입니다. 데이터베이스에 잘못된 데이터가 입력되는 것을 방지하는 데 사용됩니다.
+
+이를 통해 데이터베이스 안 데이터의 정확성과 신뢰성을 보장합니다.
+
+### 기본값
+
+`DEFAULT` clause는 사용자가 `INSERT`를 수행할 때 값을 제공하지 않은 경우 해당 column에 사용할 기본값을 지정합니다.
+column 정의에 명시적인 `DEFAULT` clause가 없다면,
+column의 기본값은 `NULL`입니다.
+
+명시적인 `DEFAULT` clause는 기본값으로 `NULL`,
+문자열 상수, blob 상수, 부호 있는 숫자 또는 괄호로 감싼 상수 expression을 지정할 수 있습니다.
+
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'SingleStore', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    <Section>
+    ```typescript
+    import { sql } from "drizzle-orm";
+    import { integer, uuid, pgTable } from "drizzle-orm/pg-core";
+
+    const table = pgTable('table', {
+      integer1: integer('integer1').default(42),
+      integer2: integer('integer2').default(sql`'42'::integer`),
+      uuid1: uuid('uuid1').defaultRandom(),
+      uuid2: uuid('uuid2').default(sql`gen_random_uuid()`),
+    });
+    ```
+
+    ```sql
+    CREATE TABLE "table" (
+      "integer1" integer DEFAULT 42,
+      "integer2" integer DEFAULT '42'::integer,
+      "uuid1" uuid DEFAULT gen_random_uuid(),
+      "uuid2" uuid DEFAULT gen_random_uuid()
+    );
+    ```
+    </Section>
+
+  </Tab> 
+  <Tab>
+    <Section>
+    ```typescript
+    import { sql } from "drizzle-orm";
+    import { int, time, mysqlTable } from "drizzle-orm/mysql-core";
+    
+    const table = mysqlTable("table", {
+      int: int("int").default(42),
+      time: time("time").default(sql`cast("14:06:10" AS TIME)`),
+    });
+    ```
+    ```sql
+    CREATE TABLE `table` (
+      `int` int DEFAULT 42,
+      `time` time DEFAULT cast("14:06:10" AS TIME)
+    );
+    ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+    ```typescript
+    import { sql } from "drizzle-orm";
+    import { integer, sqliteTable } from "drizzle-orm/sqlite-core";
+
+    const table = sqliteTable('table', {
+      int1: integer('int1').default(42),
+      int2: integer('int2').default(sql`(abs(42))`)
+    });
+
+    ```
+    ```sql
+    CREATE TABLE `table` (
+      `int1` integer DEFAULT 42
+      `int2` integer DEFAULT (abs(42))
+    );
+    ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    <Section>
+    ```typescript
+    import { sql } from "drizzle-orm";
+    import { int, time, singlestoreTable } from "drizzle-orm/singlestore-core";
+    
+    const table = singlestoreTable("table", {
+      int: int("int").default(42),
+      time: time("time").default(sql`cast("14:06:10" AS TIME)`),
+    });
+    ```
+    ```sql
+    CREATE TABLE `table` (
+      `int` int DEFAULT 42,
+      `time` time DEFAULT cast("14:06:10" AS TIME)
+    );
+    ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+    ```typescript
+    import { sql } from "drizzle-orm";
+    import { int, time, mssqlTable } from "drizzle-orm/mssql-core";
+    
+    const table = mssqlTable("table", {
+      int: int().default(42),
+      description: text().default(`This is your dashboard!`),
+    });
+    ```
+    ```sql
+    CREATE TABLE [table] (
+      [int] int DEFAULT 42,
+      [description] text DEFAULT 'This is your dashboard!'
+    );
+    ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+    ```typescript
+    import { sql } from "drizzle-orm";
+    import { int4, uuid, cockroachTable } from "drizzle-orm/cockroach-core";
+
+    const table = cockroachTable('table', {
+      integer1: int4().default(42),
+      integer2: int4().default(sql`'42'::int4`),
+      uuid1: uuid().defaultRandom(),
+      uuid2: uuid().default(sql`gen_random_uuid()`),
+    });
+    ```
+
+    ```sql
+    CREATE TABLE "table" (
+      "integer1" int4 DEFAULT 42,
+      "integer2" int4 DEFAULT '42'::integer,
+      "uuid1" uuid DEFAULT gen_random_uuid(),
+      "uuid2" uuid DEFAULT gen_random_uuid()
+    );
+    ```
+    </Section>
+
+  </Tab> 
+</Tabs>
+
+### Null 불가
+
+기본적으로 column은 **NULL** 값을 가질 수 있습니다. `NOT NULL` constraint는 column이 **NULL** 값을 받지 못하도록 강제합니다.  
+
+이 제약은 field가 항상 값을 가지도록 강제하므로,
+이 field에 값을 넣지 않고는 새 record를 insert하거나 기존 record를 update할 수 없습니다.
+
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'SingleStore', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    <Section>
+      ```typescript copy
+      import { integer, pgTable } from "drizzle-orm/pg-core";
+
+      const table = pgTable('table', {
+        integer: integer('integer').notNull(),
+      });
+      ```
+
+      ```sql
+      CREATE TABLE "table" (
+        "integer" integer NOT NULL
+      );
+      ```
+    </Section>
+
+  </Tab> 
+  <Tab>
+    <Section>
+      ```typescript
+      import { int, mysqlTable } from "drizzle-orm/mysql-core";
+
+      const table = mysqlTable('table', {
+        int: int('int').notNull(),
+      });
+      ```
+
+      ```sql
+      CREATE TABLE `table` (
+        `int` int NOT NULL
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+   <Section>
+      ```typescript copy
+      const table = sqliteTable('table', { 
+        numInt: integer('numInt').notNull() 
+      });
+      ```
+
+      ```sql
+      CREATE TABLE table (
+        `numInt` integer NOT NULL
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    <Section>
+      ```typescript
+      import { int, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+      const table = singlestoreTable('table', {
+        int: int('int').notNull(),
+      });
+      ```
+
+      ```sql
+      CREATE TABLE `table` (
+        `int` int NOT NULL
+      );
+      ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+      ```typescript
+      import { int, mssqlTable } from "drizzle-orm/mssql-core";
+
+      const table = mssqlTable('table', {
+        int: int().notNull(),
+      });
+      ```
+
+      ```sql
+      CREATE TABLE [table] (
+        [int] int NOT NULL
+      );
+      ```
+    </Section>
+  </Tab>
+    <Tab>
+    <Section>
+      ```typescript copy
+      import { int4, cockroachTable } from "drizzle-orm/cockroach-core";
+
+      const table = cockroachTable('table', {
+        integer: int4().notNull(),
+      });
+      ```
+
+      ```sql
+      CREATE TABLE "table" (
+        "integer" int4 NOT NULL
+      );
+      ```
+    </Section>
+  </Tab> 
+</Tabs>
+
+### 고유값
+
+`UNIQUE` constraint는 column 안의 모든 값이 서로 다르도록 보장합니다.  
+
+`UNIQUE`와 `PRIMARY KEY` constraint는 모두 column 하나 또는 column 집합의 유일성을 보장합니다.
+
+`PRIMARY KEY` constraint에는 자동으로 `UNIQUE` constraint가 포함됩니다.  
+
+<Callout type="info" emoji="ℹ️">
+  테이블마다 `UNIQUE` constraint는 여러 개 가질 수 있지만, `PRIMARY KEY` constraint는 하나만 가질 수 있습니다.
+</Callout>
+
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'SingleStore', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    <Section>
+      ```typescript copy
+      import { integer, text, unique, pgTable } from "drizzle-orm/pg-core";
+
+      export const user = pgTable('user', {
+        id: integer('id').unique(),
+      });
+
+      export const table = pgTable('table', {
+        id: integer('id').unique('custom_name'),
+      });
+
+      export const composite = pgTable('composite_example', {
+        id: integer('id'),
+        name: text('name'),
+      }, (t) => [
+        unique().on(t.id, t.name),
+        unique('custom_name').on(t.id, t.name)
+      ]);
+
+      // In Postgres 15.0+ NULLS NOT DISTINCT is available
+      // This example demonstrates both available usages
+      export const userNulls = pgTable('user_nulls_example', {
+        id: integer('id').unique("custom_name", { nulls: 'not distinct' }),
+      }, (t) => [
+        unique().on(t.id).nullsNotDistinct()
+      ]);
+      ```
+
+      ```sql
+      CREATE TABLE "composite_example" (
+	      "id" integer,
+        "name" text,
+        CONSTRAINT "composite_example_id_name_unique" UNIQUE("id","name"),
+        CONSTRAINT "custom_name" UNIQUE("id","name")
+      );
+
+      CREATE TABLE "table" (
+      	"id" integer,
+      	CONSTRAINT "custom_name" UNIQUE("id")
+      );
+
+      CREATE TABLE "user" (
+      	"id" integer,
+      	CONSTRAINT "user_id_unique" UNIQUE("id")
+      );
+
+      CREATE TABLE "user_nulls_example" (
+        "id" integer,
+        CONSTRAINT "custom_name" UNIQUE NULLS NOT DISTINCT("id"),
+        CONSTRAINT "user_nulls_example_id_unique" UNIQUE NULLS NOT DISTINCT("id")
+      );
+      ```
+    </Section>
+
+  </Tab> 
+  <Tab>
+    <Section>
+      ```typescript
+      import { int, varchar, unique, mysqlTable } from "drizzle-orm/mysql-core";
+
+      export const user = mysqlTable('user', {
+        id: int('id').unique(),
+      });
+
+      export const table = mysqlTable('table', {
+        id: int('id').unique('custom_name'),
+      });
+
+      export const composite = mysqlTable('composite_example', {
+        id: int('id'),
+        name: varchar('name', { length: 256 }),
+      }, (t) => [
+        unique().on(t.id, t.name),
+        unique('custom_name').on(t.id, t.name)
+      ]);
+      ```
+
+      ```sql
+      CREATE TABLE `user` (
+      	`id` int,
+      	CONSTRAINT `user_id_unique` UNIQUE(`id`)
+      );
+
+      CREATE TABLE `table` (
+      	`id` int,
+      	CONSTRAINT `custom_name` UNIQUE(`id`)
+      );
+
+      CREATE TABLE `composite_example` (
+        `id` int,
+        `name` varchar(256),
+        CONSTRAINT `composite_example_id_name_unique` UNIQUE(`id`,`name`),
+        CONSTRAINT `custom_name` UNIQUE(`id`,`name`)
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+   <Section>
+      ```typescript copy
+      import { int, text, unique, sqliteTable } from "drizzle-orm/sqlite-core";
+
+      export const user = sqliteTable('user', {
+        id: int('id').unique(),
+      });
+
+      export const table = sqliteTable('table', {
+        id: int('id').unique('custom_name'),
+      });
+
+      export const composite = sqliteTable('composite_example', {
+        id: int('id'),
+        name: text('name'),
+      }, (t) => [
+        unique().on(t.id, t.name),
+        unique('custom_name').on(t.id, t.name)
+      ]);
+      ```
+
+      ```sql
+      CREATE TABLE `user` (
+	      `id` integer
+      );
+
+      CREATE TABLE `table` (
+      	`id` integer
+      );
+
+      CREATE TABLE `composite_example` (
+      	`id` integer,
+      	`name` text
+      );
+
+      CREATE UNIQUE INDEX `composite_example_id_name_unique` ON `composite_example` (`id`,`name`);
+      CREATE UNIQUE INDEX `custom_name` ON `composite_example` (`id`,`name`);
+      CREATE UNIQUE INDEX `custom_name` ON `table` (`id`);
+      CREATE UNIQUE INDEX `user_id_unique` ON `user` (`id`);
+      ```
+    </Section>
+
+  </Tab>
+    <Tab>
+    <Section>
+      ```typescript
+      import { int, varchar, unique, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+      export const user = singlestoreTable('user', {
+        id: int('id').unique(),
+      });
+
+      export const table = singlestoreTable('table', {
+        id: int('id').unique('custom_name'),
+      });
+
+      export const composite = singlestoreTable('composite_example', {
+        id: int('id'),
+        name: varchar('name', { length: 256 }),
+      }, (t) => [
+        unique().on(t.id, t.name),
+        unique('custom_name').on(t.id, t.name)
+      ]);
+      ```
+
+      ```sql
+      CREATE TABLE `user` (
+      	`id` int,
+      	CONSTRAINT `user_id_unique` UNIQUE(`id`)
+      );
+
+      CREATE TABLE `table` (
+      	`id` int,
+      	CONSTRAINT `custom_name` UNIQUE(`id`)
+      );
+
+      CREATE TABLE `composite_example` (
+        `id` int,
+        `name` varchar(256),
+        CONSTRAINT `composite_example_id_name_unique` UNIQUE(`id`,`name`),
+        CONSTRAINT `custom_name` UNIQUE(`id`,`name`)
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    <Callout type='warning'>
+    MSSQL에서는 `text`, `ntext`, `varchar(max)`, `nvarchar(max)`에 unique constraint를 만들 수 없습니다
+    </Callout>
+    <Section>
+      ```typescript
+      import { int, varchar, unique, mssqlTable } from "drizzle-orm/mssql-core";
+
+      export const user = mssqlTable('user', {
+        id: int().unique(),
+      });
+
+      export const table = mssqlTable('table', {
+        id: int().unique('custom_name'),
+      });
+
+      export const composite = mssqlTable('composite_example', {
+        id: int(),
+        name: varchar({ length: 256 }),
+      }, (t) => [
+        unique().on(t.id, t.name),
+        unique('custom_name').on(t.id, t.name)
+      ]);
+      ```
+
+      ```sql
+      CREATE TABLE [user] (
+      	[id] int,
+      	CONSTRAINT [user_id_key] UNIQUE([id])
+      );
+
+      CREATE TABLE [table] (
+      	[id] int,
+      	CONSTRAINT [custom_name] UNIQUE([id])
+      );
+
+      CREATE TABLE [composite_example] (
+        [id] int,
+        [name] varchar(256),
+        CONSTRAINT [composite_example_id_name_key] UNIQUE([id],[name]),
+        CONSTRAINT [custom_name] UNIQUE([id],[name])
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    <Section>
+      ```typescript copy
+      import { int4, text, unique, cockroachTable } from "drizzle-orm/cockroach-core";
+
+      export const user = cockroachTable('user', {
+        id: int4().unique(),
+      });
+
+      export const table = cockroachTable('table', {
+        id: int4().unique('custom_name'),
+      });
+
+      export const composite = cockroachTable('composite_example', {
+        id: int4(),
+        name: text(),
+      }, (t) => [
+        unique().on(t.id, t.name),
+        unique('custom_name').on(t.id, t.name)
+      ]);
+      ```
+      ```sql
+      CREATE TABLE "user" (
+      	"id" integer,
+      	CONSTRAINT "user_id_unique" UNIQUE("id")
+      );
+
+      CREATE TABLE "table" (
+      	"id" integer,
+      	CONSTRAINT "custom_name" UNIQUE("id")
+      );
+
+      CREATE TABLE "composite_example" (
+	      "id" integer,
+        "name" text,
+        CONSTRAINT "composite_example_id_name_unique" UNIQUE("id","name"),
+        CONSTRAINT "custom_name" UNIQUE("id","name")
+      );
+      ```
+    </Section>
+  </Tab> 
+</Tabs>
+
+### 검사
+
+`CHECK` constraint는 column에 들어갈 수 있는 값의 범위를 제한하는 데 사용됩니다.
+
+column에 `CHECK` constraint를 정의하면 이 column에는 특정 값만 허용됩니다.  
+
+테이블에 `CHECK` constraint를 정의하면 row 안의 다른 column 값을 기준으로 특정 column의 값을 제한할 수 있습니다.
+
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'SingleStore', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    <Section>
+      ```typescript copy
+      import { sql } from "drizzle-orm";
+      import { check, integer, pgTable, text, uuid } from "drizzle-orm/pg-core";
+
+      export const users = pgTable(
+        "users",
+        {
+          id: uuid().defaultRandom().primaryKey(),
+          username: text().notNull(),
+          age: integer(),
+        },
+        (table) => [
+          check("age_check1", sql`${table.age} > 21`),
+        ]
+      );
+      ```
+      ```sql
+      CREATE TABLE "users" (
+	      "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	      "username" text NOT NULL,
+	      "age" integer,
+	      CONSTRAINT "age_check1" CHECK ("users"."age" > 21)
+      );
+      ```
+    </Section>
+
+  </Tab> 
+  <Tab>
+    <Section>
+      ```typescript copy
+      import { sql } from "drizzle-orm";
+      import { check, int, mysqlTable, text } from "drizzle-orm/mysql-core";
+
+      export const users = mysqlTable(
+        "users",
+        {
+          id: int().primaryKey(),
+          username: text().notNull(),
+          age: int(),
+        },
+        (table) => [
+          check("age_check1", sql`${table.age} > 21`)
+        ]
+      );
+      ```
+      ```sql
+      CREATE TABLE `users` (
+	      `id` int NOT NULL,
+	      `username` text NOT NULL,
+	      `age` int,
+	      CONSTRAINT `users_id` PRIMARY KEY(`id`),
+	      CONSTRAINT `age_check1` CHECK(`users`.`age` > 21)
+      );
+      ```
+    </Section>
+  </Tab>
+  <Tab>
+   <Section>
+      ```typescript copy
+      import { sql } from "drizzle-orm";
+      import { check, int, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+      export const users = sqliteTable(
+        "users",
+        {
+          id: int().primaryKey(),
+          username: text().notNull(),
+          age: int(),
+        },
+        (table) => [
+          check("age_check1", sql`${table.age} > 21`)
+        ]
+      );
+      ```
+      ```sql
+      CREATE TABLE `users` (
+	      `id` integer PRIMARY KEY NOT NULL,
+	      `username` text NOT NULL,
+	      `age` integer,
+	      CONSTRAINT "age_check1" CHECK("users"."age" > 21)
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    현재 SingleStore에서는 지원되지 않습니다
+  </Tab>
+<Tab>
+    <Section>
+      ```typescript copy
+      import { sql } from "drizzle-orm";
+      import { check, int, mssqlTable, text } from "drizzle-orm/mssql-core";
+
+      export const users = mssqlTable(
+        "users",
+        {
+          id: int().primaryKey(),
+          username: text().notNull(),
+          age: integer(),
+        },
+        (table) => [
+          check("age_check1", sql`${table.age} > 21`),
+        ]
+      );
+      ```
+      ```sql
+      CREATE TABLE [users] (
+	      [id] int PRIMARY KEY,
+	      [username] text NOT NULL,
+	      [age] integer,
+	      CONSTRAINT [age_check1] CHECK ([users].[age] > 21)
+      );
+      ```
+    </Section>
+
+  </Tab> 
+  <Tab>
+    <Section>
+      ```typescript copy
+      import { sql } from "drizzle-orm";
+      import { check, int4, cockroachTable, text, uuid } from "drizzle-orm/cockroach-core";
+
+      export const users = cockroachTable(
+        "users",
+        {
+          id: uuid().defaultRandom().primaryKey(),
+          username: text().notNull(),
+          age: int4(),
+        },
+        (table) => [
+          check("age_check1", sql`${table.age} > 21`),
+        ]
+      );
+      ```
+      ```sql
+      CREATE TABLE "users" (
+	      "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	      "username" text NOT NULL,
+	      "age" int4,
+	      CONSTRAINT "age_check1" CHECK ("users"."age" > 21)
+      );
+      ```
+    </Section>
+
+  </Tab> 
+</Tabs>
+
+### 기본 키
+
+`PRIMARY KEY` constraint는 테이블의 각 record를 고유하게 식별합니다.  
+Primary key는 `UNIQUE` 값을 가져야 하며, `NULL` 값을 포함할 수 없습니다.  
+
+테이블은 **하나의** primary key만 가질 수 있으며, 이 primary key는 하나 또는 여러 column(field)으로 구성될 수 있습니다.
+
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'SingleStore', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    <Section>
+      ```typescript copy
+      import { serial, text, pgTable } from "drizzle-orm/pg-core";
+
+      const user = pgTable('user', {
+        id: serial('id').primaryKey(),
+      });
+
+      const table = pgTable('table', {
+        id: text('cuid').primaryKey(),
+      });
+      ```
+
+      ```sql
+      CREATE TABLE "user" (
+        "id" serial PRIMARY KEY
+      );
+
+      CREATE TABLE "table" (
+        "cuid" text PRIMARY KEY
+      );
+      ```
+    </Section>
+
+  </Tab> 
+  <Tab>
+    <Section>
+      ```typescript
+      import { int, text, mysqlTable } from "drizzle-orm/mysql-core";
+
+      export const user = mysqlTable("user", {
+        id: int("id").autoincrement().primaryKey(),
+      })
+
+      export const table = mysqlTable("table", {
+        cuid: text("cuid").primaryKey(),
+      })
+      ```
+
+      ```sql
+      CREATE TABLE `user` (
+        `id` int AUTO_INCREMENT PRIMARY KEY NOT NULL
+      );
+
+      CREATE TABLE `table` (
+        `cuid` text PRIMARY KEY NOT NULL
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+   <Section>
+      ```typescript copy
+      import { integer, sqliteTable } from "drizzle-orm/sqlite-core";
+
+      export const user = sqliteTable("user", {
+        id: integer("id").primaryKey(),
+      })
+
+      export const pet = sqliteTable("pet", {
+        id: integer("id").primaryKey(),
+      })
+      ```
+
+      ```sql
+      CREATE TABLE `user` (
+        `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL
+      );
+
+      CREATE TABLE `pet` (
+        `id` integer PRIMARY KEY AUTOINCREMENT
+      )
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    <Section>
+      ```typescript
+      import { int, text, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+      export const user = singlestoreTable("user", {
+        id: int("id").autoincrement().primaryKey(),
+      })
+
+      export const table = singlestoreTable("table", {
+        cuid: text("cuid").primaryKey(),
+      })
+      ```
+
+      ```sql
+      CREATE TABLE `user` (
+        `id` int AUTO_INCREMENT PRIMARY KEY NOT NULL
+      );
+
+      CREATE TABLE `table` (
+        `cuid` text PRIMARY KEY NOT NULL
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    <Section>
+      ```typescript
+      import { int, text, mssqlTable } from "drizzle-orm/mssql-core";
+
+      export const user = mssqlTable("user", {
+        id: int().primaryKey(),
+      })
+      ```
+
+      ```sql
+      CREATE TABLE [user] (
+        [id] int,
+        CONSTRAINT [user_pkey] PRIMARY KEY [id]
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    <Section>
+      ```typescript copy
+      import { int4, text, cockroachTable } from "drizzle-orm/cockroach-core";
+
+      const user = cockroachTable('user', {
+        id: int4().primaryKey(),
+      });
+
+      const table = cockroachTable('table', {
+        id: text().primaryKey(),
+      });
+      ```
+
+      ```sql
+      CREATE TABLE "user" (
+        "id" int4 PRIMARY KEY
+      );
+
+      CREATE TABLE "table" (
+        "cuid" text PRIMARY KEY
+      );
+      ```
+    </Section>
+
+  </Tab> 
+</Tabs>
+
+### 복합 기본 키
+
+`PRIMARY KEY`와 마찬가지로 복합 기본 키는 여러 필드를 사용해 테이블의 각 레코드를 고유하게 식별합니다.
+
+Drizzle ORM은 이를 위해 독립형 `primaryKey` operator를 제공합니다:
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'SingleStore', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    <Section>
+      ```typescript copy {18, 19}
+      import { serial, text, integer, primaryKey, pgTable } from "drizzle-orm/pg-core";
+
+      export const user = pgTable("user", {
+        id: serial("id").primaryKey(),
+        name: text("name"),
+      });
+
+      export const book = pgTable("book", {
+        id: serial("id").primaryKey(),
+        name: text("name"),
+      });
+
+      export const booksToAuthors = pgTable("books_to_authors", {
+        authorId: integer("author_id"),
+        bookId: integer("book_id"),
+      }, (table) => [
+        primaryKey({ columns: [table.bookId, table.authorId] }),
+        // Or PK with custom name
+        primaryKey({ name: 'custom_name', columns: [table.bookId, table.authorId] }),
+      ]);
+      ```
+
+      ```sql {6, 9}
+      ...
+
+      CREATE TABLE "books_to_authors" (
+        "author_id" integer,
+        "book_id" integer,
+        PRIMARY KEY("book_id","author_id")
+      );
+
+      ALTER TABLE "books_to_authors" ADD CONSTRAINT "custom_name" PRIMARY KEY("book_id","author_id");
+      ```
+    </Section>
+
+  </Tab> 
+  <Tab>
+    <Section>
+      ```typescript {18, 19}
+      import { int, text, primaryKey, mysqlTable } from "drizzle-orm/mysql-core";
+
+      export const user = mysqlTable("user", {
+        id: int("id").autoincrement().primaryKey(),
+        name: text("name"),
+      });
+
+      export const book = mysqlTable("book", {
+        id: int("id").autoincrement().primaryKey(),
+        name: text("name"),
+      });
+
+      export const booksToAuthors = mysqlTable("books_to_authors", {
+        authorId: int("author_id"),
+        bookId: int("book_id"),
+      }, (table) => [
+        primaryKey({ columns: [table.bookId, table.authorId] }),
+        // Or PK with custom name
+        primaryKey({ name: 'custom_name', columns: [table.bookId, table.authorId] })
+      ]);
+      ```
+
+      ```sql {6}
+      ...
+
+      CREATE TABLE `books_to_authors` (
+        `author_id` int,
+        `book_id` int,
+        PRIMARY KEY(`book_id`,`author_id`)
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+   <Section>
+      ```typescript copy {18, 19}
+      import { integer, text, primaryKey, sqliteTable} from "drizzle-orm/sqlite-core";
+
+      export const user = sqliteTable("user", {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        name: text("name"),
+      });
+
+      export const book = sqliteTable("book", {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        name: text("name"),
+      });
+
+      export const bookToAuthor = sqliteTable("book_to_author", {
+        authorId: integer("author_id"),
+        bookId: integer("book_id"),
+      }, (table) => [
+        primaryKey({ columns: [table.bookId, table.authorId] }),
+        // Or PK with custom name
+        primaryKey({ name: 'custom_name', columns: [table.bookId, table.authorId] })
+      ]);
+      ```
+      ```sql {6}
+      ...
+
+      CREATE TABLE `book_to_author` (
+        `author_id` integer,
+        `book_id` integer,
+        PRIMARY KEY(`book_id`, `author_id`)
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    <Section>
+      ```typescript {18, 19}
+      import { int, text, primaryKey, mysqlTable } from "drizzle-orm/singlestore-core";
+
+      export const user = singlestoreTable("user", {
+        id: int("id").autoincrement().primaryKey(),
+        name: text("name"),
+      });
+
+      export const book = singlestoreTable("book", {
+        id: int("id").autoincrement().primaryKey(),
+        name: text("name"),
+      });
+
+      export const booksToAuthors = singlestoreTable("books_to_authors", {
+        authorId: int("author_id"),
+        bookId: int("book_id"),
+      }, (table) => [
+        primaryKey({ columns: [table.bookId, table.authorId] }),
+        // Or PK with custom name
+        primaryKey({ name: 'custom_name', columns: [table.bookId, table.authorId] }),
+      ]);
+      ```
+
+      ```sql {6}
+      ...
+
+      CREATE TABLE `books_to_authors` (
+        `author_id` int,
+        `book_id` int,
+        PRIMARY KEY(`book_id`,`author_id`)
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    <Section>
+      ```typescript {18, 19}
+      import { int, text, primaryKey, mssqlTable } from "drizzle-orm/mssql-core";
+
+      export const user = mssqlTable("user", {
+        id: int().primaryKey(),
+        name: text(),
+      });
+
+      export const book = mssqlTable("book", {
+        id: int().primaryKey(),
+        name: text(),
+      });
+
+      export const booksToAuthors = mssqlTable("books_to_authors", {
+        authorId: int("author_id"),
+        bookId: int("book_id"),
+      }, (table) => [
+        primaryKey({ columns: [table.bookId, table.authorId] }),
+        // Or PK with custom name
+        primaryKey({ name: 'custom_name', columns: [table.bookId, table.authorId] }),
+      ]);
+      ```
+
+      ```sql {6}
+      ...
+
+      CREATE TABLE [books_to_authors] (
+        [author_id] int,
+        [book_id] int,
+        CONSTRAINT [custom_name] PRIMARY KEY([book_id], [author_id])
+      );
+      ```
+    </Section>
+
+  </Tab>
+  <Tab>
+    <Section>
+      ```typescript copy {18, 19}
+      import { int4, text, primaryKey, cockroachTable } from "drizzle-orm/cockroach-core";
+
+      export const user = cockroachTable("user", {
+        id: int4().primaryKey(),
+        name: text(),
+      });
+
+      export const book = cockroachTable("book", {
+        id: int4("id").primaryKey(),
+        name: text("name"),
+      });
+
+      export const booksToAuthors = cockroachTable("books_to_authors", {
+        authorId: int4("author_id"),
+        bookId: int4("book_id"),
+      }, (table) => [
+        primaryKey({ columns: [table.bookId, table.authorId] }),
+        // Or PK with custom name
+        primaryKey({ name: 'custom_name', columns: [table.bookId, table.authorId] }),
+      ]);
+      ```
+
+      ```sql {6, 9}
+      ...
+
+      CREATE TABLE "books_to_authors" (
+        "author_id" int4,
+        "book_id" int4,
+        PRIMARY KEY("book_id","author_id")
+      );
+
+      ALTER TABLE "books_to_authors" ADD CONSTRAINT "custom_name" PRIMARY KEY("book_id","author_id");
+      ```
+    </Section>
+  </Tab> 
+</Tabs>
+
+### 외래 키
+
+`FOREIGN KEY` constraint는 테이블 사이의 연결을 끊어버릴 수 있는 동작을 방지하는 데 사용됩니다.
+`FOREIGN KEY`는 한 테이블 안의 field(또는 field 집합)로, 다른 테이블의 `PRIMARY KEY`를 참조합니다.
+foreign key가 있는 테이블을 child table이라고 하고, primary key가 있는 테이블을 referenced table 또는 parent table이라고 합니다.
+
+Drizzle ORM은 foreign key를 선언하는 여러 방법을 제공합니다.
+column 선언 statement 안에서 직접 선언할 수 있습니다:
+
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'SingleStore', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    ```typescript copy {11}
+    import { serial, text, integer, pgTable } from "drizzle-orm/pg-core";
+
+    export const user = pgTable("user", {
+      id: serial("id"),
+      name: text("name"),
+    });
+
+    export const book = pgTable("book", {
+      id: serial("id"),
+      name: text("name"),
+      authorId: integer("author_id").references(() => user.id)
+    });
+    ```
+
+  </Tab>
+  <Tab>
+    ```typescript {11}
+    import { int, text, mysqlTable } from "drizzle-orm/mysql-core";
+
+    export const user = mysqlTable("user", {
+      id: int("id").primaryKey().autoincrement(),
+      name: text("name"),
+    });
+
+    export const book = mysqlTable("book", {
+      id: int("id").primaryKey().autoincrement(),
+      name: text("name"),
+      authorId: int("author_id").references(() => user.id)
+    });
+    ```
+
+  </Tab>
+  <Tab>
+    ```typescript {11}
+    import { integer, text, sqliteTable } from "drizzle-orm/sqlite-core";
+
+    export const user = sqliteTable("user", {
+      id: integer("id").primaryKey({ autoIncrement: true }),
+      name: text("name"),
+    });
+
+    export const book = sqliteTable("book", {
+      id: integer("id").primaryKey({ autoIncrement: true }),
+      name: text("name"),
+      authorId: integer("author_id").references(() => user.id)
+    });
+    ```
+
+  </Tab>
+  <Tab>
+    현재 SingleStore에서는 지원되지 않습니다
+  </Tab>
+  <Tab>
+    ```typescript {11}
+    import { int, text, mssqlTable } from "drizzle-orm/mssql-core";
+
+    export const user = mssqlTable("user", {
+      id: int().primaryKey(),
+      name: text(),
+    });
+
+    export const book = mssqlTable("book", {
+      id: int().primaryKey(),
+      name: text(),
+      authorId: int("author_id").references(() => user.id)
+    });
+    ```
+
+  </Tab>
+    <Tab>
+    ```typescript copy {11}
+    import { int4, text, cockroachTable } from "drizzle-orm/cockroach-core";
+
+    export const user = cockroachTable("user", {
+      id: int4().primaryKey(),
+      name: text(),
+    });
+
+    export const book = cockroachTable("book", {
+      id: int4().primaryKey(),
+      name: text(),
+      authorId: int4("author_id").references(() => user.id)
+    });
+    ```
+  </Tab>
+</Tabs>
+
+self reference를 하려면 TypeScript의 제한 때문에 reference callback의 반환 타입을 명시적으로 지정하거나,
+standalone `foreignKey` operator를 사용해야 합니다.
+
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'SingleStore', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    ```typescript copy {6,16-19}
+    import { serial, text, integer, foreignKey, pgTable, AnyPgColumn } from "drizzle-orm/pg-core";
+
+    export const user = pgTable("user", {
+      id: serial("id"),
+      name: text("name"),
+      parentId: integer("parent_id").references((): AnyPgColumn => user.id)
+    });
+
+    // or
+    export const user = pgTable("user", {
+      id: serial("id"),
+      name: text("name"),
+      parentId: integer("parent_id"),
+    }, (table) => [
+      foreignKey({
+        columns: [table.parentId],
+        foreignColumns: [table.id],
+        name: "custom_fk"
+      })
+    ]);
+    ```
+
+  </Tab>
+  <Tab>
+    ```typescript {6,16-19}
+    import { int, text, foreignKey, AnyMySqlColumn, mysqlTable } from "drizzle-orm/mysql-core";
+
+    export const user = mysqlTable("user", {
+      id: int("id").primaryKey().autoincrement(),
+      name: text("name"),
+      parentId: int("parent_id").references((): AnyMySqlColumn => user.id),
+    });
+
+    // or
+    export const user = mysqlTable("user", {
+      id: int("id").primaryKey().autoincrement(),
+      name: text("name"),
+      parentId: int("parent_id")
+    }, (table) => [
+      foreignKey({
+        columns: [table.parentId],
+        foreignColumns: [table.id],
+        name: "custom_fk"
+      })
+    ]);
+    ```
+
+  </Tab>
+  <Tab>
+    ```typescript {6,16-19}
+    import { integer, text, foreignKey, sqliteTable, AnySQLiteColumn } from "drizzle-orm/sqlite-core";
+
+    export const user = sqliteTable("user", {
+      id: integer("id").primaryKey({ autoIncrement: true }),
+      name: text("name"),
+      parentId: integer("parent_id").references((): AnySQLiteColumn => user.id)
+    });
+
+    //or
+    export const user = sqliteTable("user", {
+      id: integer("id").primaryKey({ autoIncrement: true }),
+      name: text("name"),
+      parentId: integer("parent_id"),
+    }, (table) => [
+      foreignKey({
+        columns: [table.parentId],
+        foreignColumns: [table.id],
+        name: "custom_fk"
+      })
+    ]);
+    ```
+
+  </Tab>
+  <Tab>
+    현재 SingleStore에서는 지원되지 않습니다
+  </Tab>
+    <Tab>
+    ```typescript {6,16-19}
+    import { int, text, foreignKey, mssqlTable, AnyMsSQLColumn } from "drizzle-orm/mssql-core";
+
+    export const user = mssqlTable("user", {
+      id: int().primaryKey(),
+      name: text(),
+      parentId: int("parent_id").references((): AnyMsSQLColumn => user.id)
+    });
+
+    //or
+    export const user = mssqlTable("user", {
+      id: int().primaryKey(),
+      name: text(),
+      parentId: int("parent_id"),
+    }, (table) => [
+      foreignKey({
+        columns: [table.parentId],
+        foreignColumns: [table.id],
+        name: "custom_fk"
+      })
+    ]);
+    ```
+  </Tab>
+  <Tab>
+    ```typescript copy {6,16-19}
+    import { int4, text, foreignKey, cockroachTable, AnyCockroachColumn } from "drizzle-orm/cockroach-core";
+
+    export const user = cockroachTable("user", {
+      id: int4().primaryKey(),
+      name: text(),
+      parentId: int4("parent_id").references((): AnyCockroachColumn => user.id)
+    });
+
+    // or
+    export const user = cockroachTable("user", {
+      id: int4().primaryKey(),
+      name: text(),
+      parentId: int4("parent_id"),
+    }, (table) => [
+      foreignKey({
+        columns: [table.parentId],
+        foreignColumns: [table.id],
+        name: "custom_fk"
+      })
+    ]);
+    ```
+
+  </Tab>
+</Tabs>
+다중 column foreign key를 선언하려면 전용 `foreignKey` operator를 사용할 수 있습니다:
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'SingleStore', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    ```typescript copy {4-5,14-15,18-21}
+    import { serial, text, foreignKey, pgTable, AnyPgColumn } from "drizzle-orm/pg-core";
+
+    export const user = pgTable("user", {
+      firstName: text("firstName"),
+      lastName: text("lastName"),
+    }, (table) => [
+      primaryKey({ columns: [table.firstName, table.lastName]})
+    ]);
+
+    export const profile = pgTable("profile", {
+      id: serial("id").primaryKey(),
+      userFirstName: text("user_first_name"),
+      userLastName: text("user_last_name"),
+    }, (table) => [
+      foreignKey({
+        columns: [table.userFirstName, table.userLastName],
+        foreignColumns: [user.firstName, user.lastName],
+        name: "custom_fk"
+      })
+    ])
+    ```
+
+  </Tab>
+  <Tab>
+    ```typescript copy {4-5,14-15,18-21}
+    import { int, text, primaryKey, foreignKey, mysqlTable, AnyMySqlColumn } from "drizzle-orm/mysql-core";
+
+    export const user = mysqlTable("user", {
+      firstName: text("firstName"),
+      lastName: text("lastName"),
+    }, (table) => [
+      primaryKey({ columns: [table.firstName, table.lastName]})
+    ]);
+
+    export const profile = mysqlTable("profile", {
+      id: int("id").autoincrement().primaryKey(),
+      userFirstName: text("user_first_name"),
+      userLastName: text("user_last_name"),
+    }, (table) => [
+      foreignKey({
+        columns: [table.userFirstName, table.userLastName],
+        foreignColumns: [user.firstName, user.lastName],
+        name: "custom_name"
+      })
+    ]);
+    ```
+
+  </Tab>
+  <Tab>
+    ```typescript {4-5,14-15,18-21}
+    import { integer, text, primaryKey, foreignKey, sqliteTable, AnySQLiteColumn } from "drizzle-orm/sqlite-core";
+
+    export const user = sqliteTable("user", {
+      firstName: text("firstName"),
+      lastName: text("lastName"),
+    }, (table) => [
+      primaryKey({ columns: [table.firstName, table.lastName]})
+    ]);
+
+    export const profile = sqliteTable("profile", {
+      id: integer("id").primaryKey({ autoIncrement: true }),
+      userFirstName: text("user_first_name"),
+      userLastName: text("user_last_name"),
+    }, (table) => [
+      foreignKey({
+        columns: [table.userFirstName, table.userLastName],
+        foreignColumns: [user.firstName, user.lastName],
+        name: "custom_name"
+      })
+    ]);
+    ```
+
+  </Tab>
+  <Tab>
+    현재 SingleStore에서는 지원되지 않습니다
+  </Tab>
+  <Tab>
+    ```typescript copy {4-5,14-15,18-21}
+    import { int, text, primaryKey, foreignKey, mssqlTable, AnyMsSqlColumn } from "drizzle-orm/mssql-core";
+
+    export const user = mssqlTable("user", {
+      firstName: text(),
+      lastName: text(),
+    }, (table) => [
+      primaryKey({ columns: [table.firstName, table.lastName]})
+    ]);
+
+    export const profile = mssqlTable("profile", {
+      id: int().primaryKey(),
+      userFirstName: text("user_first_name"),
+      userLastName: text("user_last_name"),
+    }, (table) => [
+      foreignKey({
+        columns: [table.userFirstName, table.userLastName],
+        foreignColumns: [user.firstName, user.lastName],
+        name: "custom_name"
+      })
+    ]);
+    ```
+
+  </Tab>
+    <Tab>
+    ```typescript copy {4-5,14-15,18-21}
+    import { int4, text, foreignKey, cockroachTable, AnyCockroachColumn } from "drizzle-orm/cockroach-core";
+
+    export const user = cockroachTable("user", {
+      firstName: text(),
+      lastName: text(),
+    }, (table) => [
+      primaryKey({ columns: [table.firstName, table.lastName]})
+    ]);
+
+    export const profile = cockroachTable("profile", {
+      id: int4().primaryKey(),
+      userFirstName: text("user_first_name"),
+      userLastName: text("user_last_name"),
+    }, (table) => [
+      foreignKey({
+        columns: [table.userFirstName, table.userLastName],
+        foreignColumns: [user.firstName, user.lastName],
+        name: "custom_fk"
+      })
+    ])
+    ```
+  </Tab>
+</Tabs>
+
+## Index
+
+Drizzle ORM은 `index`와 `unique index` 선언 모두를 위한 API를 제공합니다:
+
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite', 'SingleStore', 'MSSQL', 'CockroachDB']}>
+  <Tab>
+    <Section>
+    ```typescript copy {9-10}
+    import { serial, text, index, uniqueIndex, pgTable } from "drizzle-orm/pg-core";
+
+    export const user = pgTable("user", {
+      id: serial("id").primaryKey(),
+      name: text("name"),
+      email: text("email"),
+    }, (table) => [
+      index("name_idx").on(table.name),
+      uniqueIndex("email_idx").on(table.email)
+    ]);
+    ```
+    ```sql {5-6}
+    CREATE TABLE "user" (
+      ...
+    );
+
+    CREATE INDEX "name_idx" ON "user" ("name");
+    CREATE UNIQUE INDEX "email_idx" ON "user" ("email");
+    ```
+    </Section>
+    <Callout type="warning" emoji="⚠️">
+      `drizzle-kit@0.22.0` 및 `drizzle-orm@0.31.0` 이전 버전에서는 `drizzle-kit`이 index `name`과 `on()` param만 지원합니다.
+
+      `drizzle-kit@0.22.0`와 `drizzle-orm@0.31.0` 이후 버전에서는 drizzle-kit에서 모든 field를 지원합니다!
+    </Callout>
+
+
+    0.31.0부터 Drizzle ORM의 새 index API는 index 생성을 위한 전체 param 집합을 제공합니다:
+
+```ts
+// First example, with `.on()`
+index('name')
+  .on(table.column1.asc(), table.column2.nullsFirst(), ...) or .onOnly(table.column1.desc().nullsLast(), table.column2, ...)
+  .concurrently()
+  .where(sql``)
+  .with({ fillfactor: '70' })
+
+// Second Example, with `.using()`
+index('name')
+  .using('btree', table.column1.asc(), sql`lower(${table.column2})`, table.column1.op('text_ops'))
+  .where(sql``) // sql expression
+  .with({ fillfactor: '70' })
+```
+
+  </Tab>
+  <Tab>
+    <Section>
+    ```typescript copy {9-10}
+    import { int, text, index, uniqueIndex, mysqlTable } from "drizzle-orm/mysql-core";
+
+    export const user = mysqlTable("user", {
+      id: int("id").primaryKey().autoincrement(),
+      name: text("name"),
+      email: text("email"),
+    }, (table) => [
+      index("name_idx").on(table.name),
+      uniqueIndex("email_idx").on(table.email),
+    ]);
+    ```
+    ```sql {5-6}
+    CREATE TABLE `user` (
+      ...
+    );
+
+    CREATE INDEX `name_idx` ON `user` (`name`);
+    CREATE UNIQUE INDEX `email_idx` ON `user` (`email`);
+    ```
+    </Section>
+    <Callout type="warning" emoji="⚠️">
+      현재 `drizzle-kit`은 index `name`과 `on()` param만 지원합니다.
+    </Callout>
+
+     Drizzle ORM은 index 생성을 위한 전체 param 집합을 제공합니다:
+
+    ```typescript
+    // Index declaration reference
+    index("name")
+      .on(table.name)
+      .algorythm("default") // "default" | "copy" | "inplace"
+      .using("btree") // "btree" | "hash"
+      .lock("default") // "none" | "default" | "exclusive" | "shared"
+    ```
+  </Tab>
+  <Tab>
+    <Section>
+    ```typescript {9-10}
+    import { integer, text, index, uniqueIndex, sqliteTable } from "drizzle-orm/sqlite-core";
+
+    export const user = sqliteTable("user", {
+      id: integer("id").primaryKey({ autoIncrement: true }),
+      name: text("name"),
+      email: text("email"),
+    }, (table) => [
+      index("name_idx").on(table.name),
+      uniqueIndex("email_idx").on(table.email),
+    ]);
+    ```
+    ```sql {5-6}
+    CREATE TABLE `user` (
+      ...
+    );
+
+    CREATE INDEX `name_idx` ON `user` (`name`);
+    CREATE UNIQUE INDEX `email_idx` ON `user` (`email`);
+    ```
+    </Section>
+
+     Drizzle ORM은 index 생성을 위한 전체 param 집합을 제공합니다:
+     
+    ```typescript
+    // Index declaration reference
+    index("name")
+      .on(table.name)
+      .where(sql`...`)
+    ```
+  </Tab>
+  <Tab>
+    <Section>
+    ```typescript copy {9-10}
+    import { int, text, index, uniqueIndex, singlestoreTable } from "drizzle-orm/singlestore-core";
+
+    export const user = singlestoreTable("user", {
+      id: int("id").primaryKey().autoincrement(),
+      name: text("name"),
+      email: text("email"),
+    }, (table) => [
+      index("name_idx").on(table.name),
+      uniqueIndex("email_idx").on(table.email),
+    ]);
+    ```
+    ```sql {5-6}
+    CREATE TABLE `user` (
+      ...
+    );
+
+    CREATE INDEX `name_idx` ON `user` (`name`);
+    CREATE UNIQUE INDEX `email_idx` ON `user` (`email`);
+    ```
+    </Section>
+  </Tab>
+  <Tab>
+    <Section>
+    ```typescript copy {8-9}
+    import { int, text, index, uniqueIndex, mssqlTable } from "drizzle-orm/mssql-core";
+
+    export const user = mysqlTable("user", {
+      id: int().primaryKey(),
+      name: text(),
+      email: text(),
+    }, (table) => [
+      index("name_idx").on(table.name),
+      uniqueIndex("email_idx").on(table.email),
+    ]);
+    ```
+    ```sql {5-6}
+    CREATE TABLE [user] (
+      ...
+    );
+
+    CREATE INDEX [name_idx] ON [user] ([name]);
+    CREATE UNIQUE INDEX [email_idx] ON [user] ([email]);
+    ```
+    </Section>
+
+    <Callout type='warning'>
+    MSSQL에서는 `text`, `ntext`, `varchar(max)`, `nvarchar(max)`에 unique index를 만들 수 없습니다
+    </Callout>
+
+    Drizzle ORM은 index 생성을 위한 param 집합을 제공합니다:
+
+    ```typescript
+    // Index declaration reference
+    index("name")
+      .on(table.name)
+      .where(sql``)
+    ```
+  </Tab>
+    <Tab>
+    <Section>
+    ```typescript copy {9-10}
+    import { int4, text, index, uniqueIndex, cockroachTable } from "drizzle-orm/cockroach-core";
+
+    export const user = cockroachTable("user", {
+      id: int4().primaryKey(),
+      name: text(),
+      email: text(),
+    }, (table) => [
+      index("name_idx").on(table.name),
+      uniqueIndex("email_idx").on(table.email)
+    ]);
+    ```
+    ```sql {5-6}
+    CREATE TABLE "user" (
+      ...
+    );
+
+    CREATE INDEX "name_idx" ON "user" ("name");
+    CREATE UNIQUE INDEX "email_idx" ON "user" ("email");
+    ```
+    </Section>
+    ```ts
+    // First example, with `.on()`
+    index('name')
+      .on(table.column1.asc(), table.column2) or .onOnly(table.column1.desc(), table.column2, ...)
+      .where(sql``)
+
+    // Second Example, with `.using()`
+    index('name')
+      .using('btree', table.column1.asc(), sql`lower(${table.column2})`)
+      .where(sql``) // sql expression
+    ```
+  </Tab>
+</Tabs>

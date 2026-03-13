@@ -1,0 +1,409 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import IsSupportedChipGroup from '@mdx-ko/IsSupportedChipGroup.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Section from '@mdx-ko/Section.astro';
+
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+
+# Drizzle soft relations
+Drizzle relations의 유일한 목적은 관계형 데이터를 가장 단순하고 간결한 방식으로 쿼리할 수 있게 하는 것입니다:
+
+<CodeTabs items={["관계형 쿼리", "join을 사용한 select"]}>
+<Section>
+```ts
+import * as schema from './schema';
+import { drizzle } from 'drizzle-orm/…';
+
+const db = drizzle(client, { schema });
+
+const result = db.query.users.findMany({
+  with: {
+    posts: true,
+  },
+});
+```
+```ts
+[{
+  id: 10,
+  name: "Dan",
+  posts: [
+    {
+      id: 1,
+      content: "SQL is awesome",
+      authorId: 10,
+    },
+    {
+      id: 2,
+      content: "But check relational queries",
+      authorId: 10,
+    }
+  ]
+}]
+```
+</Section>
+<Section>
+```ts
+import { drizzle } from 'drizzle-orm/…';
+import { eq } from 'drizzle-orm';
+import { posts, users } from './schema';
+
+const db = drizzle(client);
+
+const res = await db.select()
+                    .from(users)
+                    .leftJoin(posts, eq(posts.authorId, users.id))
+                    .orderBy(users.id)
+const mappedResult =  
+```
+</Section>
+</CodeTabs>
+
+
+### One-to-one
+Drizzle ORM은 `relations` 연산자를 사용해 테이블 간 `one-to-one` 관계를 정의할 수 있는 API를 제공합니다.
+
+사용자와 사용자 사이의 `one-to-one` 관계 예시를 보겠습니다. 한 사용자가 다른 사용자를 초대할 수 있는 경우로, 이 예시는 self reference를 사용합니다:
+
+```typescript copy {10-15}
+import { pgTable, serial, text, integer, boolean } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+	invitedBy: integer('invited_by'),
+});
+
+export const usersRelations = relations(users, ({ one }) => ({
+	invitee: one(users, {
+		fields: [users.invitedBy],
+		references: [users.id],
+	}),
+}));
+```
+
+또 다른 예로는 사용자의 프로필 정보를 별도 테이블에 저장하는 경우가 있습니다. 이 경우 foreign key가 `"profile_info"` 테이블에 저장되어 있으므로, user relation에는 fields도 references도 없습니다. 이로써 Typescript는 `user.profileInfo`가 nullable이라는 것을 알 수 있습니다:
+
+```typescript copy {9-17}
+import { pgTable, serial, text, integer, jsonb } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+
+export const usersRelations = relations(users, ({ one }) => ({
+	profileInfo: one(profileInfo),
+}));
+
+export const profileInfo = pgTable('profile_info', {
+	id: serial('id').primaryKey(),
+	userId: integer('user_id').references(() => users.id),
+	metadata: jsonb('metadata'),
+});
+
+export const profileInfoRelations = relations(profileInfo, ({ one }) => ({
+	user: one(users, { fields: [profileInfo.userId], references: [users.id] }),
+}));
+
+const user = await queryUserWithProfileInfo();
+//____^? type { id: number, profileInfo: { ... } | null  }
+```
+
+### One-to-many
+Drizzle ORM은 `relations` 연산자를 사용해 테이블 간 `one-to-many` 관계를 정의할 수 있는 API를 제공합니다.
+
+사용자와 그들이 작성한 게시물 사이의 `one-to-many` 관계 예시는 다음과 같습니다:
+
+```typescript copy {9-11, 19-24}
+import { pgTable, serial, text, integer } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+
+export const usersRelations = relations(users, ({ many }) => ({
+	posts: many(posts),
+}));
+
+export const posts = pgTable('posts', {
+	id: serial('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id'),
+});
+
+export const postsRelations = relations(posts, ({ one }) => ({
+	author: one(users, {
+		fields: [posts.authorId],
+		references: [users.id],
+	}),
+}));
+```
+
+이제 게시물에 댓글을 추가해 보겠습니다:
+```typescript copy {14,17-22,24-29}
+...
+
+export const posts = pgTable('posts', {
+	id: serial('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id'),
+});
+
+export const postsRelations = relations(posts, ({ one, many }) => ({
+	author: one(users, {
+		fields: [posts.authorId],
+		references: [users.id],
+	}),
+	comments: many(comments)
+}));
+
+export const comments = pgTable('comments', {
+	id: serial('id').primaryKey(),
+	text: text('text'),
+	authorId: integer('author_id'),
+	postId: integer('post_id'),
+});
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+	post: one(posts, {
+		fields: [comments.postId],
+		references: [posts.id],
+	}),
+}));
+```
+
+
+### Many-to-many
+Drizzle ORM은 이른바 `junction` 또는 `join` 테이블을 통해 테이블 간 `many-to-many` 관계를 정의할 수 있는 API를 제공합니다.
+이 테이블들은 반드시 명시적으로 정의해야 하며, 관련 테이블 간의 연결 정보를 저장합니다.
+  
+사용자와 그룹 사이의 `many-to-many` 관계 예시는 다음과 같습니다:
+```typescript copy {9-11, 18-20, 37-46}
+import { relations } from 'drizzle-orm';
+import { integer, pgTable, primaryKey, serial, text } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name'),
+});
+
+export const usersRelations = relations(users, ({ many }) => ({
+  usersToGroups: many(usersToGroups),
+}));
+
+export const groups = pgTable('groups', {
+  id: serial('id').primaryKey(),
+  name: text('name'),
+});
+
+export const groupsRelations = relations(groups, ({ many }) => ({
+  usersToGroups: many(usersToGroups),
+}));
+
+export const usersToGroups = pgTable(
+  'users_to_groups',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    groupId: integer('group_id')
+      .notNull()
+      .references(() => groups.id),
+  },
+  (t) => [
+		primaryKey({ columns: [t.userId, t.groupId] })
+	],
+);
+
+export const usersToGroupsRelations = relations(usersToGroups, ({ one }) => ({
+  group: one(groups, {
+    fields: [usersToGroups.groupId],
+    references: [groups.id],
+  }),
+  user: one(users, {
+    fields: [usersToGroups.userId],
+    references: [users.id],
+  }),
+}));
+```
+
+### Foreign keys
+
+눈치챘겠지만, `relations`는 foreign key와 비슷해 보입니다. 심지어 `references` 프로퍼티도 있습니다. 그렇다면 차이는 무엇일까요?
+
+foreign key도 비슷한 목적, 즉 테이블 간 관계를 정의하는 역할을 하지만, `relations`와는 다른 레벨에서 동작합니다.
+
+foreign key는 데이터베이스 레벨의 제약 조건이며, 모든 `insert`/`update`/`delete` 작업마다 검사되고 제약을 위반하면 오류를 발생시킵니다.
+반면 `relations`는 더 높은 수준의 추상화로, 애플리케이션 레벨에서만 테이블 간 관계를 정의하는 데 사용됩니다.
+데이터베이스 스키마에는 어떤 영향도 주지 않으며, 암묵적으로 foreign key를 생성하지도 않습니다.
+
+즉, `relations`와 foreign key는 함께 사용할 수 있지만 서로 의존하지는 않습니다.
+foreign key 없이 `relations`를 정의할 수도 있고(반대로도 가능), 덕분에 foreign key를 지원하지 않는 데이터베이스에서도 사용할 수 있습니다.
+
+아래 두 예시는 Drizzle 관계형 쿼리로 데이터를 조회하는 관점에서는 완전히 동일하게 동작합니다.
+<CodeTabs items={["schema1.ts", "schema2.ts"]}>
+<CodeTab>
+```ts {15}
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+	profileInfo: one(users, {
+		fields: [profileInfo.userId],
+		references: [users.id],
+	}),
+}));
+
+export const profileInfo = pgTable('profile_info', {
+	id: serial('id').primaryKey(),
+	userId: integer("user_id"),
+	metadata: jsonb("metadata"),
+});
+```
+</CodeTab>
+<CodeTab>
+```ts {15}
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+	profileInfo: one(users, {
+		fields: [profileInfo.userId],
+		references: [users.id],
+	}),
+}));
+
+export const profileInfo = pgTable('profile_info', {
+	id: serial('id').primaryKey(),
+	userId: integer("user_id").references(() => users.id),
+	metadata: jsonb("metadata"),
+});
+```
+</CodeTab>
+</CodeTabs>
+
+### Foreign key actions
+
+자세한 내용은 [PostgreSQL foreign keys docs](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-FK)를 확인하세요.
+
+부모 테이블의 참조 대상 데이터가 수정될 때 어떤 동작이 일어나야 하는지 지정할 수 있습니다. 이러한 동작을 "foreign key actions"라고 합니다. PostgreSQL은 이 동작에 대해 여러 옵션을 제공합니다.
+
+On Delete/ Update Actions
+
+- `CASCADE`: 부모 테이블의 행이 삭제되면 자식 테이블의 해당 행들도 모두 함께 삭제됩니다. 이를 통해 자식 테이블에 고아 행이 남지 않도록 보장합니다.
+
+- `NO ACTION`: 기본 동작입니다. 자식 테이블에 관련 행이 있는 경우 부모 테이블의 행 삭제를 막습니다. 부모 테이블에서의 DELETE 작업은 실패합니다.
+
+- `RESTRICT`: NO ACTION과 비슷하게, 의존하는 행이 자식 테이블에 있으면 부모 행의 삭제를 막습니다. 본질적으로 NO ACTION과 동일하며 호환성 때문에 포함되어 있습니다.
+
+- `SET DEFAULT`: 부모 테이블의 행이 삭제되면, 자식 테이블의 foreign key 컬럼은 기본값이 있다면 그 값으로 설정됩니다. 기본값이 없다면 DELETE 작업은 실패합니다.
+
+- `SET NULL`: 부모 테이블의 행이 삭제되면, 자식 테이블의 foreign key 컬럼은 NULL로 설정됩니다. 이 동작은 자식 테이블의 foreign key 컬럼이 NULL 값을 허용한다는 것을 전제로 합니다.
+
+> ON DELETE와 마찬가지로, 참조되는 컬럼이 변경(업데이트)될 때 호출되는 ON UPDATE도 있습니다. 가능한 동작은 동일하지만, SET NULL과 SET DEFAULT에서는 컬럼 목록을 지정할 수 없습니다. 이 경우 CASCADE는 참조된 컬럼의 업데이트된 값이 참조하는 행들에 복사되어야 함을 의미합니다.
+drizzle에서는 `references()`의 두 번째 인자를 사용해 foreign key action을 추가할 수 있습니다.
+
+action의 타입
+
+```typescript
+export type UpdateDeleteAction = 'cascade' | 'restrict' | 'no action' | 'set null' | 'set default';
+
+// second argument of references interface
+actions?: {
+		onUpdate?: UpdateDeleteAction;
+		onDelete?: UpdateDeleteAction;
+	} | undefined
+```
+
+다음 예시에서 `posts` 스키마의 author 필드에 `onDelete: 'cascade'`를 추가하면, `user`를 삭제할 때 관련된 Post 레코드도 모두 함께 삭제된다는 뜻입니다.
+
+
+```typescript {11}
+import { pgTable, serial, text, integer } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+
+export const posts = pgTable('posts', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+	author: integer('author').references(() => users.id, {onDelete: 'cascade'}).notNull(),
+});
+```
+
+`foreignKey` 연산자로 지정한 제약 조건의 경우, foreign key action은 다음 문법으로 정의합니다:
+
+```typescript {18-19}
+import { foreignKey, pgTable, serial, text, integer } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+
+export const posts = pgTable('posts', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+	author: integer('author').notNull(),
+}, (table) => [
+	foreignKey({
+		name: "author_fk",
+		columns: [table.author],
+		foreignColumns: [users.id],
+	})
+		.onDelete('cascade')
+		.onUpdate('cascade')
+]);
+```
+
+### Disambiguating relations
+
+Drizzle은 동일한 두 테이블 사이에 여러 relation을 정의할 때 이를 구분할 수 있도록 `relationName` 옵션도 제공합니다.
+예를 들어 `posts` 테이블에 `author` relation과 `reviewer` relation을 모두 정의하는 경우입니다.
+
+```ts {9-12, 21-32}
+import { pgTable, serial, text, integer } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+ 
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+ 
+export const usersRelations = relations(users, ({ many }) => ({
+	author: many(posts, { relationName: 'author' }),
+	reviewer: many(posts, { relationName: 'reviewer' }),
+}));
+ 
+export const posts = pgTable('posts', {
+	id: serial('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id'),
+	reviewerId: integer('reviewer_id'),
+});
+ 
+export const postsRelations = relations(posts, ({ one }) => ({
+	author: one(users, {
+		fields: [posts.authorId],
+		references: [users.id],
+		relationName: 'author',
+	}),
+	reviewer: one(users, {
+		fields: [posts.reviewerId],
+		references: [users.id],
+		relationName: 'reviewer',
+	}),
+}));
+```

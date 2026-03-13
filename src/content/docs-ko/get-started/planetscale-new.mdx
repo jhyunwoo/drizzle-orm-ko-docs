@@ -1,0 +1,78 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+import ConnectPlanetScale from '@mdx-ko/get-started/mysql/ConnectPlanetScale.mdx';
+import CreateTable from '@mdx-ko/get-started/mysql/CreateTable.mdx';
+import QueryPlanetScale from '@mdx-ko/get-started/mysql/QueryPlanetScale.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+
+<Breadcrumbs/>
+
+# Drizzle과 PlanetScale로 시작하기
+
+<Prerequisites>  
+  - **dotenv** - 환경 변수를 관리하는 패키지 - [여기에서 읽기](https://www.npmjs.com/package/dotenv)
+  - **tsx** - TypeScript 파일을 실행하는 패키지 - [여기에서 읽기](https://tsx.is)
+  - **PlanetScale** - MySQL 데이터베이스 플랫폼 - [여기에서 읽기](https://planetscale.com)
+  - **database-js** - PlanetScale 서버리스 드라이버 - [여기에서 읽기](https://github.com/planetscale/database-js)
+</Prerequisites>
+
+<Callout title='PlanetScale은 Postgres도 제공합니다' type='info'>
+PostgreSQL을 찾고 있나요? [PlanetScale Postgres 가이드](/docs/get-started/planetscale-postgres-new)를 확인해 보세요.
+</Callout>
+
+<Callout title='중요' type='warning'>
+이 튜토리얼에서는 `database-js` 드라이버를 사용해 PlanetScale 데이터베이스에 **HTTP** 호출을 보냅니다. TCP로 PlanetScale에 연결해야 한다면 [MySQL 시작하기](/docs/get-started/mysql-new) 페이지를 참고하세요.
+</Callout>
+
+<FileStructure/>
+
+#### 1단계 - **@planetscale/database** 패키지 설치
+
+<InstallPackages lib='@planetscale/database'/>
+
+#### 2단계 - 연결 변수 설정
+
+프로젝트 루트에 `.env` 파일을 만들고 데이터베이스 연결 변수를 추가하세요:
+
+```plaintext copy
+DATABASE_HOST=
+DATABASE_USERNAME=
+DATABASE_PASSWORD=
+```
+
+<Callout title='팁'>
+`database-js` 드라이버로 연결하는 데 필요한 환경 변수는 [PlanetScale 문서](https://planetscale.com/docs/tutorials/planetscale-serverless-driver-node-example#use-the-sample-repository)에서 확인할 수 있습니다.
+</Callout>
+
+#### 3단계 - Drizzle ORM을 데이터베이스에 연결
+
+<ConnectPlanetScale/>
+
+#### 4단계 - 테이블 생성
+
+<CreateTable/>
+
+#### 5단계 - Drizzle config 파일 설정
+
+<SetupConfig dialect='mysql' env_variable='DATABASE_URL'/>
+
+#### 6단계 - 데이터베이스에 변경 사항 적용
+
+<ApplyChanges />
+
+#### 7단계 - 데이터베이스 시드 및 쿼리
+
+<QueryPlanetScale />
+
+#### 8단계 - index.ts 파일 실행
+
+<RunFile/>

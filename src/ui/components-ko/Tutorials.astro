@@ -1,0 +1,80 @@
+---
+const tutorials = await Astro.glob("../../content/docs-ko/tutorials/**/*.mdx");
+
+const formattedTutorials = tutorials.map((tutorial) => ({
+  ...tutorial,
+  slug: tutorial.file.split("/").at(-1)?.replace(/\.mdx$/, ""),
+}));
+---
+
+<div class="learn__title-block">
+  <div class="tutorials_title">튜토리얼</div>
+</div>
+<div class="tutorials__items">
+  {
+    formattedTutorials.map((tutorial) => (
+      <div class="tutorials__item">
+        <a class="tutorials__item_link" href={`/docs/tutorials/${tutorial.slug}`}>
+          {tutorial.frontmatter.title}
+        </a>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .tutotials__section {
+    display: flex;
+    flex-direction: column;
+    margin-top: 24px;
+    margin-bottom: 32px;
+  }
+
+  html.dark .tutorials_title {
+    color: #c8c9ca;
+  }
+
+  .tutorials_title {
+    color: #0f172a;
+    margin-top: 8px;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 48px;
+    letter-spacing: -0.48px;
+    margin-bottom: 16px;
+  }
+
+  .tutorials__items {
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.dark .tutorials__item:not(:last-child) {
+    border-bottom: 1px solid #262626;
+  }
+
+  .tutorials__item:not(:last-child) {
+    border-bottom: 1px solid #efefef;
+  }
+
+  .tutorials__item {
+    padding: 8px 0;
+  }
+
+  html.dark .tutorials__item_link {
+    color: #e2e6f0;
+  }
+
+  .tutorials__item_link {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 1px;
+  }
+
+  .learn__title-block {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    flex-shrink: 0;
+  }
+</style>

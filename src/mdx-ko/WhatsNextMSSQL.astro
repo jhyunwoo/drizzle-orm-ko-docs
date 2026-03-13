@@ -1,0 +1,29 @@
+---
+import Flex from "@mdx-ko/Flex.astro"
+import LinksList from "@mdx-ko/LinksList.astro"
+---
+
+<Flex>
+  <LinksList 
+    title='스키마 관리'
+    links={[
+        ["Drizzle 스키마", "/docs/sql-schema-declaration"], 
+        ["MSSQL 데이터 타입", "/docs/column-types/mssql"], 
+        ["인덱스와 제약 조건", "/docs/indexes-constraints"],
+        ["데이터베이스 뷰", "/docs/views"],
+        ["데이터베이스 스키마", "/docs/schemas"],
+      ]}
+  />
+  <LinksList 
+    title='데이터 조회'
+    links={[
+        ["조회", "/docs/select"], 
+        ["삽입", "/docs/insert"],
+        ["수정", "/docs/update"],
+        ["삭제", "/docs/delete"],
+        ["필터", "/docs/operators"],
+        ["조인", "/docs/joins"],
+        ["sql`` 연산자", "/docs/sql"],
+      ]}
+  />
+</Flex>

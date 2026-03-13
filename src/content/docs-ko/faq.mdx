@@ -1,0 +1,46 @@
+import Callout from '@mdx-ko/Callout.astro';
+
+# FAQ & 문제 해결
+
+## **`generate`와 `push` 중 무엇을 사용해야 하나요?**
+
+이 둘은 논리적으로 서로 다른 2개의 명령입니다. `generate`는 `drizzle-kit`(또는 다른 마이그레이션 도구)에 필요한 추가 정보와 함께 sql 파일을 생성하는 데 사용됩니다.
+
+이렇게 마이그레이션을 생성한 뒤에는 데이터베이스에 바로 적용되지 않습니다.
+다음 단계에서 직접 적용해야 합니다. 자세한 내용은 **[여기](/docs/migrations)**에서 확인할 수 있습니다.
+
+반면 `push`는 어떤 마이그레이션도 생성할 필요가 없습니다. 단순히 여러분의 스키마를 데이터베이스 스키마와 동기화합니다. 사용할 때는 주의해 주세요.
+저희는 이를 로컬 개발과 로컬 데이터베이스에서만 사용할 것을 권장합니다. 자세한 내용은 **[`drizzle-kit push`](/docs/drizzle-kit-push)**를 확인하세요.
+
+## PostgreSQL 인덱스에서 `push`와 `generate`가 동작하는 방식
+
+### 제한 사항
+
+1. **하나 이상의 expression에 대한 인덱스가 있다면 인덱스 이름을 수동으로 지정해야 합니다**
+
+예시
+
+```ts
+index().on(table.id, table.email) // will work well and name will be autogeneretaed
+index('my_name').on(table.id, table.email) // will work well
+
+// but
+
+index().on(sql`lower(${table.email})`) // error
+index('my_name').on(sql`lower(${table.email})`) // will work well
+```
+
+2. **기존 인덱스에서 아래 필드들이 변경된 경우, Push는 구문을 생성하지 않습니다:**
+
+- `.on()`과 `.using()` 내부의 expressions
+- `.where()` 구문
+- 컬럼의 operator classes `.op()`
+
+`push` 워크플로를 사용 중이고 인덱스에서 이 필드들을 변경하고 싶다면, 다음과 같이 해야 합니다:
+
+1. 인덱스를 주석 처리합니다
+2. Push를 실행합니다
+3. 인덱스 주석을 해제하고 해당 필드들을 변경합니다
+4. 다시 Push를 실행합니다
+
+`generate` 명령의 경우, 새로운 drizzle indexes API에서 어떤 속성이든 인덱스에 변경이 생기면 `drizzle-kit`가 트리거되므로 여기에는 제한이 없습니다.

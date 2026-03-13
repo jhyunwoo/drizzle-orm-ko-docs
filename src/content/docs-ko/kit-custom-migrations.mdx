@@ -1,0 +1,47 @@
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import Section from '@mdx-ko/Section.astro';
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Npm from '@mdx-ko/Npm.astro';
+import Npx from '@mdx-ko/Npx.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro"
+
+# Drizzle Kit으로 마이그레이션하기
+<Prerequisites>
+- Drizzle과 `drizzle-kit` 시작하기 - [여기서 읽기](/docs/get-started)
+- Drizzle 스키마 기초 - [여기서 읽기](/docs/sql-schema-declaration)
+- 데이터베이스 연결 기초 - [여기서 읽기](/docs/connect-overview)
+- Drizzle 마이그레이션 기초 - [여기서 읽기](/docs/migrations)
+- Drizzle Kit [개요](/docs/kit-overview) 및 [config 파일](/docs/drizzle-config-file)
+- `drizzle-kit generate` 명령 - [여기서 읽기](/docs/drizzle-kit-generate)
+- `drizzle-kit migrate` 명령 - [여기서 읽기](/docs/drizzle-kit-migrate)
+</Prerequisites>
+
+Drizzle을 사용하면 현재 Drizzle Kit이 지원하지 않는 DDL 변경이나 데이터 시딩을 위해, 직접 custom SQL 마이그레이션을 작성할 수 있는 빈 마이그레이션 파일을 생성할 수 있습니다. 그런 다음 [`drizzle-kit migrate`](/docs/drizzle-kit-migrate) 명령으로 실행할 수 있습니다.
+
+```shell
+drizzle-kit generate --custom --name=seed-users
+```
+<Section>
+```plaintext {5}
+📦 <project root>
+ ├ 📂 drizzle
+ │ ├ 📂 20242409125510_init_sql
+ │ └ 📂 20242409135510_delicate_seed-users
+ ├ 📂 src
+ └ …
+```
+```sql
+-- ./drizzle/0001_seed-users.sql
+
+INSERT INTO "users" ("name") VALUES('Dan');
+INSERT INTO "users" ("name") VALUES('Andrew');
+INSERT INTO "users" ("name") VALUES('Dandrew');
+```
+</Section>
+
+### JavaScript 및 TypeScript 마이그레이션 실행
+다음 릴리스에서 custom JavaScript 및 TypeScript 마이그레이션/시딩 스크립트를 실행하는 기능을 추가할 예정입니다. [github discussion](https://github.com/drizzle-team/drizzle-orm/discussions/2832)에서 확인하실 수 있습니다.

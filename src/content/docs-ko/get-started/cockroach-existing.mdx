@@ -1,0 +1,92 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import IntrospectCockroach from '@mdx-ko/get-started/cockroach/IntrospectCockroach.mdx';
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+import TransferCode from '@mdx-ko/get-started/TransferCode.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import ConnectCockroach from '@mdx-ko/get-started/cockroach/ConnectCockroach.mdx'
+import QueryDatabase from '@mdx-ko/get-started/QueryDatabase.mdx';
+import QueryDatabaseUpdated from '@mdx-ko/get-started/QueryDatabaseUpdated.mdx';
+import UpdateSchema from '@mdx-ko/get-started/cockroach/UpdateSchema.mdx';
+
+<Breadcrumbs/>
+
+# 기존 프로젝트에서 Drizzle과 CockroachDB 시작하기
+
+<Callout type='error'>
+이 페이지는 drizzle 버전 `1.0.0-beta.2` 이상에서 사용할 수 있는 개념을 설명합니다.
+</Callout>
+
+<br/>
+
+<Prerequisites>
+  - **dotenv** - 환경 변수를 관리하는 패키지 - [여기에서 읽어보세요](https://www.npmjs.com/package/dotenv)
+  - **tsx** - TypeScript 파일을 실행하는 패키지 - [여기에서 읽어보세요](https://tsx.is/)
+  - **node-postgres** - PostgreSQL 데이터베이스를 조회하는 패키지 - [여기에서 읽어보세요](https://node-postgres.com/)
+</Prerequisites>
+
+<FileStructure/>
+
+#### 1단계 - **node-postgres** 패키지 설치
+<Npm>
+  drizzle-orm@beta pg dotenv
+  -D drizzle-kit@beta tsx @types/pg
+</Npm>
+
+
+#### 2단계 - 연결 변수 설정
+
+<SetupEnv env_variable='DATABASE_URL' />
+
+<Callout title='팁'>
+아직 PostgreSQL 데이터베이스가 없고 테스트용으로 하나 만들고 싶다면 PostgreSQL을 Docker에 설정하는 가이드를 사용할 수 있습니다.
+
+PostgreSQL in Docker 가이드는 [여기](/docs/guides/postgresql-local-setup)에서 확인할 수 있습니다. 설정을 마치고(가이드에 설명된) 데이터베이스 URL을 만든 뒤 다음 단계로 돌아오세요.
+</Callout>
+
+#### 3단계 - Drizzle config 파일 설정
+
+<SetupConfig dialect='cockroach' env_variable='DATABASE_URL'/>
+
+#### 4단계 - 데이터베이스 introspect 하기
+
+<IntrospectCockroach/>
+
+#### 5단계 - 실제 스키마 파일로 코드 옮기기
+
+<TransferCode/>
+
+#### 6단계 - 데이터베이스에 Drizzle ORM 연결하기
+
+<ConnectCockroach/>
+
+#### 7단계 - 데이터베이스 조회하기
+
+<QueryDatabase dialect='cockroach' env_variable='DATABASE_URL'/>
+
+#### 8단계 - index.ts 파일 실행하기
+
+<RunFile/>
+
+#### 9단계 - 테이블 스키마 업데이트하기(선택 사항)
+
+<UpdateSchema/>
+
+#### 10단계 - 데이터베이스에 변경 사항 적용하기(선택 사항)
+
+<ApplyChanges />
+
+#### 11단계 - 새 필드를 포함해 데이터베이스 조회하기(선택 사항)
+
+<QueryDatabaseUpdated dialect='cockroach' env_variable='DATABASE_URL' />

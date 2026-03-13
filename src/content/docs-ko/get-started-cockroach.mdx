@@ -1,0 +1,75 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> PostgreSQL
+
+<Callout type='error'>
+이 페이지는 drizzle `1.0.0-beta.2` 이상 버전에서 사용할 수 있는 개념을 설명합니다.
+</Callout>
+
+<br/>
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본 사항](/docs/connect-overview)
+- node-postgres [기본 사항](https://node-postgres.com/)
+</Prerequisites>
+
+Drizzle는 `node-postgres` 드라이버를 사용하는 PostgreSQL 연결을 기본적으로 지원합니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm@beta pg
+-D drizzle-kit@beta @types/pg
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 작성
+<CodeTabs items={["node-postgres", "설정이 포함된 node-postgres"]}>
+```typescript copy
+// Make sure to install the 'pg' package 
+import { drizzle } from 'drizzle-orm/cockroach';
+
+const db = drizzle(process.env.DATABASE_URL);
+ 
+const result = await db.execute('select 1');
+```
+```typescript copy
+// Make sure to install the 'pg' package 
+import { drizzle } from 'drizzle-orm/cockroach';
+
+// You can specify any property from the node-postgres connection options
+const db = drizzle({ 
+  connection: { 
+    connectionString: process.env.DATABASE_URL,
+    ssl: true
+  }
+});
+ 
+const result = await db.execute('select 1');
+```
+</CodeTabs>
+
+기존 드라이버를 제공해야 하는 경우:
+
+```typescript copy
+// Make sure to install the 'pg' package 
+import { drizzle } from "drizzle-orm/cockroach";
+import { Pool } from "pg";
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+const db = drizzle({ client: pool });
+ 
+const result = await db.execute('select 1');
+```
+
+#### 다음 단계는?
+
+<WhatsNextPostgres/>

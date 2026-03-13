@@ -1,0 +1,152 @@
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from "@mdx-ko/Callout.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from "@mdx-ko/Section.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> PlanetScale Postgres
+
+<Prerequisites>
+
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- PlanetScale Postgres 데이터베이스 - [docs](https://planetscale.com/docs/postgres)
+- Drizzle PostgreSQL 드라이버 - [docs](/docs/get-started-postgresql)
+
+</Prerequisites>
+
+PlanetScale은 MySQL (Vitess)와 PostgreSQL 데이터베이스를 모두 제공합니다. 이 페이지는 PlanetScale Postgres 연결을 다룹니다.
+
+PlanetScale MySQL은 [PlanetScale MySQL connection guide](/docs/connect-planetscale)를 참고하세요.
+
+Drizzle ORM을 사용하면 PlanetScale Postgres에 다음 방법으로 연결할 수 있습니다:
+
+- 표준 `node-postgres` 드라이버
+- serverless 환경용 `@neondatabase/serverless` 드라이버
+
+PlanetScale Postgres 데이터베이스 생성 및 자격 증명 획득에 대한 자세한 내용은 [PlanetScale Postgres documentation](https://planetscale.com/docs/postgres/tutorials/planetscale-postgres-drizzle)을 참고하세요.
+
+## node-postgres
+
+#### 1단계 - 패키지 설치
+
+<Npm>drizzle-orm pg -D drizzle-kit @types/pg</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+
+<CodeTabs items={["Connection URL", "config 사용", "기존 client 사용"]}>
+```typescript copy
+import { drizzle } from 'drizzle-orm/node-postgres';
+
+const db = drizzle(process.env.DATABASE_URL);
+
+const result = await db.execute('select 1');
+
+````
+```typescript copy
+import { drizzle } from 'drizzle-orm/node-postgres';
+
+const db = drizzle({
+  connection: {
+    connectionString: process.env.DATABASE_URL,
+    ssl: true
+  }
+});
+
+const result = await db.execute('select 1');
+````
+
+```typescript copy
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+const db = drizzle({ client: pool });
+
+const result = await db.execute("select 1");
+```
+
+</CodeTabs>
+
+## Neon serverless driver
+
+PlanetScale Postgres는 [Neon serverless driver](https://planetscale.com/docs/postgres/connecting/neon-serverless-driver)를 통한 연결도 지원합니다. 이는 Vercel Functions, Cloudflare Workers, AWS Lambda 같은 serverless 환경에 적합한 선택지입니다.
+
+이 드라이버는 두 가지 모드를 지원합니다:
+
+- **HTTP mode** — 단일 쿼리와 비대화형 트랜잭션에서 더 빠름
+- **WebSocket mode** — 대화형 트랜잭션이나 세션 기반 기능에 필요함
+
+#### 1단계 - 패키지 설치
+
+<Npm>drizzle-orm @neondatabase/serverless -D drizzle-kit</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+
+<CodeTabs items={["Neon HTTP", "Neon WebSockets"]}>
+```typescript copy
+import { neon, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+
+// Required for PlanetScale Postgres connections
+neonConfig.fetchEndpoint = (host) => `https://${host}/sql`;
+
+const sql = neon(process.env.DATABASE_URL!);
+const db = drizzle({ client: sql });
+
+const result = await db.execute('select 1');
+
+````
+<Section>
+```typescript copy
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+
+// Required for PlanetScale Postgres connections
+neonConfig.pipelineConnect = false;
+neonConfig.wsProxy = (host, port) => `${host}/v2?address=${host}:${port}`;
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle({ client: pool });
+
+const result = await db.execute('select 1');
+````
+
+```typescript copy
+// For Node.js environments - install 'ws' package
+import ws from "ws";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
+
+neonConfig.webSocketConstructor = ws;
+// Required for PlanetScale Postgres connections
+neonConfig.pipelineConnect = false;
+neonConfig.wsProxy = (host, port) => `${host}/v2?address=${host}:${port}`;
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle({ client: pool });
+
+const result = await db.execute("select 1");
+```
+
+</Section>
+</CodeTabs>
+
+<Callout title="연결 URL 형식">
+  {`postgresql://{username}:{password}@{host}:{port}/postgres?sslmode=verify-full`}
+</Callout>
+
+<Callout title="연결 포트" type="info">
+  PlanetScale Postgres는 두 개의 연결 포트를 지원합니다:
+
+`5432`: PostgreSQL에 직접 연결합니다. 총 연결 수는 클러스터의 `max_connections` 설정에 의해 제한됩니다.
+
+`6432`: connection pooling을 위한 PgBouncer 경유 연결입니다. 동시에 많은 연결이 필요한 경우 권장됩니다.
+
+  </Callout>
+
+#### 다음 단계
+
+<WhatsNextPostgres />

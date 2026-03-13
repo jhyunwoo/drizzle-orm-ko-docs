@@ -1,0 +1,522 @@
+---
+title: Drizzle ORM 및 Drizzle Kit v1.0.0-beta.2 릴리스
+pubDate: 2025-02-12
+description: v1 사전 릴리스
+---
+
+> 이번 버전에서는 정말 많은 변경 사항이 들어갔고, 분명히 깨지는 부분이 있을 수 있습니다. 문제가 발생하면 `1.0.0-beta.1` 또는 `0.44.7`로 다운그레이드할 수 있으며, GitHub나 Discord에 이슈를 꼭 제보해 주세요!
+
+> `1.0.0-beta.1` 릴리스 노트도 꼭 확인하세요: https://github.com/drizzle-team/drizzle-orm/blob/beta/changelogs/drizzle-orm/1.0.0-beta.1.md
+
+> RQBv1에서 RQBv2로 마이그레이션하는 단계는 마이그레이션 가이드를 확인하세요: https://orm.drizzle.team/docs/relations-v1-v2
+
+> 새로운 RQBv2 스키마 문서를 확인하세요: https://orm.drizzle.team/docs/relations-v2 
+
+> 새로운 RQBv2 쿼리 문서를 확인하세요: https://orm.drizzle.team/docs/rqb-v2
+
+# 새 기능
+
+## MSSQL 다이얼렉트
+
+이제 Drizzle은 `drizzle-orm`, `drizzle-kit`, `drizzle-seed` 패키지에서 MSSQL을 지원합니다. 대부분의 컬럼, query builder 기능, migration 전략 등을 지원합니다.
+
+아직 지원되지 않는 유일한 기능은 `RQBv2`입니다.
+
+```ts
+// Make sure to install the 'mssql' package 
+import { drizzle } from 'drizzle-orm/node-mssql';
+
+const db = drizzle(process.env.DATABASE_URL);
+ 
+const result = await db.execute('select 1');
+```
+```ts
+// Make sure to install the 'pg' package 
+import { drizzle } from 'drizzle-orm/node-mssql';
+
+// You can specify any property from the mssql connection options
+const db = drizzle({ 
+  connection: { 
+    connectionString: process.env.DATABASE_URL,
+    ssl: true
+  }
+});
+ 
+const result = await db.execute('select 1');
+```
+
+## CockroachDB 다이얼렉트
+
+이제 Drizzle은 `drizzle-orm`, `drizzle-kit`, `drizzle-seed` 패키지에서 MSSQL을 지원합니다. 대부분의 컬럼, query builder 기능, migration 전략 등을 지원합니다.
+
+아직 지원되지 않는 유일한 기능은 `RQBv2`입니다.
+
+```ts
+// Make sure to install the 'pg' package 
+import { drizzle } from 'drizzle-orm/cockroach';
+
+const db = drizzle(process.env.DATABASE_URL);
+ 
+const result = await db.execute('select 1');
+```
+```ts
+// Make sure to install the 'pg' package 
+import { drizzle } from 'drizzle-orm/cockroach';
+
+// You can specify any property from the node-postgres connection options
+const db = drizzle({ 
+  connection: { 
+    connectionString: process.env.DATABASE_URL,
+    ssl: true
+  }
+});
+ 
+const result = await db.execute('select 1');
+```
+
+## 관계형 쿼리 파트
+
+relations 설정을 여러 부분으로 분리해야 하는 경우 `defineRelationsPart` helper를 사용할 수 있습니다.
+
+```ts
+import { defineRelations, defineRelationsPart } from 'drizzle-orm';
+import * as schema from "./schema";
+export const relations = defineRelations(schema, (r) => ({
+  users: {
+    invitee: r.one.users({
+      from: r.users.invitedBy,
+      to: r.users.id,
+    }),
+    posts: r.many.posts(),
+  }
+}));
+export const part = defineRelationsPart(schema, (r) => ({
+  posts: {
+    author: r.one.users({
+      from: r.posts.authorId,
+      to: r.users.id,
+    }),
+  }
+}));
+```
+
+그런 다음 이를 db 인스턴스에 전달할 수 있습니다.
+
+```ts
+const db = drizzle(process.env.DB_URL, { relations: { ...relations, ...part } })
+```
+
+## Folders v3 마이그레이션
+
+> 연결된 논의: https://github.com/drizzle-team/drizzle-orm/discussions/2832
+
+마이그레이션 폴더 구조를 다음과 같이 업데이트했습니다.
+- journal.json 제거
+- SQL 파일과 snapshot을 각각 별도의 migration 폴더로 그룹화
+- `drizzle-kit drop` 명령 제거
+
+이 변경으로 journal 파일로 인한 잠재적인 Git 충돌을 없애고, 충돌 난 migration을 삭제하거나 수정하는 과정을 단순화했습니다.
+
+다가오는 beta 릴리스에서는 commutativity checks를 도입해 팀 migration 충돌을 안내하고, 가능한 충돌을 감지하며, 해결 방법을 제안할 예정입니다.
+> Commutativity discussion: https://github.com/drizzle-team/drizzle-orm/discussions/5005
+
+이전 폴더를 새 형식으로 마이그레이션하려면 다음을 실행해야 합니다.
+```
+drizzle-kit up
+```
+
+## 전체 `drizzle-kit` 재작성
+
+주요 kit 및 migration 이슈를 해결하기 위한 아키텍처 재작성입니다. 더 빠르게 반복하고, 테스트 커버리지를 개선하며, 전반적인 안정성을 높이는 데 도움이 되는 가치 있고 필요한 업데이트 세트를 완료했습니다.
+
+완료된 작업 요약:
+- 데이터베이스 snapshot에서 데이터베이스 DDL snapshot으로 이전
+- diff 감지 및 적용을 위한 전체 아키텍처 재작업
+- 기본값, 표현식, 타입 감지에 대한 대폭적인 개선 추가
+- 데이터베이스 호출과 쿼리 복잡도를 최소화하여 스키마 introspection 시간을 10초에서 1초 미만으로 단축
+- push를 위한 query hints 및 explain 지원 추가
+- 테스트 커버리지 확대 - 각 테스트 케이스는 이제 최대 6가지 시나리오(push+push, pull+generate 등)를 실행
+
+## `drizzle-kit pull --init` 추가
+
+이 플래그는 데이터베이스에 drizzle migration 테이블을 생성하고, 처음 pull한 migration을 applied 상태로 표시하여 그 지점부터 계속 작업할 수 있게 해줍니다.
+
+## `schemaFilter` 동작 업데이트
+
+`drizzle-kit`은 이제 코드에 정의된 모든 스키마를 관리하기 시작합니다. 이를 필터링하고 싶다면 `schemaFilter`를 사용할 수 있습니다.
+이전에는 `schemaFilter`에 추가 스키마를 명시적으로 넣지 않는 한 public 스키마만 관리했습니다.
+
+이제 glob pattern도 지원하므로 원하는 방식으로 스키마를 필터링할 수 있습니다.
+
+## `.enableRLS()` 사용 중단
+
+이전에는 RLS가 활성화된 PostgreSQL 테이블을 표시하려면 다음과 같이 해야 했습니다.
+
+```ts
+// OLD syntax
+pgTable('name', {}).enableRLS()
+``` 
+
+이 옵션은 다른 위치로 옮겼습니다.
+
+```ts
+pgTable.withRLS('users', {});
+```
+
+## 컬럼에 직접 alias 지정
+
+이제 컬럼에 `as` alias를 더 간단하게 추가할 수 있습니다.
+
+```
+const query = db
+	.select({ age: users.age.as('ageOfUser'), id: users.id.as('userId') })
+	.from(users)
+	.orderBy(asc(users.id.as('userId')));
+```
+
+## MySQL 새 컬럼 타입
+
+몇 가지 MySQL 컬럼 타입을 더 추가했습니다.
+
+- blob: https://orm.drizzle.team/docs/column-types/mysql#blob
+- tinyblob: https://orm.drizzle.team/docs/column-types/mysql#tinyblob
+- mediumblob: https://orm.drizzle.team/docs/column-types/mysql#mediumblob
+- longblob: https://orm.drizzle.team/docs/column-types/mysql#longblob
+
+## 더 많은 업데이트와 수정
+
+- node-postgres transactions에서 pg-native Pool 감지 수정  
+- select fields에서 subquery 허용  
+- typo algorythm => algorithm 수정  
+- `$onUpdate`가 `SQL` 값을 처리하지 못하던 문제 수정 ([#2388](https://github.com/drizzle-team/drizzle-orm/issues/2388) 수정, 테스트는 [L-Mario564](https://github.com/L-Mario564)가 [#2911](https://github.com/drizzle-team/drizzle-orm/pull/2911)에서 구현)  
+- `bun-sql:postgresql` 드라이버 응답의 `date`, `timestamp` 타입에서 `pg` mapper가 `Date` 인스턴스를 처리하지 못하던 문제 수정 ([#4493](https://github.com/drizzle-team/drizzle-orm/issues/4493) 수정)  
+
+## 수정된 버그
+
+> 이 목록이 전부는 아닙니다. 일부 이슈만 처리할 시간이 있었고, 앞으로 몇 주 동안 이 목록을 계속 업데이트할 예정입니다.
+
+- [[BUG]: Drizzle-kit이 postgres functions를 Typescript methods로 가져옵니다](https://github.com/drizzle-team/drizzle-orm/issues/4916)
+
+- [[BUG]: VARCHAR -> CITEXT(custom type) 컬럼으로 변경할 때 "citext"가 아니라 "undefined"."citext"가 생성됩니다](https://github.com/drizzle-team/drizzle-orm/issues/4806)
+
+- [[BUG]: casing을 snake_case로 설정했을 때 unique field의 constraint name이 변환되지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/4800)
+
+- [[BUG]: `drizzle-kit push`가 다른 스키마 이름에 대해 끝에 `DROP SCHEMA`를 추가합니다](https://github.com/drizzle-team/drizzle-orm/issues/4796)
+
+- [[BUG]: 변경 사항이 없는데도 `drizzle-kit push`가 composite unique constraint를 잘못 삭제하려고 시도합니다](https://github.com/drizzle-team/drizzle-orm/issues/4789)
+
+- [[BUG]: 값이 '0'인 MySQL enum 기본값이 introspection 중 무시됩니다](https://github.com/drizzle-team/drizzle-orm/issues/4786)
+
+- [[BUG]: drizzle-kit / Amazon Aurora DSQL : 변경이 없는데도 `drizzle-kit push`가 재적용 시 primary key index를 삭제하려고 시도합니다](https://github.com/drizzle-team/drizzle-orm/issues/4779)
+
+- [[BUG]: `drizzle-kit check`가 AWS Data API를 잘못 사용하려고 시도합니다](https://github.com/drizzle-team/drizzle-orm/issues/4775)
+
+- [[BUG]: ^0.31.4 버전에서 bunx drizzle-kit push가 “Reading config file”에서 멈춥니다](https://github.com/drizzle-team/drizzle-orm/issues/4771)
+
+- [[BUG]: Introspect로 생성된 파일에서 View의 컬럼이 배열로 표시되지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/4764)
+
+- [[BUG]: drizzle kit가 기본 문자열을 잘못된 스키마로 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/4760)
+
+- [[BUG]: drizzle-kit pull이 gen_random_uuid()를 sql 함수 호출로 감싸지 않아 syntax error가 발생합니다](https://github.com/drizzle-team/drizzle-orm/issues/4730)
+
+- [[BUG]: `drizzle-kit introspect`의 빈 `''` mysqlEnum 및 기본값 introspect 오류](https://github.com/drizzle-team/drizzle-orm/issues/4713)
+
+- [[BUG]: 연산자 함수가 있는 CHECK constraints가 parameterized values와 함께 잘못된 SQL을 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/4661)
+
+- [[BUG]: drizzle-kit pull 실행 시 tinyint, bigint가 포함되지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/4653)
+
+- [[BUG]: drizzle-kit pull이 기본값이 빈 text인 one ' letter column을 누락합니다](https://github.com/drizzle-team/drizzle-orm/issues/4644)
+
+- [[BUG]: composite foreign key를 생성할 수 없습니다: SQL statements 순서 문제 [Postgres]](https://github.com/drizzle-team/drizzle-orm/issues/4638)
+
+- [[BUG]: drizzle-kit MySQL Serializer가 PK와 CHECK constraints를 인식하지 못합니다](https://github.com/drizzle-team/drizzle-orm/issues/4602)
+
+- [[BUG]: 여러 컬럼의 unique key name이 casing 설정을 따르지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/4541)
+
+- [[BUG]: 대상 postgres 데이터베이스에 기본값이 있는 `jsonb` 컬럼이 있으면 `drizzle-kit push`가 실패합니다](https://github.com/drizzle-team/drizzle-orm/issues/4529)
+
+- [[BUG]: `drizzle-kit generate`가 순서가 어긋나거나 잘못된 migration을 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/4456)
+
+- [[BUG]: `with:` 컬럼이 `any` 값이 됩니다](https://github.com/drizzle-team/drizzle-orm/issues/4432)
+
+- [[BUG]: ts + mysql에서 introspect 명령 사용 시 Drizzle이 foreign key 이름을 가져오지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/4415)
+
+- [[BUG]: "with" 기능 사용 시 MySQL에서 잘못된 SQL 쿼리가 생성됩니다](https://github.com/drizzle-team/drizzle-orm/issues/4412)
+
+- [[BUG]: findMany에서 Relation 사용 시 Key-Value Object 대신 Flattened Array가 반환됩니다](https://github.com/drizzle-team/drizzle-orm/issues/4409)
+
+- [[BUG]: NuxtHub 프로젝트에서 drizzle-orm@beta query object가 비어 있습니다](https://github.com/drizzle-team/drizzle-orm/issues/4390)
+
+- [[BUG]: json_agg로 데이터를 가져올 때 Big int precision loss가 발생합니다](https://github.com/drizzle-team/drizzle-orm/issues/4380)
+
+- [[BUG]: helper 함수로 생성한 테이블에 `with`를 사용할 때 컬럼 타입이 잘못됩니다](https://github.com/drizzle-team/drizzle-orm/issues/4358)
+
+- [[BUG]: drizzle-orm@beta SQLite error in queries w/ `with`](https://github.com/drizzle-team/drizzle-orm/issues/4357)
+
+- [[BUG]: Identifier가 너무 깁니다(63자를 초과하면 안 됨)](https://github.com/drizzle-team/drizzle-orm/issues/4238)
+
+- [[BUG]: MySQL foreign string key를 생성할 수 없습니다](https://github.com/drizzle-team/drizzle-orm/issues/4221)
+
+- [[BUG]: 많은 테이블을 사용할 때 Drizzle type inference가 제대로 동작하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/4199)
+
+- [findFirst Date가 string으로 반환됩니다](https://github.com/drizzle-team/drizzle-orm/issues/4186)
+
+- [[BUG]: Turso dialect에서 foreign key를 삭제할 수 없습니다](https://github.com/drizzle-team/drizzle-orm/issues/4167)
+
+- [[BUG]: `$count` sub-expression에서 잘못된 table name이 생성됩니다](https://github.com/drizzle-team/drizzle-orm/issues/4164)
+
+- [[BUG]: where에서 알 수 없는 column](https://github.com/drizzle-team/drizzle-orm/issues/4159)
+
+- [[BUG]: 테이블을 삭제할 때 drizzle-kit generate가 이미 삭제된 constraint를 삭제하려고 시도합니다](https://github.com/drizzle-team/drizzle-orm/issues/4155)
+
+- [[BUG]: query API에서 optional columns 사용 시 추론된 result type이 불완전합니다](https://github.com/drizzle-team/drizzle-orm/issues/4153)
+
+- [SQLite 컬럼이 unique로 표시되지 않고 대신 unique index가 생성되었습니다](https://github.com/drizzle-team/drizzle-orm/issues/4152)
+
+- [[BUG]: `on delete`와 `on update`가 `no action` 이외로 설정되었을 때 Introspect가 foreign key 이름을 가져오지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/4115)
+
+- [[BUG]: `drizzle-kit pull`이 깨진 TypeScript 스키마를 만들었습니다. (`drizzle-orm/mysql-core`에서 `tinyint` import를 빼먹은 것으로 보입니다)](https://github.com/drizzle-team/drizzle-orm/issues/4110)
+
+- [[BUG]: Drizzle Relational Query가 필터링을 제대로 하지 못합니다](https://github.com/drizzle-team/drizzle-orm/issues/4080)
+
+- [[BUG]: junction table이 있는 many-to-many relations에서 비일관된 동작: 동일한 패턴인데도 다른 결과가 나옵니다](https://github.com/drizzle-team/drizzle-orm/issues/3937)
+
+- [[BUG]: relation의 query where에서 TypeScript 오류 발생 (version  "drizzle-orm": "^0.38.3")](https://github.com/drizzle-team/drizzle-orm/issues/3911)
+
+- [[BUG]: 데이터가 없을 때 findFirst가 undefined 또는 null을 반환하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/3872)
+
+- [[DOCS]: Nullable Relation](https://github.com/drizzle-team/drizzle-orm/issues/3855)
+
+- [[BUG]: 문서에 따라 filter select를 수행할 때 type error가 발생합니다](https://github.com/drizzle-team/drizzle-orm/issues/3804)
+
+- [[BUG]: One-to-One Related Entities에 대한 Non-Nullable Type Inference가 잘못됩니다](https://github.com/drizzle-team/drizzle-orm/issues/3799)
+
+- [[BUG]: field 정의가 없는 쪽의 one-to-one relationships에 relationName을 지정할 수 있게 해주세요](https://github.com/drizzle-team/drizzle-orm/issues/3763)
+
+- [[BUG]: Sqlite에서 onConflictDoUpdate와 함께 insert할 때 custom types가 동작하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/3730)
+
+- [[FEATURE]: Scopes API](https://github.com/drizzle-team/drizzle-orm/issues/3646)
+
+- [[BUG]: `sql.js`를 사용할 때 column name conversion이 동작하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/3642)
+
+- [[BUG]: Drizzle-kit이 더 이상 enum 값의 특수 문자를 지원하지 않습니다 (MySQL)](https://github.com/drizzle-team/drizzle-orm/issues/3613)
+
+- [[BUG]: drizzle-kit pull이 .with(securityInvoker":"on")을 반환합니다](https://github.com/drizzle-team/drizzle-orm/issues/3585)
+
+- [[BUG]: db.query가 related queries에서 느린(?) 쿼리를 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/3581)
+
+- [[BUG]: push가 unique column index에 대해 중복 구문을 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/3574)
+
+- [[BUG]: where 절에서 다른 테이블이 참조될 때 findMany(및 아마 다른 것들)에서 잘못된 쿼리가 생성됩니다](https://github.com/drizzle-team/drizzle-orm/issues/3573)
+
+- [[BUG]: $count()가 잘못된 Postgres subquery를 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/3564)
+
+- [[BUG]: drizzle-kit pull이 잘못된 schema.ts를 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/3559)
+
+- [[BUG]: Introspect가 내 테이블에 `.primaryKey()`를 넣지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/3552)
+
+- [[BUG]: findMany의 extras에서 count relations가 동작하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/3546)
+
+- [[BUG]: TypeError: Cannot read properties of undefined (reading 'columns')](https://github.com/drizzle-team/drizzle-orm/issues/3539)
+
+- [[BUG]: `pgEnum`이 잘못된 migration을 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/3514)
+
+- [[BUG]: relation table에 jsonb field가 있을 때 relation을 포함한 쿼리에서 SqliteError: JSON cannot hold BLOB values 가 발생합니다](https://github.com/drizzle-team/drizzle-orm/issues/3497)
+
+- [MYSQL Introspect: 데이터베이스의 bit(1)을 파싱할 수 없다는 경고](https://github.com/drizzle-team/drizzle-orm/issues/3480)
+
+- [`introspect:pg`가 특정 Postgres 타입을 처리하지 못합니다](https://github.com/drizzle-team/drizzle-orm/issues/3479)
+
+- [두 개의 Primary Keys가 있을 때 `drizzle-kit push:mysql` 버그](https://github.com/drizzle-team/drizzle-orm/issues/3473)
+
+- [push:mysql이 serial 컬럼을 삭제하고 다른 컬럼 타입으로 교체하지 못합니다](https://github.com/drizzle-team/drizzle-orm/issues/3471)
+
+- [db push가 그냥 멈추고 verbose에도 아무 세부 정보가 표시되지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/3470)
+
+- [스키마에 `CURRENT_TIMESTAMP`가 있어 Drizzle Studio에서 오류가 발생합니다](https://github.com/drizzle-team/drizzle-orm/issues/3453)
+
+- [[Mysql] timestamp에 FSP가 지정되었을 때 `onUpdateNow`에 대해 Drizzle kit이 잘못된 SQL 문법을 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/3373)
+
+- [PostGIS geometry column type과 함께 drizzle-kit push](https://github.com/drizzle-team/drizzle-orm/issues/3347)
+
+- [[BUG]: Mysql의 새 .unique().notNull()에서 `add constraint`가 `add column`보다 먼저 배치되어 오류가 발생합니다](https://github.com/drizzle-team/drizzle-orm/issues/3329)
+
+- [기본값의 큰따옴표 문제](https://github.com/drizzle-team/drizzle-orm/issues/3318)
+
+- [drizzle-kit의 introspect:mysql이 동작하지 않는 세 가지 경우가 있습니다](https://github.com/drizzle-team/drizzle-orm/issues/3297)
+
+- [MySQL & PostgreSQL: 새 cascade를 모두 감지하지 못합니다](https://github.com/drizzle-team/drizzle-orm/issues/3293)
+
+- [[BUG]: drizzle-kit pushing 시 enum 배열에서 오류가 발생합니다](https://github.com/drizzle-team/drizzle-orm/issues/3278)
+
+- [[BUG]: 깊게 중첩된 쿼리](https://github.com/drizzle-team/drizzle-orm/issues/3277)
+
+- [[BUG]: `findMany`/`findFirst`가 sql operator에서 table names를 잘못 치환합니다](https://github.com/drizzle-team/drizzle-orm/issues/3268)
+
+- [[BUG]: relations와 함께 findMany를 사용할 때 잘못된 bigint 값이 반환됩니다 (postgresql)](https://github.com/drizzle-team/drizzle-orm/issues/3267)
+
+- [[BUG]: bit 타입이 postgresql에서 string으로 전달됩니다](https://github.com/drizzle-team/drizzle-orm/issues/3254)
+
+- [[BUG]: Foreign key name length](https://github.com/drizzle-team/drizzle-orm/issues/3244)
+
+- [[BUG]: "unix_timestamp is not defined"](https://github.com/drizzle-team/drizzle-orm/issues/3237)
+
+- [[BUG]: `push` 확인 대화상자에서 `escape`를 누르면 push가 실행됩니다](https://github.com/drizzle-team/drizzle-orm/issues/3230)
+
+- [[BUG]: arrayContains, arrayContained, arrayOverlaps가 queries find callbacks에 없습니다](https://github.com/drizzle-team/drizzle-orm/issues/3169)
+
+- [[BUG]: Query extras가 table names를 잘못 해석합니다](https://github.com/drizzle-team/drizzle-orm/issues/3110)
+
+- [[BUG]: push에서는 문제없지만 UUID Error on push, but no issue via generate / migrate](https://github.com/drizzle-team/drizzle-orm/issues/3090)
+
+- [[BUG]: migration의 기본값이 잘못된 sql.ts 파일을 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/3087)
+
+- [[BUG]: uniqueIndex와 sql lower를 함께 사용할 때 drizzle-kit이 _ZodError를 발생시킵니다](https://github.com/drizzle-team/drizzle-orm/issues/3062)
+
+- [[BUG]: drizzle-kit introspect TypeError: Cannot read properties of null (reading 'camelCase')](https://github.com/drizzle-team/drizzle-orm/issues/3046)
+
+- [[BUG]: 중첩된 `with: { where }` 절에서 타입이 올바르게 추론되지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/3045)
+
+- [[BUG]: MySql 데이터베이스 introspection 시 drizzle-kit이 "bigint" 타입을 import하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/2988)
+
+- [[BUG]: findFirst와 findMany가 relation 테이블에 geomtery 컬럼이 있을 때 `with` 문으로 모델을 파싱하지 못합니다](https://github.com/drizzle-team/drizzle-orm/issues/2961)
+
+- [[FEATURE]: 복잡한 스키마와 관계에서 데이터를 조회할 때 응답 shape를 'flatten'하는 API](https://github.com/drizzle-team/drizzle-orm/issues/2933)
+
+- [[FEATURE]: one-to-one querying에 `where` 추가](https://github.com/drizzle-team/drizzle-orm/issues/2903)
+
+- [[DOCUMENTATION]: 코드의 오타](https://github.com/drizzle-team/drizzle-orm/issues/2840)
+
+- [[BUG]: migrations가 동작하지 않습니다 - table already exists - ER_TABLE_EXISTS_ERROR - mysql](https://github.com/drizzle-team/drizzle-orm/issues/2815)
+
+- [[BUG]: pg geometry가 migration을 막습니다](https://github.com/drizzle-team/drizzle-orm/issues/2806)
+
+- [[BUG]: 값으로 "$"를 사용하려는 경우에도 Do statement double dollar sign이 제대로 escape되지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/2710)
+
+- [[BUG]: Drizzle Query가 Select와 다른 결과를 반환합니다](https://github.com/drizzle-team/drizzle-orm/issues/2703)
+
+- [[BUG]: drizzle-orm에서 import한 연산자 `eq`, `lt` 등이 콜백 문법은 동작하는데 왼쪽 "table.column" 파라미터를 인식하지 못합니다](https://github.com/drizzle-team/drizzle-orm/issues/2698)
+
+- [[BUG]: PG Numeric은 string으로 추론되지만 런타임에서는 numeric입니다](https://github.com/drizzle-team/drizzle-orm/issues/2681)
+
+- [[BUG]: Geometry type이 SRID 옵션을 무시합니다](https://github.com/drizzle-team/drizzle-orm/issues/2675)
+
+- [[FEATURE]: materialized views를 사용하는 Drizzle relations](https://github.com/drizzle-team/drizzle-orm/issues/2653)
+
+- [[BUG]: MySQL generatedAlwaysAs with notNull](https://github.com/drizzle-team/drizzle-orm/issues/2616)
+
+- [[BUG]: upstream schema와의 unique key reconciliation이 일관되지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/2599)
+
+- [[BUG]: many-to-one relation의 집계 결과가 postgres DB에서 timestamp를 반환하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/2555)
+
+- [[BUG]: SQLite query에서 중첩 조건 및 placeholder 관련 문제](https://github.com/drizzle-team/drizzle-orm/issues/2529)
+
+- [[BUG]: `with`를 사용할 때 Postgis `geometry` query select가 실패합니다](https://github.com/drizzle-team/drizzle-orm/issues/2526)
+
+- [[BUG]: Geometry config type이 출력 SQL에 영향을 주지 않는 것 같습니다](https://github.com/drizzle-team/drizzle-orm/issues/2454)
+
+- [[BUG]: relation query API의 기본 alias가 일반 alias와 다릅니다](https://github.com/drizzle-team/drizzle-orm/issues/2431)
+
+- [[BUG]: $onUpdate에 sql 값을 제공할 수 없습니다](https://github.com/drizzle-team/drizzle-orm/issues/2388)
+
+- [[BUG]: 서로 다른 스키마에서 같은 이름의 테이블을 사용할 때 typing 이슈](https://github.com/drizzle-team/drizzle-orm/issues/2387)
+
+- [중첩된 orderBy 지원](https://github.com/drizzle-team/drizzle-orm/issues/2297)
+
+- [[BUG]: relation으로 가져왔을 때와 직접 가져왔을 때 Timestamp 형식이 다릅니다](https://github.com/drizzle-team/drizzle-orm/issues/2282)
+
+- [[FEATURE]: relations에서 하드코딩된 값을 허용](https://github.com/drizzle-team/drizzle-orm/issues/2268)
+
+- [[BUG]: 새 컬럼과 그 컬럼의 unique key를 함께 추가하면 잘못된 migration 파일이 생성됩니다](https://github.com/drizzle-team/drizzle-orm/issues/2236)
+
+- [[BUG]: non-ASCII characters 관련 인코딩 문제](https://github.com/drizzle-team/drizzle-orm/issues/2235)
+
+- [[BUG]: child relations를 포함할 때 Query API가 schema name을 포함하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/2194)
+
+- [[BUG]: Planetscale에서 push 시 'serial' 타입 때문에 packets out of order가 발생합니다](https://github.com/drizzle-team/drizzle-orm/issues/2180)
+
+- [[BUG]: Postgres customType이 잘못된 SQL을 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/2087)
+
+- [[BUG]: 깊게 중첩된 쿼리가 table name length 때문에 실패합니다](https://github.com/drizzle-team/drizzle-orm/issues/2066)
+
+- [[BUG]: 여러 foreign key와 migrations에서 on cascade delete 이슈](https://github.com/drizzle-team/drizzle-orm/issues/2018)
+
+- [[DOCS]: Relationships는 자체 페이지를 가져야 합니다](https://github.com/drizzle-team/drizzle-orm/issues/1913)
+
+- [[BUG]: alias된 const에서 schema name이 table name 앞에 붙지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/1903)
+
+- [[BUG]: `default(0n)` directive에서 BigInt를 사용할 때 `Do not know how to serialize a BigInt` 오류가 발생합니다](https://github.com/drizzle-team/drizzle-orm/issues/1879)
+
+- [[BUG]: Typescript가 One-To-One Relation을 인식하지 못합니다](https://github.com/drizzle-team/drizzle-orm/issues/1869)
+
+- [[BUG]: extras에서 사용될 때 sql``이 잘못된 table name을 보간합니다](https://github.com/drizzle-team/drizzle-orm/issues/1815)
+
+- [[BUG]: pg-native Pools가 Transactions에서 동작하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/1707)
+
+- [[BUG]: `with` 쿼리에서 custom types가 동작하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/1572)
+
+- [[BUG]: ERROR: operator does not exist](https://github.com/drizzle-team/drizzle-orm/issues/1570)
+
+- [[BUG]: timstamp 타입의 `notNull` 속성](https://github.com/drizzle-team/drizzle-orm/issues/1535)
+
+- [[BUG]: 0.29.0에서 eq function이 동작하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/1488)
+
+- [[BUG]: pg에서 with 블록을 중첩하는 데 임계치가 있나요](https://github.com/drizzle-team/drizzle-orm/issues/1477)
+
+- [[FEATURE]: boolean 값이 specifically true/false가 아닐 때 가능한 undefined column 값을 추론](https://github.com/drizzle-team/drizzle-orm/issues/1438)
+
+- [[BUG]: ER_WRONG_AUTO_KEY - Drizzle Kit이 primary keys를 감지하지 못합니다](https://github.com/drizzle-team/drizzle-orm/issues/1428)
+
+- [[BUG]: Error: Multiple primary key defined](https://github.com/drizzle-team/drizzle-orm/issues/1413)
+
+- [[BUG]: 쿼리에서 여러 relation을 나란히 배치했을 때 orderBy 절을 사용할 수 없습니다 (MySQL)](https://github.com/drizzle-team/drizzle-orm/issues/1396)
+
+- [[BUG]: relations(one and automatic limit: 1) 사용 시 잘못된 typeHint](https://github.com/drizzle-team/drizzle-orm/issues/1368)
+
+- [[BUG]: orderBy 때문에 relational query가 실패합니다](https://github.com/drizzle-team/drizzle-orm/issues/1249)
+
+- [[BUG]: `columns` partial select가 dynamic conditions에서 잘못된 타입을 제공합니다](https://github.com/drizzle-team/drizzle-orm/issues/1163)
+
+- [[BUG]: relational queries에서 `findFirst` 또는 `findMany`를 할 때 `extras`의 `mapWith`가 동작하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/1157)
+
+- [[BUG]: `findFirst`와 `findMany`가 sql directive 사용 시 table name을 올바르게 설정하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/1149)
+
+- [[FEATURE]: relational queries에서 중첩 relation으로 필터링 기능 다시 추가](https://github.com/drizzle-team/drizzle-orm/issues/1069)
+
+- [[FEATURE]: Optional One-to-One Relation](https://github.com/drizzle-team/drizzle-orm/issues/1066)
+
+- [[FEATURE]: Polymorphic Association 지원](https://github.com/drizzle-team/drizzle-orm/issues/1051)
+
+- [[BUG]: relational query의 where clause가 table name을 덮어씁니다](https://github.com/drizzle-team/drizzle-orm/issues/975)
+
+- [[BUG]: error: column "role" cannot be cast automatically to type user_role](https://github.com/drizzle-team/drizzle-orm/issues/930)
+
+- [[FEATURE]: cockroachdb는 얼마나 지원되나요?](https://github.com/drizzle-team/drizzle-orm/issues/845)
+
+- [[BUG]: 기본이 아닌 Postgres schema에서 relations가 잘못된 테이블을 추론합니다](https://github.com/drizzle-team/drizzle-orm/issues/830)
+
+- [[FEATURE]: 필터링되고 정렬된 relationships](https://github.com/drizzle-team/drizzle-orm/issues/821)
+
+- [[BUG]: relational queries가 DECIMAL dataTypes를 기반으로 한 customTypes를 깨뜨립니다](https://github.com/drizzle-team/drizzle-orm/issues/820)
+
+- [[BUG]: custom type 컬럼이 `default()`와 함께 동작하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/818)
+
+- [[BUG]: relations API와 함께 views를 사용할 수 없습니다](https://github.com/drizzle-team/drizzle-orm/issues/769)
+
+- [[FEATURE]: joins에 추가 조건 넣기](https://github.com/drizzle-team/drizzle-orm/issues/756)
+
+- [[BUG]: Drizzle가 MySQL에서 indexes를 과도하게 생성합니다](https://github.com/drizzle-team/drizzle-orm/issues/706)
+
+- [[BUG]: sqlite/d1에서 relational query의 order-by에 문제가 있습니다](https://github.com/drizzle-team/drizzle-orm/issues/705)
+
+- [relational queries에서 깊게 중첩된 속성 참조 허용](https://github.com/drizzle-team/drizzle-orm/issues/696)
+
+- [[FEATURE]: 사용자 지정 가능한 many relations](https://github.com/drizzle-team/drizzle-orm/issues/674)
+
+- [[FEATURE]: "through" relation queries](https://github.com/drizzle-team/drizzle-orm/issues/607)
+
+- [[FEATURE]: MSSQL dialect](https://github.com/drizzle-team/drizzle-orm/issues/585)
+
+- [[BUG]: planetscale에서 timestamp에 FSP가 지정되면 now()와 current_timestamp()가 동작하지 않습니다](https://github.com/drizzle-team/drizzle-orm/issues/472)
+
+- [[BUG]: 테이블명이 reserved word일 때 MySQL alter table이 실패합니다](https://github.com/drizzle-team/drizzle-orm/issues/364)

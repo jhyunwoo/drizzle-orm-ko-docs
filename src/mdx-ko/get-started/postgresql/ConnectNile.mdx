@@ -1,0 +1,39 @@
+import Callout from '@mdx-ko/Callout.astro';
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+`src` 디렉터리에 `index.ts` 파일을 생성하고 연결을 초기화합니다.
+
+<CodeTabs items={["node-postgres", "설정이 포함된 node-postgres", "기존 node-postgres 드라이버"]}>
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+
+const db = drizzle(process.env.NILEDB_URL!);
+```
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+
+// You can specify any property from the node-postgres connection options
+const db = drizzle({ 
+  connection: { 
+    connectionString: process.env.NILEDB_URL!,
+    ssl: true
+  }
+});
+```
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+
+const pool = new Pool({
+  connectionString: process.env.NILEDB_URL!,
+});
+const db = drizzle({ client: pool });
+```
+</CodeTabs>
+
+<Callout title='multi-tenancy'>
+Nile은 **가상 tenant 데이터베이스**를 제공합니다. Nile에 쿼리할 때 tenant context를 설정하면 Nile이 해당 tenant에 맞는 가상 데이터베이스로 쿼리를 라우팅합니다. tenant context와 함께 전송된 모든 쿼리는 해당 tenant에만 적용됩니다. 즉, `select * from table`을 실행해도 그 tenant에 대한 레코드만 반환됩니다. Drizzle에서 tenant context를 설정하는 방법은 **[공식 Nile-Drizzle 예제](https://www.thenile.dev/docs/getting-started/languages/drizzle#72-tenantdb)**를 확인하세요.
+</Callout>

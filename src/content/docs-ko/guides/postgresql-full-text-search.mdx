@@ -1,0 +1,417 @@
+---
+title: PostgreSQL 전문 검색
+slug: postgresql-full-text-search
+---
+
+import Section from "@mdx-ko/Section.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Callout from '@mdx-ko/Callout.astro';
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql)로 시작하기
+- [Select statement](/docs/select)
+- [Indexes](/docs/indexes-constraints#indexes)
+- [sql operator](/docs/sql)
+- `drizzle-orm@0.31.0` 및 `drizzle-kit@0.22.0` 이상을 사용해야 합니다.  
+</Prerequisites>
+
+이 가이드는 Drizzle ORM으로 PostgreSQL에서 전문 검색을 구현하는 방법을 보여줍니다. 전문 검색은 문서 또는 문서 집합 안에서 텍스트를 검색하는 데 사용되는 기법입니다. 문서는 전문 검색 시스템에서 검색의 단위입니다. PostgreSQL은 `to_tsvector`, `to_tsquery` 같은 전문 검색 작업용 함수를 제공합니다.
+
+`to_tsvector` 함수는 텍스트 문서를 토큰으로 파싱하고, 토큰을 어간으로 줄인 뒤, 문서 내 위치와 함께 어간을 나열하는 `tsvector`를 반환합니다.
+
+<Section>
+```ts copy {6}
+import { sql } from 'drizzle-orm';
+
+const db = drizzle(...);
+
+await db.execute(
+  sql`select to_tsvector('english', 'Guide to PostgreSQL full-text search with Drizzle ORM')`,
+);
+```
+
+```json
+[
+  {
+    to_tsvector: "'drizzl':9 'full':5 'full-text':4
+    'guid':1 'orm':10 'postgresql':3 'search':7 'text':6"
+  }
+]
+```
+</Section>
+
+`to_tsquery` 함수는 키워드를 정규화된 토큰으로 변환하고, `tsvector` 안의 어간과 매치되는 `tsquery`를 반환합니다. 직접 매치에는 `@@` 연산자를 사용합니다.
+
+<Section>
+```ts copy {2, 3}
+await db.execute(
+  sql`select to_tsvector('english', 'Guide to PostgreSQL full-text search with Drizzle ORM')
+    @@ to_tsquery('english', 'Drizzle') as match`,
+);
+```
+
+```json
+[ { match: true } ]
+```
+</Section>
+
+현재로서는 Drizzle이 `tsvector` 타입을 기본적으로 지원하지 않기 때문에, `text` 컬럼의 데이터를 실행 시점에 변환해야 합니다. 성능을 높이려면 다음과 같이 컬럼에 `GIN` 인덱스를 만들 수 있습니다.
+
+<CodeTabs items={["schema.ts", "migration.sql", "db_data"]}>
+  <CodeTab>
+  ```ts copy {10, 11}
+  import { index, pgTable, serial, text } from 'drizzle-orm/pg-core';
+
+  export const posts = pgTable(
+    'posts',
+    {
+      id: serial('id').primaryKey(),
+      title: text('title').notNull(),
+    },
+    (table) => [
+      index('title_search_index').using('gin', sql`to_tsvector('english', ${table.title})`),
+    ]
+  );
+  ```
+  </CodeTab>
+  <CodeTab>
+  ```sql
+  CREATE TABLE IF NOT EXISTS "posts" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "title" text NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS "title_search_index" ON "posts"
+    USING gin (to_tsvector('english', "title"));
+  ```
+  </CodeTab>
+  ```json
+  [
+    { id: 1, title: 'Planning Your First Trip to Europe' },
+    { id: 2, title: "Cultural Insights: Exploring Asia's Heritage" },
+    { id: 3, title: 'Top 5 Destinations for a Family Trip' },
+    { id: 4, title: 'Essential Hiking Gear for Mountain Enthusiasts' },
+    { id: 5, title: 'Trip Planning: Choosing Your Next Destination' },
+    { id: 6, title: 'Discovering Hidden Culinary Gems in Italy' },
+    { id: 7, title: 'The Ultimate Road Trip Guide for Explorers' },
+  ];
+  ```
+</CodeTabs>
+
+Drizzle ORM으로 PostgreSQL에서 전문 검색을 구현하려면 `sql` operator와 함께 `to_tsvector`, `to_tsquery` 함수를 사용할 수 있습니다.
+
+<Section>
+```ts copy {9}
+import { sql } from 'drizzle-orm';
+import { posts } from './schema';
+
+const title = 'trip';
+
+await db
+  .select()
+  .from(posts)
+  .where(sql`to_tsvector('english', ${posts.title}) @@ to_tsquery('english', ${title})`);
+```
+
+```json
+[
+  { id: 1, title: 'Planning Your First Trip to Europe' },
+  { id: 3, title: 'Top 5 Destinations for a Family Trip' },
+  { id: 5, title: 'Trip Planning: Choosing Your Next Destination' },
+  { id: 7, title: 'The Ultimate Road Trip Guide for Explorers' }
+]
+```
+</Section>
+
+키워드 중 하나라도 매치되게 하려면 `|` 연산자를 사용할 수 있습니다.
+
+<Section>
+```ts copy {6}
+const title = 'Europe | Asia';
+
+await db
+  .select()
+  .from(posts)
+  .where(sql`to_tsvector('english', ${posts.title}) @@ to_tsquery('english', ${title})`);
+```
+
+```json
+[
+  { id: 1, title: 'Planning Your First Trip to Europe' },
+  { id: 2, title: "Cultural Insights: Exploring Asia's Heritage" }
+]
+```
+</Section>
+
+여러 키워드를 함께 매치하려면 `plainto_tsquery` 함수를 사용할 수 있습니다.
+
+<Section>
+```ts copy {7}
+// 'discover & Italy'
+const title = 'discover Italy';
+
+await db
+  .select()
+  .from(posts)
+  .where(sql`to_tsvector('english', ${posts.title}) @@ plainto_tsquery('english', ${title})`);
+```
+
+```sql
+select * from posts
+  where to_tsvector('english', title) @@ plainto_tsquery('english', 'discover Italy');
+```
+
+```json
+[ { id: 6, title: 'Discovering Hidden Culinary Gems in Italy' } ]
+```
+</Section>
+
+구문 전체를 매치하려면 `phraseto_tsquery` 함수를 사용할 수 있습니다.
+
+<Section>
+```ts copy {8}
+// if you query by "trip family", it will not return any result
+// 'family <-> trip'
+const title = 'family trip';
+
+await db
+  .select()
+  .from(posts)
+  .where(sql`to_tsvector('english', ${posts.title}) @@ phraseto_tsquery('english', ${title})`);
+```
+
+```sql
+select * from posts
+  where to_tsvector('english', title) @@ phraseto_tsquery('english', 'family trip');
+```
+
+```json
+[ { id: 3, title: 'Top 5 Destinations for a Family Trip' } ]
+```
+</Section>
+
+웹 검색 엔진과 유사한 대체 문법을 제공하는 `to_tsquery`의 단순화 버전인 `websearch_to_tsquery` 함수도 사용할 수 있습니다.
+
+<Section>
+```ts copy {7}
+// 'family | first & trip & europ | asia'
+const title = 'family or first trip Europe or Asia';
+
+await db
+  .select()
+  .from(posts)
+  .where(sql`to_tsvector('english', ${posts.title}) @@ websearch_to_tsquery('english', ${title})`);
+```
+
+```sql
+select * from posts
+  where to_tsvector('english', title)
+  @@ websearch_to_tsquery('english', 'family or first trip Europe or Asia');
+```
+
+```json
+[
+  { id: 1, title: 'Planning Your First Trip to Europe' },
+  { id: 2, title: "Cultural Insights: Exploring Asia's Heritage" },
+  { id: 3, title: 'Top 5 Destinations for a Family Trip' }
+]
+```
+</Section>
+
+여러 컬럼에 대해 전문 검색을 구현하려면 여러 컬럼에 인덱스를 만들고, `to_tsvector` 함수로 컬럼들을 이어 붙이면 됩니다.
+
+<CodeTabs items={["schema.ts", "migration.sql", "db_data"]}>
+  <CodeTab>
+  ```ts copy {12-17}
+  import { sql } from 'drizzle-orm';
+  import { index, pgTable, serial, text } from 'drizzle-orm/pg-core';
+
+  export const posts = pgTable(
+    'posts',
+    {
+      id: serial('id').primaryKey(),
+      title: text('title').notNull(),
+      description: text('description').notNull(),
+    },
+    (table) => [
+      index('search_index').using(
+        'gin',
+        sql`(
+            setweight(to_tsvector('english', ${table.title}), 'A') ||
+            setweight(to_tsvector('english', ${table.description}), 'B')
+        )`,
+      ),
+    ],
+  );
+  ```
+  </CodeTab>
+  <CodeTab>
+  ```sql
+  CREATE TABLE IF NOT EXISTS "posts" (
+        "id" serial PRIMARY KEY NOT NULL,
+        "title" text NOT NULL,
+        "description" text NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS "search_index" ON "posts"
+    USING gin ((setweight(to_tsvector('english', "title"), 'A') ||
+    setweight(to_tsvector('english', "description"), 'B')));
+  ```
+  </CodeTab>
+  ```json
+  [
+    {
+      id: 1,
+      title: 'Planning Your First Trip to Europe',
+      description:
+        'Get essential tips on budgeting, sightseeing, and cultural etiquette for your inaugural European adventure.',
+    },
+    {
+      id: 2,
+      title: "Cultural Insights: Exploring Asia's Heritage",
+      description:
+        'Dive deep into the rich history and traditions of Asia through immersive experiences and local interactions.',
+    },
+    {
+      id: 3,
+      title: 'Top 5 Destinations for a Family Trip',
+      description:
+        'Discover family-friendly destinations that offer fun, education, and relaxation for all ages.',
+    },
+    {
+      id: 4,
+      title: 'Essential Hiking Gear for Mountain Enthusiasts',
+      description:
+        'Equip yourself with the latest and most reliable gear for your next mountain hiking expedition.',
+    },
+    {
+      id: 5,
+      title: 'Trip Planning: Choosing Your Next Destination',
+      description:
+        'Learn how to select destinations that align with your travel goals, whether for leisure, adventure, or cultural exploration.',
+    },
+    {
+      id: 6,
+      title: 'Discovering Hidden Culinary Gems in Italy',
+      description:
+        "Unearth Italy's lesser-known eateries and food markets that offer authentic and traditional flavors.",
+    },
+    {
+      id: 7,
+      title: 'The Ultimate Road Trip Guide for Explorers',
+      description:
+        'Plan your next great road trip with tips on route planning, packing, and discovering off-the-beaten-path attractions.',
+    },
+  ];
+  ```
+</CodeTabs>
+
+`setweight` 함수는 `tsvector`의 항목에 지정한 가중치를 붙이는 데 사용하며, 가중치는 A, B, C, D 중 하나입니다. 보통 제목과 본문처럼 문서의 서로 다른 부분에서 온 항목을 구분하는 데 사용합니다.
+
+여러 컬럼에 대해 쿼리하는 방법은 다음과 같습니다.
+
+<Section>
+```ts copy {5-7}
+const title = 'plan';
+
+await db.select().from(posts)
+  .where(sql`(
+      setweight(to_tsvector('english', ${posts.title}), 'A') ||
+      setweight(to_tsvector('english', ${posts.description}), 'B'))
+      @@ to_tsquery('english', ${title}
+    )`
+  );
+```
+
+```json
+[
+  {
+    id: 1,
+    title: 'Planning Your First Trip to Europe',
+    description: 'Get essential tips on budgeting, sightseeing, and cultural etiquette for your inaugural European adventure.'
+  },
+  {
+    id: 5,
+    title: 'Trip Planning: Choosing Your Next Destination',
+    description: 'Learn how to select destinations that align with your travel goals, whether for leisure, adventure, or cultural exploration.'
+  },
+  {
+    id: 7,
+    title: 'The Ultimate Road Trip Guide for Explorers',
+    description: 'Plan your next great road trip with tips on route planning, packing, and discovering off-the-beaten-path attractions.'
+  }
+]
+```
+</Section>
+
+검색 결과에 순위를 매기려면 `ts_rank`, `ts_rank_cd` 함수와 `orderBy` 메서드를 사용할 수 있습니다.
+
+<Callout type='warning'>
+`getColumns`는 `drizzle-orm@1.0.0-beta.2`부터 사용할 수 있습니다([여기](/docs/upgrade-v1)에서 더 읽어보세요).
+
+pre-1 버전(`0.45.1` 같은 버전)을 사용 중이라면 `getTableColumns`를 사용하세요.
+</Callout>
+
+<Section>
+```ts copy {6,7,12,13,18-20}
+import { desc, getColumns, sql } from 'drizzle-orm';
+
+const search = 'culture | Europe | Italy | adventure';
+
+const matchQuery = sql`(
+  setweight(to_tsvector('english', ${posts.title}), 'A') ||
+  setweight(to_tsvector('english', ${posts.description}), 'B')), to_tsquery('english', ${search})`;
+
+await db
+  .select({
+    ...getColumns(posts),
+    rank: sql`ts_rank(${matchQuery})`,
+    rankCd: sql`ts_rank_cd(${matchQuery})`,
+  })
+  .from(posts)
+  .where(
+    sql`(
+      setweight(to_tsvector('english', ${posts.title}), 'A') ||
+      setweight(to_tsvector('english', ${posts.description}), 'B')
+      ) @@ to_tsquery('english', ${search})`,
+  )
+  .orderBy((t) => desc(t.rank));
+```
+
+```json
+[
+  {
+    id: 1,
+    title: 'Planning Your First Trip to Europe',
+    description: 'Get essential tips on budgeting, sightseeing, and cultural etiquette for your inaugural European adventure.',
+    rank: 0.2735672,
+    rankCd: 1.8
+  },
+  {
+    id: 6,
+    title: 'Discovering Hidden Culinary Gems in Italy',
+    description: "Unearth Italy's lesser-known eateries and food markets that offer authentic and traditional flavors.",
+    rank: 0.16717994,
+    rankCd: 1.4
+  },
+  {
+    id: 2,
+    title: "Cultural Insights: Exploring Asia's Heritage",
+    description: 'Dive deep into the rich history and traditions of Asia through immersive experiences and local interactions.',
+    rank: 0.15198177,
+    rankCd: 1
+  },
+  {
+    id: 5,
+    title: 'Trip Planning: Choosing Your Next Destination',
+    description: 'Learn how to select destinations that align with your travel goals, whether for leisure, adventure, or cultural exploration.',
+    rank: 0.12158542,
+    rankCd: 0.8
+  }
+]
+```
+</Section>
+
+`ts_rank` 함수는 문서 전체에서 쿼리 용어가 얼마나 자주 등장하는지에 초점을 둡니다. `ts_rank_cd` 함수는 문서 안에서 쿼리 용어가 서로 얼마나 가까이 있는지에 초점을 둡니다.

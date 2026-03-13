@@ -1,0 +1,22 @@
+---
+title: DrizzleORM v0.28.2 릴리스
+pubDate: 2023-08-10
+description: d1용 테스트 세트를 추가했고, 내부 문서 문제를 수정했으며, MySQL의 timestamp 밀리초 잘림 문제를 해결했습니다. sqlite 기반 방언의 `.get()` 메서드 타입을 바로잡았고, 쿼리가 두 번 실행되던 sqlite-proxy 버그를 수정했습니다. Typebox 패키지 지원도 추가했습니다.
+---
+
+## 커뮤니티 기여 릴리스 🎉
+
+### 내부 기능 및 변경 사항
+- d1용 테스트 세트를 추가했습니다
+- 내부 문서의 문제를 수정했습니다
+
+### 수정 사항
+- MySQL에서 timestamp 밀리초가 잘리던 문제를 해결했습니다
+- sqlite 기반 방언에서 `.get()` 메서드의 타입을 수정했습니다 ([#565](https://github.com/drizzle-team/drizzle-orm/issues/565))
+- 쿼리가 두 번 실행되던 sqlite-proxy 버그를 수정했습니다
+
+### 새 패키지 🎉
+
+[drizzle-typebox](/docs/typebox) 패키지에서 [Typebox](https://github.com/sinclairzx81/typebox) 지원을 추가했습니다.
+
+더 많은 사용 예시는 문서 페이지 `/docs/typebox`를 확인해 주세요.

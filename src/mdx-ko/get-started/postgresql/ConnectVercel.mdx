@@ -1,0 +1,13 @@
+`src` 디렉터리에 `index.ts` 파일을 생성하고 연결을 초기화합니다.
+```typescript copy
+import { drizzle } from 'drizzle-orm/vercel-postgres';
+
+const db = drizzle();
+```
+기존 드라이버를 제공해야 하는 경우:
+```typescript copy
+import { sql } from '@vercel/postgres';
+import { drizzle } from 'drizzle-orm/vercel-postgres';
+
+const db = drizzle({ client: sql })
+```

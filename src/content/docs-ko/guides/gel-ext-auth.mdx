@@ -1,0 +1,115 @@
+---
+title: Gel auth extension
+slug: gel-ext-auth
+---
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import Callout from "@mdx-ko/Callout.astro";
+import Npx from "@mdx-ko/Npx.astro";
+
+<Prerequisites>
+- [Gel](/docs/get-started-gel) 시작하기
+- [drizzle-kit pull](/docs/drizzle-kit-pull) 사용하기
+</Prerequisites>
+
+#### 1단계 - Gel auth schema 정의하기
+
+`dbschema/default.esdl` 파일에 auth extension이 포함된 Gel schema를 추가합니다
+
+```esdl
+using extension auth;
+
+module default {
+  global current_user := (
+    assert_single((
+      select User { id, username, email }
+      filter .identity = global ext::auth::ClientTokenIdentity
+    ))
+  );
+
+  type User {
+    required identity: ext::auth::Identity;
+    required username: str;
+    required email: str;
+  }
+}
+```
+
+#### 2단계 - Gel schema를 데이터베이스에 푸시하기
+
+Gel migration file을 생성합니다:
+```bash
+gel migration create
+```
+
+Gel migration을 데이터베이스에 적용합니다
+```bash
+gel migration apply
+```
+
+#### 3단계 - Drizzle config file 설정하기
+
+**Drizzle config** - [Drizzle Kit](/docs/kit-overview)에서 사용하는 설정 파일로, 데이터베이스 연결, migration 폴더, schema 파일에 대한 모든 정보를 담고 있습니다.
+
+프로젝트 루트에 `drizzle.config.ts` 파일을 만들고 다음 내용을 추가합니다:
+
+```typescript copy filename="drizzle.config.ts"
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  dialect: 'gel',
+  // Enable auth schema for drizzle-kit
+  schemaFilter: ['ext::auth', 'public']
+});
+```
+
+#### 4단계 - Gel types를 Drizzle schema로 pull하기
+
+데이터베이스 schema를 pull합니다:
+<Npx>
+drizzle-kit pull
+</Npx>
+
+아래는 생성된 `schema.ts` 파일의 예시입니다:
+
+<Callout type="warning">
+`ext::auth`의 `Identity` 테이블만 가져오는 것이 아닙니다. Drizzle은 사용할 수 있는 모든 `auth` 테이블을 함께 가져옵니다. 아래 예시는 그중 하나만 보여 줍니다.
+</Callout>
+
+```ts
+import { gelTable, uniqueIndex, uuid, text, gelSchema, timestamptz, foreignKey } from "drizzle-orm/gel-core"
+import { sql } from "drizzle-orm"
+
+export const extauth = gelSchema('ext::auth');
+
+export const identityInExtauth = extauth.table('Identity', {
+	id: uuid().default(sql`uuid_generate_v4()`).primaryKey().notNull(),
+	createdAt: timestamptz('created_at').default(sql`(clock_timestamp())`).notNull(),
+	issuer: text().notNull(),
+	modifiedAt: timestamptz('modified_at').notNull(),
+	subject: text().notNull(),
+}, (table) => [
+	uniqueIndex('6bc2dd19-bce4-5810-bb1b-7007afe97a11;schemaconstr').using(
+		'btree',
+		table.id.asc().nullsLast().op('uuid_ops'),
+	),
+]);
+
+export const user = gelTable('User', {
+	id: uuid().default(sql`uuid_generate_v4()`).primaryKey().notNull(),
+	email: text().notNull(),
+	identityId: uuid('identity_id').notNull(),
+	username: text().notNull(),
+}, (table) => [
+	uniqueIndex('d504514c-26a7-11f0-b836-81aa188c0abe;schemaconstr').using(
+		'btree',
+		table.id.asc().nullsLast().op('uuid_ops'),
+	),
+	foreignKey({
+		columns: [table.identityId],
+		foreignColumns: [identityInExtauth.id],
+		name: 'User_fk_identity',
+	}),
+]);
+```
+
+🎉 이제 쿼리에서 `auth` 테이블을 사용할 수 있습니다!

@@ -1,0 +1,400 @@
+---
+title: '`with` 옵션을 사용한 시딩'
+slug: seeding-using-with-option
+---
+
+import IsSupportedChipGroup from "@mdx-ko/IsSupportedChipGroup.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Section from "@mdx-ko/Section.astro";
+
+<IsSupportedChipGroup chips={{PostgreSQL: true, MySQL: true, SQLite: true}}/>
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql), 또는 [SQLite](/docs/get-started-sqlite) 시작하기
+- [일대다 관계](/docs/relations#one-to-many) 익히기
+- [Drizzle Seed](/docs/seed-overview) 익히기
+</Prerequisites>
+
+<Callout title='Warning'>
+`with`를 사용하는 것은 테이블 간에 일대다 관계가 있다는 뜻입니다.
+
+따라서 `one` user가 `many` posts를 가진다면, `with`는 다음과 같이 사용할 수 있습니다:
+```ts
+users: {
+    count: 2,
+    with: {
+        posts: 3,
+    },
+},
+```
+</Callout>
+
+## Example 1
+<CodeTabs items={["index.ts", "schema.ts"]}>
+<CodeTab>
+```ts
+import { users, posts } from './schema.ts';
+
+async function main() {
+    const db = drizzle(...);
+    await seed(db, { users, posts }).refine(() => ({
+        users: {
+            count: 2,
+            with: {
+                posts: 3,
+            },
+        },
+    }));
+}
+main();
+
+```
+</CodeTab>
+
+<CodeTab>
+```ts
+import { serial, pgTable, integer, text } from "drizzle-orm/pg-core";
+
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+
+export const posts = pgTable('posts', {
+	id: serial('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id').notNull(),
+});
+```
+</CodeTab>
+</CodeTabs>
+
+위 시딩 스크립트를 실행하면 오류가 발생합니다.
+
+```
+Error: "posts" table doesn't have a reference to "users" table or
+you didn't include your one-to-many relation in the seed function schema.
+You can't specify "posts" as parameter in users.with object.
+```
+
+오류를 해결하는 방법은 여러 가지가 있습니다:
+- 스키마의 `posts` 테이블에서 `authorId` 컬럼에 `users` 테이블 참조를 추가할 수 있습니다
+<CodeTabs items={["index.ts", "schema.ts"]}>
+<CodeTab>
+<Section>
+```ts
+import { users, posts } from './schema.ts';
+
+async function main() {
+    const db = drizzle(...);
+    await seed(db, { users, posts }).refine(() => ({
+        users: {
+            count: 2,
+            with: {
+                posts: 3,
+            },
+        },
+    }));
+}
+main();
+
+// 위 시딩 스크립트를 실행하면 아래와 같은 값으로 데이터베이스가 채워집니다
+```
+
+```mdx
+`users`
+
+| id |   name   |   
+| -- | -------- |
+|  1 | 'Melanny' | 
+|  2 | 'Elvera' |
+
+`posts`
+
+| id |        content        | author_id |   
+| -- | --------------------- | --------- |
+|  1 | 'tf02gUXb0LZIdEg6SL'  |     2     |
+|  2 | 'j15YdT7Sma'          |     2     |
+|  3 | 'LwwvWtLLAZzIpk'      |     1     |
+|  4 | 'mgyUnBKSrQw'         |     1     |
+|  5 | 'CjAJByKIqilHcPjkvEw' |     2     |
+|  6 | 'S5g0NzXs'            |     1     |
+```
+</Section>
+</CodeTab>
+<CodeTab>
+```ts copy{11}
+import { serial, pgTable, integer, text } from "drizzle-orm/pg-core";
+
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+
+export const posts = pgTable('posts', {
+	id: serial('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id').notNull().references(() => users.id),
+});
+```
+</CodeTab>
+</CodeTabs>
+
+- 스키마에 일대다 관계를 추가하고 이를 seed 함수 스키마에 포함할 수 있습니다
+<CodeTabs items={["index.ts", "schema.ts"]}>
+<CodeTab>
+<Section>
+```ts copy{1,5}
+import { users, posts, postsRelations } from './schema.ts';
+
+async function main() {
+    const db = drizzle(...);
+    await seed(db, { users, posts, postsRelations }).refine(() => ({
+        users: {
+            count: 2,
+            with: {
+                posts: 3,
+            },
+        },
+    }));
+}
+main();
+
+// 위 시딩 스크립트를 실행하면 아래와 같은 값으로 데이터베이스가 채워집니다
+```
+
+```mdx
+`users`
+
+| id |   name   |   
+| -- | -------- |
+|  1 | 'Melanny' | 
+|  2 | 'Elvera' |
+
+`posts`
+
+| id |        content        | author_id |   
+| -- | --------------------- | --------- |
+|  1 | 'tf02gUXb0LZIdEg6SL'  |     2     |
+|  2 | 'j15YdT7Sma'          |     2     |
+|  3 | 'LwwvWtLLAZzIpk'      |     1     |
+|  4 | 'mgyUnBKSrQw'         |     1     |
+|  5 | 'CjAJByKIqilHcPjkvEw' |     2     |
+|  6 | 'S5g0NzXs'            |     1     |
+```
+</Section>
+</CodeTab>
+
+<CodeTab>
+```ts copy{2,15-20}
+import { serial, pgTable, integer, text } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+
+export const posts = pgTable('posts', {
+	id: serial('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id').notNull(),
+});
+
+export const postsRelations = relations(posts, ({ one }) => ({
+	author: one(users, {
+		fields: [posts.authorId],
+		references: [users.id],
+	}),
+}));
+```
+</CodeTab>
+</CodeTabs>
+
+
+## Example 2
+<CodeTabs items={["index.ts", "schema.ts"]}>
+<CodeTab>
+```ts
+import { users, posts } from './schema.ts';
+
+async function main() {
+    const db = drizzle(...);
+    await seed(db, { users, posts }).refine(() => ({
+        posts: {
+            count: 2,
+            with: {
+                users: 3,
+            },
+        },
+    }));
+}
+main();
+
+```
+</CodeTab>
+
+<CodeTab>
+```ts
+import { serial, pgTable, integer, text } from "drizzle-orm/pg-core";
+
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+});
+
+export const posts = pgTable('posts', {
+	id: serial('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id').notNull().references(() => users.id),
+});
+```
+</CodeTab>
+</CodeTabs>
+
+위 시딩 스크립트를 실행하면 오류가 발생합니다.
+
+```
+Error: "posts" table doesn't have a reference to "users" table or
+you didn't include your one-to-many relation in the seed function schema.
+You can't specify "posts" as parameter in users.with object.
+```
+
+<Callout title='Why?'>
+스키마에서 `users` 테이블을 참조하는 `posts` 테이블이 있습니다.
+```ts copy{7}
+.
+.
+.
+export const posts = pgTable('posts', {
+	id: serial('id').primaryKey(),
+	content: text('content'),
+	authorId: integer('author_id').notNull().references(() => users.id),
+});
+```
+즉, `one` user가 `many` posts를 가질 수 있는 일대다 관계가 있다는 뜻입니다.
+
+하지만 시딩 스크립트에서는 `one` post에 대해 3개의(`many`) users를 생성하려고 하고 있습니다.
+```ts
+posts: {
+    count: 2,
+    with: {
+        users: 3,
+    },
+},
+```
+</Callout>
+
+오류를 해결하려면 시딩 스크립트를 다음과 같이 수정하면 됩니다:
+<Section>
+```ts copy{6-9}
+import { users, posts, postsRelations } from './schema.ts';
+
+async function main() {
+    const db = drizzle(...);
+    await seed(db, { users, posts, postsRelations }).refine(() => ({
+        users: {
+            count: 2,
+            with: {
+                posts: 3,
+            },
+        },
+    }));
+}
+main();
+
+// 위 시딩 스크립트를 실행하면 아래와 같은 값으로 데이터베이스가 채워집니다
+```
+
+```mdx
+`users`
+
+| id |   name   |   
+| -- | -------- |
+|  1 | 'Melanny' | 
+|  2 | 'Elvera' |
+
+`posts`
+
+| id |        content        | author_id |   
+| -- | --------------------- | --------- |
+|  1 | 'tf02gUXb0LZIdEg6SL'  |     2     |
+|  2 | 'j15YdT7Sma'          |     2     |
+|  3 | 'LwwvWtLLAZzIpk'      |     1     |
+|  4 | 'mgyUnBKSrQw'         |     1     |
+|  5 | 'CjAJByKIqilHcPjkvEw' |     2     |
+|  6 | 'S5g0NzXs'            |     1     |
+```
+</Section>
+
+## Example 3
+
+<CodeTabs items={["index.ts", "schema.ts"]}>
+<CodeTab>
+```ts copy{6-9}
+import { users } from './schema.ts';
+
+async function main() {
+    const db = drizzle(...);
+    await seed(db, { users }).refine(() => ({
+        users: {
+            count: 2,
+            with: {
+                users: 3,
+            },
+        },
+    }));
+}
+main();
+
+```
+</CodeTab>
+
+<CodeTab>
+```ts
+import { serial, pgTable, integer, text } from "drizzle-orm/pg-core";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
+
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+    reportsTo: integer('reports_to').references((): AnyPgColumn => users.id),
+});
+```
+</CodeTab>
+</CodeTabs>
+
+위 시딩 스크립트를 실행하면 오류가 발생합니다.
+
+```
+Error: "users" table has self reference.
+You can't specify "users" as parameter in users.with object.
+```
+
+<Callout title='Why?'>
+스키마에서 `users` 테이블을 참조하는 `users` 테이블이 있습니다.
+```ts copy{7}
+.
+.
+.
+export const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name'),
+    reportsTo: integer('reports_to').references((): AnyPgColumn => users.id),
+});
+```
+즉, `one` user가 오직 `one` user만 가질 수 있는 일대일 관계가 있다는 뜻입니다.
+
+하지만 시딩 스크립트에서는 `one` user에 대해 3개의(`many`) users를 생성하려고 하고 있으며, 이는 불가능합니다.
+```ts
+users: {
+    count: 2,
+    with: {
+        users: 3,
+    },
+},
+```
+</Callout>

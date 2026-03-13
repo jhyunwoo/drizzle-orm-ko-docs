@@ -1,0 +1,33 @@
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+`src/db` 디렉터리에 `index.ts` 파일을 생성하고 연결을 초기화합니다.
+
+<CodeTabs items={["node-mssql", "설정이 포함된 node-mssql", "기존 node-mssql 드라이버"]}>
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-mssql';
+
+const db = drizzle(process.env.DATABASE_URL!);
+```
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-mssql';
+
+// You can specify any property from the node-mssql connection options
+const db = drizzle({ 
+  connection: { 
+    connectionString: process.env.DATABASE_URL!,
+    ssl: true
+  }
+});
+```
+```typescript copy
+import { drizzle } from "drizzle-orm/node-mssql";
+import type { ConnectionPool } from 'mssql';
+
+const pool = await mssql.connect(connectionString);
+const db = drizzle({ client: pool });
+ 
+const result = await db.execute('select 1');
+```
+</CodeTabs>

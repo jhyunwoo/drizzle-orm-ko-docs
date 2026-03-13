@@ -1,0 +1,18 @@
+---
+title: DrizzleORM v0.30.3 릴리스
+pubDate: 2024-03-19
+description: Neon HTTP 드라이버의 batch API에 raw query 지원을 추가했고, `@neondatabase/serverless` HTTP 드라이버 타입 문제와 sqlite-proxy 드라이버의 `.run()` 결과를 수정했습니다.
+---
+
+## 새 기능
+
+- Neon HTTP 드라이버의 batch API에 raw query 지원(`db.execute(...)`)을 추가했습니다
+
+Neon과 Drizzle을 시작하려면 [documentation](/docs/get-started-postgresql#neon)을 따라 주세요.
+
+## 수정 사항
+
+- `@neondatabase/serverless` HTTP 드라이버 타입 문제를 수정했습니다 ([#1945](https://github.com/drizzle-team/drizzle-orm/issues/1945), [neondatabase/serverless#66](https://github.com/neondatabase/serverless/issues/66))
+- sqlite-proxy 드라이버의 `.run()` 결과를 수정했습니다
+
+SQLite proxy 드라이버와 Drizzle을 시작하려면 [documentation](/docs/get-started-sqlite#http-proxy)을 따라 주세요.

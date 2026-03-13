@@ -1,0 +1,19 @@
+---
+title: DrizzleORM v0.30.2 릴리스
+pubDate: 2024-03-14
+description: LibSQL migration이 transaction 대신 batch execution을 사용하도록 업데이트했고 bun:sqlite의 findFirst 쿼리를 수정했습니다.
+---
+
+## 개선 사항
+
+LibSQL migration이 transaction 대신 batch execution을 사용하도록 업데이트되었습니다. [documentation](https://docs.turso.tech/sdk/ts/reference#batch-transactions)에 설명된 것처럼, LibSQL은 이제 batch 작업을 지원합니다.
+
+> batch는 암시적 transaction 안에서 여러 SQL 문을 순차적으로 실행하는 방식입니다. 백엔드가 transaction을 처리하며, 성공하면 모든 변경 사항이 커밋되고, 실패하면 전체 롤백이 일어나 어떤 변경도 적용되지 않습니다.
+
+Turso와 Drizzle을 시작하려면 [documentation](/docs/get-started-sqlite#turso)을 따라 주세요.
+
+## 수정 사항
+
+- [Sqlite] bun:sqlite의 findFirst 쿼리를 수정했습니다 ([#1885](https://github.com/drizzle-team/drizzle-orm/pull/1885))
+
+Bun SQLite와 Drizzle을 시작하려면 [documentation](/docs/get-started-sqlite#bun-sqlite)을 따라 주세요.

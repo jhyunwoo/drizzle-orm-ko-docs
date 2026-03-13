@@ -1,0 +1,156 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+
+# 쿼리 성능
+
+**Drizzle**은 SQL 위에 올라가는 얇은 TypeScript 레이어이기 때문에 거의 0에 가까운 오버헤드를 갖습니다. 그리고 이를 실제 0으로 만들고 싶다면 prepared statements API를 활용할 수 있습니다.
+  
+**데이터베이스에서 쿼리를 실행할 때는 여러 단계가 일어납니다.**
+- 쿼리 빌더의 모든 구성이 SQL 문자열로 연결됩니다
+- 이 문자열과 params가 데이터베이스 드라이버로 전송됩니다
+- 드라이버가 SQL 쿼리를 바이너리 SQL 실행 형식으로 컴파일한 뒤 데이터베이스로 보냅니다
+
+prepared statements를 사용하면 Drizzle ORM 쪽에서 SQL 문자열 연결을 한 번만 수행하고, 이후에는 데이터베이스 드라이버가 쿼리를 매번 다시 파싱하는 대신 미리 컴파일된 바이너리 SQL을 재사용할 수 있습니다. 대형 SQL 쿼리에서는 성능상 큰 이점이 있습니다.  
+
+각 데이터베이스 드라이버는 prepared statements를 서로 다른 방식으로 지원하며, 경우에 따라 Drizzle ORM은 [**better-sqlite3 드라이버보다 더 빠를 수도 있습니다.**](https://twitter.com/_alexblokh/status/1593593415907909634)
+
+## Prepared statement
+<Tabs items={["PostgreSQL", "MySQL", "SQLite", "SingleStore"]}>
+  <Tab>
+    ```typescript copy {3}
+    const db = drizzle(...);
+
+    const prepared = db.select().from(customers).prepare("statement_name");
+    
+    const res1 = await prepared.execute();
+    const res2 = await prepared.execute();
+    const res3 = await prepared.execute();
+    ```
+  </Tab> 
+  <Tab>
+    ```typescript copy {3}
+    const db = drizzle(...);
+
+    const prepared = db.select().from(customers).prepare();
+    
+    const res1 = await prepared.execute();
+    const res2 = await prepared.execute();
+    const res3 = await prepared.execute();
+    ```
+  </Tab> 
+  <Tab>
+    ```typescript copy {3}
+    const db = drizzle(...);
+
+    const prepared = db.select().from(customers).prepare();
+    
+    const res1 = prepared.all();
+    const res2 = prepared.all();
+    const res3 = prepared.all();
+    ```
+  </Tab> 
+  <Tab>
+    ```typescript copy {3}
+    const db = drizzle(...);
+
+    const prepared = db.select().from(customers).prepare();
+    
+    const res1 = await prepared.execute();
+    const res2 = await prepared.execute();
+    const res3 = await prepared.execute();
+    ```
+  </Tab> 
+</Tabs>
+
+## Placeholder
+런타임에 동적으로 값을 삽입해야 할 때는 `sql.placeholder(...)` API를 사용할 수 있습니다.
+<Tabs items={["PostgreSQL", "MySQL", "SQLite", "SingleStore"]}>
+  <Tab>
+    ```ts {6,9-10,15,18}
+    import { sql } from "drizzle-orm";
+
+    const p1 = db
+      .select()
+      .from(customers)
+      .where(eq(customers.id, sql.placeholder('id')))
+      .prepare("p1")
+
+    await p1.execute({ id: 10 }) // SELECT * FROM customers WHERE id = 10
+    await p1.execute({ id: 12 }) // SELECT * FROM customers WHERE id = 12
+
+    const p2 = db
+      .select()
+      .from(customers)
+      .where(sql`lower(${customers.name}) like ${sql.placeholder('name')}`)
+      .prepare("p2");
+
+    await p2.execute({ name: '%an%' }) // SELECT * FROM customers WHERE name ilike '%an%'
+    ```
+  </Tab>
+  <Tab>
+    ```ts copy {6,9-10,15,18}
+    import { sql } from "drizzle-orm";
+
+    const p1 = db
+      .select()
+      .from(customers)
+      .where(eq(customers.id, sql.placeholder('id')))
+      .prepare()
+
+    await p1.execute({ id: 10 }) // SELECT * FROM customers WHERE id = 10
+    await p1.execute({ id: 12 }) // SELECT * FROM customers WHERE id = 12
+
+    const p2 = db
+      .select()
+      .from(customers)
+      .where(sql`lower(${customers.name}) like ${sql.placeholder('name')}`)
+      .prepare();
+
+    await p2.execute({ name: '%an%' }) // SELECT * FROM customers WHERE name ilike '%an%'
+    ```
+  </Tab>
+  <Tab>
+    ```ts copy {6,9-10,15,18}
+    import { sql } from "drizzle-orm";
+
+    const p1 = db
+      .select()
+      .from(customers)
+      .where(eq(customers.id, sql.placeholder('id')))
+      .prepare()
+
+    p1.get({ id: 10 }) // SELECT * FROM customers WHERE id = 10
+    p1.get({ id: 12 }) // SELECT * FROM customers WHERE id = 12
+
+    const p2 = db
+      .select()
+      .from(customers)
+      .where(sql`lower(${customers.name}) like ${sql.placeholder('name')}`)
+      .prepare();
+
+    p2.all({ name: '%an%' }) // SELECT * FROM customers WHERE name ilike '%an%'
+    ```
+  </Tab> 
+  <Tab>
+    ```ts copy {6,9-10,15,18}
+    import { sql } from "drizzle-orm";
+
+    const p1 = db
+      .select()
+      .from(customers)
+      .where(eq(customers.id, sql.placeholder('id')))
+      .prepare()
+
+    await p1.execute({ id: 10 }) // SELECT * FROM customers WHERE id = 10
+    await p1.execute({ id: 12 }) // SELECT * FROM customers WHERE id = 12
+
+    const p2 = db
+      .select()
+      .from(customers)
+      .where(sql`lower(${customers.name}) like ${sql.placeholder('name')}`)
+      .prepare();
+
+    await p2.execute({ name: '%an%' }) // SELECT * FROM customers WHERE name ilike '%an%'
+    ```
+  </Tab>
+</Tabs>

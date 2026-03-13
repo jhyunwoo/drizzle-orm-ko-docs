@@ -1,0 +1,50 @@
+---
+title: DrizzleORM v0.30.0 릴리스
+pubDate: 2024-03-07
+description: "`postgres.js` 드라이버 인스턴스가 날짜에 대해 항상 문자열을 반환하도록 수정했고, Drizzle은 선택한 `mode`에 따라 문자열 또는 매핑된 날짜를 제공합니다. timestamp와 날짜 관련 버그도 다수 수정했습니다."
+---
+
+## 호환성 깨짐 변경 사항
+
+Postgres timestamp 매핑이 모든 드라이버에서 동일한 동작을 하도록 변경되었습니다.
+
+❗ `postgres.js` 드라이버 인스턴스가 이제 날짜에 대해 항상 문자열을 반환하도록 수정했으며, Drizzle은 선택한 `mode`에 따라 문자열 또는 매핑된 날짜를 제공합니다. 유일하게 마주칠 수 있는 문제는 `postgres.js` 드라이버 인스턴스를 Drizzle에 전달하면 날짜에 대한 이 객체의 동작이 변경되어 항상 문자열을 반환하게 된다는 점입니다.
+
+이번 변경은 경고의 의미로 minor release에 포함되었습니다:
+
+- timestamp를 사용하면서 특정 응답을 기대하고 있었다면, 이제 동작이 바뀝니다.  
+  드라이버로 매핑할 때 timezone이 있는 timestamp와 없는 timestamp 모두에 대해 항상 `.toISOString`을 사용합니다.
+
+- Drizzle 밖에서 `postgres.js` 드라이버를 사용하고 있었다면, Drizzle에 전달되는 모든 `postgres.js` 클라이언트는 날짜 관련 동작이 변경됩니다. 응답의 모든 날짜가 문자열이 됩니다.
+
+`postgres.js`에서 변경된 parser는 다음과 같습니다.
+
+```ts
+const transparentParser = (val: any) => val;
+
+// Override postgres.js default date parsers: https://github.com/porsager/postgres/discussions/761
+for (const type of ['1184', '1082', '1083', '1114']) {
+	client.options.parsers[type as any] = transparentParser;
+	client.options.serializers[type as any] = transparentParser;
+}
+```
+
+이상적으로는 거의 모든 다른 드라이버가 그러하듯, 쿼리 단위로 매핑을 변경할 수 있어야 하며, 그렇게 되면 드라이버 클라이언트 자체는 변경되지 않습니다. 이를 사용자 모두에게 더 나은 흐름으로 만들 수 있도록, `postgres.js` 라이브러리 제작자에게 쿼리 단위 매핑 인터셉터 지정 가능 여부를 문의할 예정입니다.
+
+만약 저희가 이 기능을 놓쳤고 `postgres.js`에서 이미 가능하다면, Discord에서 알려 주세요!
+
+timezone이 없는 timestamp와 timezone이 있는 timestamp에 대한 몇 가지 추가 참고 자료는 [docs](http://orm.drizzle.team/docs/column-types/pg#timestamp)에서 확인할 수 있습니다.
+
+`postgres.js` 드라이버와 Drizzle 시작하기 문서는 [here](/docs/get-started-postgresql#postgresjs)에서 확인하세요.
+
+## 수정 사항
+
+- mode string을 사용하는 timestamp가 string 대신 Date object로 반환되던 문제 - ([#806](https://github.com/drizzle-team/drizzle-orm/issues/806))
+- Dates are always dates ([#971](https://github.com/drizzle-team/drizzle-orm/issues/971))
+- javascript에서 timestamps와 대응하는 datetime objects를 다룰 때 발생하던 불일치 ([#1176](https://github.com/drizzle-team/drizzle-orm/issues/1176))
+- timestamp columns가 string type으로 보이지만 실제로는 Date object를 반환하던 문제 ([#1185](https://github.com/drizzle-team/drizzle-orm/issues/1185))
+- postgres date column의 잘못된 데이터 타입 ([#1407](https://github.com/drizzle-team/drizzle-orm/issues/1407))
+- PostgreSQL을 UTC TimeZone으로 설정했을 때 잘못된 timestamp 변환 ([#1587](https://github.com/drizzle-team/drizzle-orm/issues/1587))
+- time zone이 있는 timestamp에 Postgres insert 시 milliseconds가 제거되던 문제 ([#1061](https://github.com/drizzle-team/drizzle-orm/issues/1061))
+- AWS Data API 사용 시 timestamp field 업데이트 문제 ([#1164](https://github.com/drizzle-team/drizzle-orm/issues/1164))
+- relational queries에서 invalid date가 발생하던 문제 ([#895](https://github.com/drizzle-team/drizzle-orm/issues/895))

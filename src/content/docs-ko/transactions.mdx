@@ -1,0 +1,216 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+
+# Transactions
+
+SQL transaction은 데이터베이스와 상호작용하는 하나 이상의 SQL statement를 묶는 단위입니다.
+하나의 transaction 전체는 단일한 논리적 단위로 데이터베이스에 커밋될 수도 있고,
+단일한 논리적 단위로 rollback(즉, 되돌리기)될 수도 있습니다.
+
+Drizzle ORM은 transaction 안에서 SQL statement를 실행하는 API를 제공합니다:
+
+```ts copy
+const db = drizzle(...)
+
+await db.transaction(async (tx) => {
+  await tx.update(accounts).set({ balance: sql`${accounts.balance} - 100.00` }).where(eq(users.name, 'Dan'));
+  await tx.update(accounts).set({ balance: sql`${accounts.balance} + 100.00` }).where(eq(users.name, 'Andrew'));
+});
+```
+
+Drizzle ORM은 중첩 transaction API와 함께 `savepoint`를 지원합니다:
+
+```ts copy {7-9}
+const db = drizzle(...)
+
+await db.transaction(async (tx) => {
+  await tx.update(accounts).set({ balance: sql`${accounts.balance} - 100.00` }).where(eq(users.name, 'Dan'));
+  await tx.update(accounts).set({ balance: sql`${accounts.balance} + 100.00` }).where(eq(users.name, 'Andrew'));
+
+  await tx.transaction(async (tx2) => {
+    await tx2.update(users).set({ name: "Mr. Dan" }).where(eq(users.name, "Dan"));
+  });
+});
+```
+
+transaction 안에 비즈니스 로직을 넣고 필요할 때마다 rollback할 수 있습니다:
+
+```ts copy {7}
+const db = drizzle(...)
+
+await db.transaction(async (tx) => {
+  const [account] = await tx.select({ balance: accounts.balance }).from(accounts).where(eq(users.name, 'Dan'));
+  if (account.balance < 100) {
+    // This throws an exception that rollbacks the transaction.
+    tx.rollback()
+  }
+
+  await tx.update(accounts).set({ balance: sql`${accounts.balance} - 100.00` }).where(eq(users.name, 'Dan'));
+  await tx.update(accounts).set({ balance: sql`${accounts.balance} + 100.00` }).where(eq(users.name, 'Andrew'));
+});
+```
+
+transaction에서 값을 반환할 수도 있습니다:
+
+```ts copy {8}
+const db = drizzle(...)
+
+const newBalance: number = await db.transaction(async (tx) => {
+  await tx.update(accounts).set({ balance: sql`${accounts.balance} - 100.00` }).where(eq(users.name, 'Dan'));
+  await tx.update(accounts).set({ balance: sql`${accounts.balance} + 100.00` }).where(eq(users.name, 'Andrew'));
+
+  const [account] = await tx.select({ balance: accounts.balance }).from(accounts).where(eq(users.name, 'Dan'));
+  return account.balance;
+});
+```
+
+**[relational queries](/docs/rqb)**와 함께 transaction을 사용할 수도 있습니다:
+
+```ts
+const db = drizzle({ schema })
+
+await db.transaction(async (tx) => {
+  await tx.query.users.findMany({
+    with: {
+      accounts: true
+    }
+  });
+});
+```
+
+
+
+
+
+저희는 dialect별 transaction 설정 API도 제공합니다:
+
+<Tabs items={["PostgreSQL", "MySQL", "SQLite", "SingleStore", "MSSQL", "CockroachDB"]}>
+<Tab>
+```ts copy {6-8}
+await db.transaction(
+  async (tx) => {
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} - 100.00` }).where(eq(users.name, "Dan"));
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} + 100.00` }).where(eq(users.name, "Andrew"));
+  }, {
+    isolationLevel: "read committed",
+    accessMode: "read write",
+    deferrable: true,
+  }
+);
+
+interface PgTransactionConfig {
+  isolationLevel?:
+    | "read uncommitted"
+    | "read committed"
+    | "repeatable read"
+    | "serializable";
+  accessMode?: "read only" | "read write";
+  deferrable?: boolean;
+}
+```
+</Tab>
+<Tab>
+```ts {6-8}
+await db.transaction(
+  async (tx) => {
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} - 100.00` }).where(eq(users.name, "Dan"));
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} + 100.00` }).where(eq(users.name, "Andrew"));
+  }, {
+    isolationLevel: "read committed",
+    accessMode: "read write",
+    withConsistentSnapshot: true,
+  }
+);
+
+interface MySqlTransactionConfig {
+  isolationLevel?:
+    | "read uncommitted"
+    | "read committed"
+    | "repeatable read"
+    | "serializable";
+  accessMode?: "read only" | "read write";
+  withConsistentSnapshot?: boolean;
+}
+```
+</Tab>
+<Tab>
+```ts {6}
+await db.transaction(
+  async (tx) => {
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} - 100.00` }).where(eq(users.name, "Dan"));
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} + 100.00` }).where(eq(users.name, "Andrew"));
+  }, {
+    behavior: "deferred",
+  }
+);
+
+interface SQLiteTransactionConfig {
+    behavior?: 'deferred' | 'immediate' | 'exclusive';
+}
+```
+</Tab>
+<Tab>
+```ts {6-8}
+await db.transaction(
+  async (tx) => {
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} - 100.00` }).where(eq(users.name, "Dan"));
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} + 100.00` }).where(eq(users.name, "Andrew"));
+  }, {
+    isolationLevel: "read committed",
+    accessMode: "read write",
+    withConsistentSnapshot: true,
+  }
+);
+
+interface SingleStoreTransactionConfig {
+  isolationLevel?:
+    | "read uncommitted"
+    | "read committed"
+    | "repeatable read"
+    | "serializable";
+  accessMode?: "read only" | "read write";
+  withConsistentSnapshot?: boolean;
+}
+```
+</Tab>
+<Tab>
+```ts copy {6-8}
+await db.transaction(
+  async (tx) => {
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} - 100.00` }).where(eq(users.name, "Dan"));
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} + 100.00` }).where(eq(users.name, "Andrew"));
+  }, {
+    isolationLevel: "read committed",
+  }
+);
+
+interface MsSqlTransactionConfig {
+  isolationLevel?: 'read uncommitted' | 'read committed' | 'repeatable read' | 'serializable' | 'snapshot';
+}
+```
+</Tab>
+<Tab>
+```ts copy {6-8}
+await db.transaction(
+  async (tx) => {
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} - 100.00` }).where(eq(users.name, "Dan"));
+    await tx.update(accounts).set({ balance: sql`${accounts.balance} + 100.00` }).where(eq(users.name, "Andrew"));
+  }, {
+    isolationLevel: "read committed",
+    accessMode: "read write",
+    deferrable: true,
+  }
+);
+
+interface CockroachTransactionConfig {
+  isolationLevel?:
+    | "read uncommitted"
+    | "read committed"
+    | "repeatable read"
+    | "serializable";
+  accessMode?: "read only" | "read write";
+  deferrable?: boolean;
+}
+```
+</Tab>
+</Tabs>

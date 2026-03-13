@@ -1,0 +1,91 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> SingleStore
+
+SingleStore 데이터베이스와 함께 Drizzle를 사용하려면 `mysql2` 드라이버를 사용해야 합니다.
+
+Drizzle ORM은 `drizzle-orm/singlestore` 패키지로 `mysql2`를 기본 지원합니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm mysql2
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 작성
+<CodeTabs items={['mysql2', '설정이 포함된 mysql']}>
+```typescript copy
+import { drizzle } from "drizzle-orm/singlestore";
+
+const db = drizzle(process.env.DATABASE_URL);
+
+const response = await db.select().from(...)
+```
+```typescript copy
+import { drizzle } from "drizzle-orm/singlestore";
+
+// You can specify any property from the mysql2 connection options
+const db = drizzle({ connection:{ uri: process.env.DATABASE_URL }});
+
+const response = await db.select().from(...)
+```
+</CodeTabs>
+
+기존 드라이버를 제공해야 하는 경우:
+
+<CodeTabs items={['클라이언트 연결', '풀 연결']}>
+  ```typescript copy
+  import { drizzle } from "drizzle-orm/singlestore";
+  import mysql from "mysql2/promise";
+
+  const connection = await mysql.createConnection({
+    host: "host",
+    user: "user",
+    database: "database",
+    ...
+  });
+
+  const db = drizzle({ client: connection });
+  ```
+  ```typescript copy
+  import { drizzle } from "drizzle-orm/singlestore";
+  import mysql from "mysql2/promise";
+
+  const poolConnection = mysql.createPool({
+    host: "host",
+    user: "user",
+    database: "database",
+    ...
+  });
+
+  const db = drizzle({ client: poolConnection });
+  ```
+</CodeTabs>
+
+<Callout type="warning" emoji="⚙️">
+  내장된 `migrate` 함수와 DDL 마이그레이션의 경우, 저희와 드라이버 측 모두 단일 `client` 연결 사용을 강력히 권장합니다.
+
+  쿼리 용도라면 비즈니스 요구사항에 따라 `client` 또는 `pool`을 자유롭게 사용할 수 있습니다.
+</Callout>
+
+#### 제한 사항
+
+현재 SingleStore dialect에는 SingleStore 데이터베이스 측에서 동작하지 않는 제한 사항과 기능들이 있습니다:
+
+- SingleStore의 serial column type은 컬럼 값의 고유성만 보장합니다.
+- `ORDER BY`와 `LIMIT`은 함께 체이닝할 수 없습니다.
+- Foreign key는 지원되지 않습니다(check).
+- `INTERSECT ALL`과 `EXCEPT ALL` 연산은 SingleStore에서 지원되지 않습니다.
+- 중첩 트랜잭션은 [SingleStore](https://docs.singlestore.com/cloud/reference/sql-reference/procedural-sql-reference/transactions-in-stored-procedures/)에서 지원되지 않습니다.
+- SingleStore는 [오직 하나의](https://docs.singlestore.com/cloud/getting-started-with-singlestore-helios/about-singlestore-helios/singlestore-helios-faqs/durability/) `isolationLevel`만 지원합니다.
+- `DATE`, `TIMESTAMP`, `DATETIME`의 FSP 옵션은 지원되지 않습니다.
+- relational API는 지원되지 않으며, SingleStore 팀이 이를 위한 필요한 API를 모두 개발하면 구현될 예정입니다.
+- SingleStore는 MySQL과 100% 호환되지 않기 때문에 추가 제한 사항이 더 있을 수 있습니다.
+
+#### 다음 단계는?
+
+<WhatsNextPostgres/>

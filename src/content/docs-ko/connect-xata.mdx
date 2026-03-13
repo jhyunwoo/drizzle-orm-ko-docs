@@ -1,0 +1,52 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+# Drizzle \<\> Xata
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- Drizzle PostgreSQL 드라이버 - [docs](/docs/get-started-postgresql)
+</Prerequisites>
+
+**[Xata](https://xata.io)**는 생산성과 성능을 높이면서 데이터베이스 운영과 확장을 돕도록 설계된 PostgreSQL 데이터베이스 플랫폼입니다. Xata는 즉시 복제되는 copy-on-write database branches, 무중단 schema changes, data anonymization, AI-powered performance monitoring, BYOC 같은 기능을 제공합니다.
+
+공식 **[Xata + Drizzle](https://xata.io/documentation/quickstarts/drizzle)** 문서를 확인해 보세요.
+
+#### 1단계 - 패키지 설치
+
+<Npm>
+drizzle-orm postgres
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+
+```typescript copy filename="index.ts"
+import { drizzle } from 'drizzle-orm/postgres-js'
+
+const db = drizzle(process.env.DATABASE_URL);
+
+const allUsers = await db.select().from(...);
+```
+
+기존 드라이버를 직접 제공해야 하는 경우:
+```typescript copy filename="index.ts"
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+
+const client = postgres(process.env.DATABASE_URL)
+const db = drizzle({ client });
+
+const allUsers = await db.select().from(...);
+```
+
+#### 다음 단계
+
+<WhatsNextPostgres/>

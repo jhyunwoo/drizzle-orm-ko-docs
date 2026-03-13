@@ -1,0 +1,2221 @@
+[
+  {
+    "sourcePath": "src/content/docs/arktype.mdx",
+    "publicUrl": "/docs/arktype",
+    "outputPath": "src/content/docs-ko/arktype.mdx",
+    "sourceSha": "7ba59ca621ec2ce374930df564cf4d9f4d88a9a938631c21c48c2c815e94202d",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/batch-api.mdx",
+    "publicUrl": "/docs/batch-api",
+    "outputPath": "src/content/docs-ko/batch-api.mdx",
+    "sourceSha": "984607e0d71500c9214cdd234391a692ecd9bbe6598847f42ea070184cf7b962",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/cache.mdx",
+    "publicUrl": "/docs/cache",
+    "outputPath": "src/content/docs-ko/cache.mdx",
+    "sourceSha": "f7dc4d417a380c7d1ac0ae61f219e34abc6b645aacd30c39ccd4cda08e6ce2e1",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/column-types/cockroach.mdx",
+    "publicUrl": "/docs/column-types/cockroach",
+    "outputPath": "src/content/docs-ko/column-types/cockroach.mdx",
+    "sourceSha": "8d603cc656e1e32e3661705fa5a7dfd17e235a322cdc39796b710f4c2029b704",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/column-types/mssql.mdx",
+    "publicUrl": "/docs/column-types/mssql",
+    "outputPath": "src/content/docs-ko/column-types/mssql.mdx",
+    "sourceSha": "8e835397b2ce5a5d15d110dd1567084fd1b26ef6065dce27dcaa81f60211ba08",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/column-types/mysql.mdx",
+    "publicUrl": "/docs/column-types/mysql",
+    "outputPath": "src/content/docs-ko/column-types/mysql.mdx",
+    "sourceSha": "041a2539822c0ab68fa3dc30f243dd07c62d3183064ca526a1a648340fc5e62c",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/column-types/pg.mdx",
+    "publicUrl": "/docs/column-types/pg",
+    "outputPath": "src/content/docs-ko/column-types/pg.mdx",
+    "sourceSha": "de43afe4a3ad47d44267b62f2851e7513c1b2c7147cd5a3ea7b473b4792c906a",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/column-types/singlestore.mdx",
+    "publicUrl": "/docs/column-types/singlestore",
+    "outputPath": "src/content/docs-ko/column-types/singlestore.mdx",
+    "sourceSha": "2485229a5a27d1cfd27641af7b6843a45ffe5666a28be2842d445a7a5fb847d4",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/column-types/sqlite.mdx",
+    "publicUrl": "/docs/column-types/sqlite",
+    "outputPath": "src/content/docs-ko/column-types/sqlite.mdx",
+    "sourceSha": "60658be1c2761f153a6f6bc9e7a821a0cb301d0daff7752abcf5d61e7abcd831",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-aws-data-api-mysql.mdx",
+    "publicUrl": "/docs/connect-aws-data-api-mysql",
+    "outputPath": "src/content/docs-ko/connect-aws-data-api-mysql.mdx",
+    "sourceSha": "700f9fe1e829df96e7477da1fb8edf631ebf188027f3dd2a171b96011b16bcfd",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-aws-data-api-pg.mdx",
+    "publicUrl": "/docs/connect-aws-data-api-pg",
+    "outputPath": "src/content/docs-ko/connect-aws-data-api-pg.mdx",
+    "sourceSha": "d2356a09bb020963ff002101dbb2c870ee0ef55d6a1f6728a89a24f49636d5e3",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-bun-sql.mdx",
+    "publicUrl": "/docs/connect-bun-sql",
+    "outputPath": "src/content/docs-ko/connect-bun-sql.mdx",
+    "sourceSha": "d9b2b2f310c58faf53bc21b2567b367463e9573f32d00ca600ee81a49fdb08f3",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-bun-sqlite.mdx",
+    "publicUrl": "/docs/connect-bun-sqlite",
+    "outputPath": "src/content/docs-ko/connect-bun-sqlite.mdx",
+    "sourceSha": "343d464b77d6b24fe7d69f500e2f728c5c40408725f1b523ad2dd876767be29b",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-cloudflare-d1.mdx",
+    "publicUrl": "/docs/connect-cloudflare-d1",
+    "outputPath": "src/content/docs-ko/connect-cloudflare-d1.mdx",
+    "sourceSha": "6d76cce1631f829139c3b25e2e1f9380e283568cdaee68b84076a36e5a66e4b6",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-cloudflare-do.mdx",
+    "publicUrl": "/docs/connect-cloudflare-do",
+    "outputPath": "src/content/docs-ko/connect-cloudflare-do.mdx",
+    "sourceSha": "2670bb9858d1dea2fe7bb28ace98812865dc1b02fbafd2bf2dd114534c30b180",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-drizzle-proxy.mdx",
+    "publicUrl": "/docs/connect-drizzle-proxy",
+    "outputPath": "src/content/docs-ko/connect-drizzle-proxy.mdx",
+    "sourceSha": "106210f58cd4bfabf121cdab33112422c990ed675a7481bf439215efb4b496dc",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-effect-postgres.mdx",
+    "publicUrl": "/docs/connect-effect-postgres",
+    "outputPath": "src/content/docs-ko/connect-effect-postgres.mdx",
+    "sourceSha": "cee54e2829e9bf196ebcbe27c952767e5482d1a76ab97c282da4e246b269510b",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-expo-sqlite.mdx",
+    "publicUrl": "/docs/connect-expo-sqlite",
+    "outputPath": "src/content/docs-ko/connect-expo-sqlite.mdx",
+    "sourceSha": "798c18a789c64d74e8980e8af97806391b3a0a6a684f58b2775b9b551a1e0b09",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-neon.mdx",
+    "publicUrl": "/docs/connect-neon",
+    "outputPath": "src/content/docs-ko/connect-neon.mdx",
+    "sourceSha": "cd5fca5420e3059e49f39ce872b99084a9964695216e1a45bee668c6dd49b08c",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-nile.mdx",
+    "publicUrl": "/docs/connect-nile",
+    "outputPath": "src/content/docs-ko/connect-nile.mdx",
+    "sourceSha": "520c08d0b29e325d7bad09f9bcb302d91d9135cad997d69c0f5c1e5083b3e456",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-node-sqlite.mdx",
+    "publicUrl": "/docs/connect-node-sqlite",
+    "outputPath": "src/content/docs-ko/connect-node-sqlite.mdx",
+    "sourceSha": "00a9afcd576fd6ce80020f510d7eba23df9d89ce3ea4450a20fdd84cf9edf234",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-op-sqlite.mdx",
+    "publicUrl": "/docs/connect-op-sqlite",
+    "outputPath": "src/content/docs-ko/connect-op-sqlite.mdx",
+    "sourceSha": "aef1e42122f73d2bf2bf5ceae483390f93362342d260f111a315f177e610712a",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-overview.mdx",
+    "publicUrl": "/docs/connect-overview",
+    "outputPath": "src/content/docs-ko/connect-overview.mdx",
+    "sourceSha": "0e31dcbfbb4ce42dc970e6701f965652ef75b5566571182e54ac488e86653462",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-pglite.mdx",
+    "publicUrl": "/docs/connect-pglite",
+    "outputPath": "src/content/docs-ko/connect-pglite.mdx",
+    "sourceSha": "9c242c390efc18f0d45eda7869edb3bb5ba57e5044a34adc5e09ffaef23ea0f0",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-planetscale-postgres.mdx",
+    "publicUrl": "/docs/connect-planetscale-postgres",
+    "outputPath": "src/content/docs-ko/connect-planetscale-postgres.mdx",
+    "sourceSha": "889f5502f422aa7e90e28651cd45d1b4416035ae9af43fecf0a17f6480ee9269",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-planetscale.mdx",
+    "publicUrl": "/docs/connect-planetscale",
+    "outputPath": "src/content/docs-ko/connect-planetscale.mdx",
+    "sourceSha": "1d79d28099e6a72e89352368f04474abb57ec8a79392aebb8cd46c05aa15369b",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-prisma-postgres.mdx",
+    "publicUrl": "/docs/connect-prisma-postgres",
+    "outputPath": "src/content/docs-ko/connect-prisma-postgres.mdx",
+    "sourceSha": "a0b5e598c1eecf077f8665e57d716ff562dc120493cd3dffbf0c895f56e49540",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-react-native-sqlite.mdx",
+    "publicUrl": "/docs/connect-react-native-sqlite",
+    "outputPath": "src/content/docs-ko/connect-react-native-sqlite.mdx",
+    "sourceSha": "aa56d3a20bc1150e262b7fc9eba7c8615bebfc54452ac5e4d50f200848408e80",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-sqlite-cloud.mdx",
+    "publicUrl": "/docs/connect-sqlite-cloud",
+    "outputPath": "src/content/docs-ko/connect-sqlite-cloud.mdx",
+    "sourceSha": "f7b975e78ff91c09bb53dbf969dff6414eec0355f7e3cefd326c278bcb8b8298",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-supabase.mdx",
+    "publicUrl": "/docs/connect-supabase",
+    "outputPath": "src/content/docs-ko/connect-supabase.mdx",
+    "sourceSha": "ce2dae8e557565b43381e2ae0e6da168358ea46c2821b7ca01b335d8c4f370a1",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-tidb.mdx",
+    "publicUrl": "/docs/connect-tidb",
+    "outputPath": "src/content/docs-ko/connect-tidb.mdx",
+    "sourceSha": "8e5e95e1428be0d3e2986579b14450bf6c95d1926e3a6244cf3a5ed8666313a3",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-turso-database.mdx",
+    "publicUrl": "/docs/connect-turso-database",
+    "outputPath": "src/content/docs-ko/connect-turso-database.mdx",
+    "sourceSha": "be7eb7d46b0732fd211ca59d889706cf0e38b013994b190404588f4d2545dc3c",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-turso.mdx",
+    "publicUrl": "/docs/connect-turso",
+    "outputPath": "src/content/docs-ko/connect-turso.mdx",
+    "sourceSha": "cedaf9472f4bd9e968fd25a1fe7290f50f19a220469d0224e43f73ac77e8e6e7",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-vercel-postgres.mdx",
+    "publicUrl": "/docs/connect-vercel-postgres",
+    "outputPath": "src/content/docs-ko/connect-vercel-postgres.mdx",
+    "sourceSha": "a1e43c120dd7babdcee3bf2681638d97e523d1db6f80ce8311d44a26ade5d909",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/connect-xata.mdx",
+    "publicUrl": "/docs/connect-xata",
+    "outputPath": "src/content/docs-ko/connect-xata.mdx",
+    "sourceSha": "45bedb67e47d92ff0fa881bfac21e54b92b24e5f4992e27f0341d3cf3f7a9607",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/custom-types.mdx",
+    "publicUrl": "/docs/custom-types",
+    "outputPath": "src/content/docs-ko/custom-types.mdx",
+    "sourceSha": "e43cf8974ce4cf45c6dbc4ae1bf5eef8dcedcb8fd152492371e9bc78bdb4ebf3",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/data-querying.mdx",
+    "publicUrl": "/docs/data-querying",
+    "outputPath": "src/content/docs-ko/data-querying.mdx",
+    "sourceSha": "7233348b087f0c8611404ab063a4b44bb95cc3f4f2368b29ed5f542393bc5c29",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/delete.mdx",
+    "publicUrl": "/docs/delete",
+    "outputPath": "src/content/docs-ko/delete.mdx",
+    "sourceSha": "38153216fe1cdfb91deac1ef8c7b221727f16498afc1b323484eb8954731fbd4",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/drizzle-config-file.mdx",
+    "publicUrl": "/docs/drizzle-config-file",
+    "outputPath": "src/content/docs-ko/drizzle-config-file.mdx",
+    "sourceSha": "9efddf187e18ee6d945cec4d0b235e8ab1dd0acf2fc1ede44dfccd9dddeaa9b3",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/drizzle-kit-check.mdx",
+    "publicUrl": "/docs/drizzle-kit-check",
+    "outputPath": "src/content/docs-ko/drizzle-kit-check.mdx",
+    "sourceSha": "cb5c206174cb9f13338f4da150d6d86d74b12c0d798ea78b1307993c0737cc58",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/drizzle-kit-export.mdx",
+    "publicUrl": "/docs/drizzle-kit-export",
+    "outputPath": "src/content/docs-ko/drizzle-kit-export.mdx",
+    "sourceSha": "1f9ce919b7e60ac8856243ed9b5ffd3203539b2fff9452c1c3a2f54e9a909e71",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/drizzle-kit-generate.mdx",
+    "publicUrl": "/docs/drizzle-kit-generate",
+    "outputPath": "src/content/docs-ko/drizzle-kit-generate.mdx",
+    "sourceSha": "198afade0187a2105602bb5c41e7c7bd99de74325a43a8e2b67e3d9d41c01aaf",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/drizzle-kit-migrate.mdx",
+    "publicUrl": "/docs/drizzle-kit-migrate",
+    "outputPath": "src/content/docs-ko/drizzle-kit-migrate.mdx",
+    "sourceSha": "67bb5dd722ce8026b7471b994232a8279e6d704e6ddd3560de37be404bb1b659",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/drizzle-kit-pull.mdx",
+    "publicUrl": "/docs/drizzle-kit-pull",
+    "outputPath": "src/content/docs-ko/drizzle-kit-pull.mdx",
+    "sourceSha": "7fb499d8a069b7c4f5d3127566d4c8e1676fc84b2a13ca661ea14484bdf6f2ee",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/drizzle-kit-push.mdx",
+    "publicUrl": "/docs/drizzle-kit-push",
+    "outputPath": "src/content/docs-ko/drizzle-kit-push.mdx",
+    "sourceSha": "fbd2a1f308c6385566563fda081555d3e154f4550492fb9608728238a7525b4e",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/drizzle-kit-studio.mdx",
+    "publicUrl": "/docs/drizzle-kit-studio",
+    "outputPath": "src/content/docs-ko/drizzle-kit-studio.mdx",
+    "sourceSha": "aa4d7143018d88f75a88efcf79bdba23b2b9c434875788913d37540a3750e6cf",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/drizzle-kit-up.mdx",
+    "publicUrl": "/docs/drizzle-kit-up",
+    "outputPath": "src/content/docs-ko/drizzle-kit-up.mdx",
+    "sourceSha": "84d1cc54c0c51b5b92175f9563e1a3536eaec9fe7498fecdbd2065e96ca4eb7f",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/dynamic-query-building.mdx",
+    "publicUrl": "/docs/dynamic-query-building",
+    "outputPath": "src/content/docs-ko/dynamic-query-building.mdx",
+    "sourceSha": "36391c47ce2ad073f1ce3293ce8e9b584fa614c35fee10140dc889163497f243",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/effect-schema.mdx",
+    "publicUrl": "/docs/effect-schema",
+    "outputPath": "src/content/docs-ko/effect-schema.mdx",
+    "sourceSha": "95af4c5af5eb85345fb2ee44ef2353749e14d10c36181c272ca32f7289c764c6",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/eslint-plugin.mdx",
+    "publicUrl": "/docs/eslint-plugin",
+    "outputPath": "src/content/docs-ko/eslint-plugin.mdx",
+    "sourceSha": "7a75b121c46dafb80e0fcfc9a807c3a28d9b85bff95a3d56eb6685e8672771a1",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/extensions/mysql.mdx",
+    "publicUrl": "/docs/extensions/mysql",
+    "outputPath": "src/content/docs-ko/extensions/mysql.mdx",
+    "sourceSha": "d2bd6330d9284f96c2d34daac70aca04e88b66e8bffc211774b2f5f9eaa6c47c",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/extensions/pg.mdx",
+    "publicUrl": "/docs/extensions/pg",
+    "outputPath": "src/content/docs-ko/extensions/pg.mdx",
+    "sourceSha": "6494750679e153177fc476a31779c77ee230a3fbd0fe9c23ea74b44228121306",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/extensions/singlestore.mdx",
+    "publicUrl": "/docs/extensions/singlestore",
+    "outputPath": "src/content/docs-ko/extensions/singlestore.mdx",
+    "sourceSha": "fa7d533635a061b60d51cf133dbe65f15fb176011ece6d76becd2103f9133079",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/extensions/sqlite.mdx",
+    "publicUrl": "/docs/extensions/sqlite",
+    "outputPath": "src/content/docs-ko/extensions/sqlite.mdx",
+    "sourceSha": "8f11a94f5b6f3981c9cd8d00d5faa1b24baf4afb5aec84c2ff8ca7a1b4985cbe",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/faq.mdx",
+    "publicUrl": null,
+    "outputPath": "src/content/docs-ko/faq.mdx",
+    "sourceSha": "339b70f0676bb4e49c384035a70f0b1ece693e8ec91addd801212ab80f10eac7",
+    "status": "pending",
+    "isPublic": false,
+    "notes": [
+      "source-only"
+    ]
+  },
+  {
+    "sourcePath": "src/content/docs/generated-columns.mdx",
+    "publicUrl": "/docs/generated-columns",
+    "outputPath": "src/content/docs-ko/generated-columns.mdx",
+    "sourceSha": "d1bcfebca8a487a147f76b27732b60e24902ab725460b956d0a64b8b8eb3c5d5",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started-cockroach.mdx",
+    "publicUrl": "/docs/get-started-cockroach",
+    "outputPath": "src/content/docs-ko/get-started-cockroach.mdx",
+    "sourceSha": "75945d767fdd64c681a877eb56b0858cc0e4d82e12b5dab1ac65a84f05e37611",
+    "status": "translated",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started-gel.mdx",
+    "publicUrl": "/docs/get-started-gel",
+    "outputPath": "src/content/docs-ko/get-started-gel.mdx",
+    "sourceSha": "89742d475c215af9db2b434e1722af01d20a6203f5ca90cb7d5a20c0de2b9d1e",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started-mssql.mdx",
+    "publicUrl": "/docs/get-started-mssql",
+    "outputPath": "src/content/docs-ko/get-started-mssql.mdx",
+    "sourceSha": "fe9dfa7566b4a54800665a178ec5f2ea63eb8d8058aec387366146720609f34c",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started-mysql.mdx",
+    "publicUrl": "/docs/get-started-mysql",
+    "outputPath": "src/content/docs-ko/get-started-mysql.mdx",
+    "sourceSha": "eb2dad77c06fd2d9b55865c5ed7a8ae86cf5814fddbbb7c915459a2004877e24",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started-postgresql.mdx",
+    "publicUrl": "/docs/get-started-postgresql",
+    "outputPath": "src/content/docs-ko/get-started-postgresql.mdx",
+    "sourceSha": "20e3dfbbd307c124fb3865fdbfe2f9c6f07362c429b7047c0401fb3e86da3f54",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started-singlestore.mdx",
+    "publicUrl": "/docs/get-started-singlestore",
+    "outputPath": "src/content/docs-ko/get-started-singlestore.mdx",
+    "sourceSha": "0d6d5cb49923ae4388140341214bbbd938fe76396bf2ccb9cb336ffde241edc8",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started-sqlite.mdx",
+    "publicUrl": "/docs/get-started-sqlite",
+    "outputPath": "src/content/docs-ko/get-started-sqlite.mdx",
+    "sourceSha": "ef37d251956b3d829b7650676d690f7e2b5509f5d04101f08e526bf97dd9be35",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started.mdx",
+    "publicUrl": "/docs/get-started",
+    "outputPath": "src/content/docs-ko/get-started.mdx",
+    "sourceSha": "95dc6b0c9283e9e74b340251e0492a62a16c63e16d298f20cd26dd617cf42673",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/bun-sql-existing.mdx",
+    "publicUrl": "/docs/get-started/bun-sql-existing",
+    "outputPath": "src/content/docs-ko/get-started/bun-sql-existing.mdx",
+    "sourceSha": "18761b3062e23a71a8a39ca547f981c4b8f6aa626b0d276a5f782fef4af50bff",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/bun-sql-new.mdx",
+    "publicUrl": "/docs/get-started/bun-sql-new",
+    "outputPath": "src/content/docs-ko/get-started/bun-sql-new.mdx",
+    "sourceSha": "6f7d806094e8e9d36e6c413c3daa24ad6c2f0baa4711aa819c41a520fcfc056b",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/bun-sqlite-existing.mdx",
+    "publicUrl": "/docs/get-started/bun-sqlite-existing",
+    "outputPath": "src/content/docs-ko/get-started/bun-sqlite-existing.mdx",
+    "sourceSha": "f7242272b59400a98eff70855c3e9b66eee8aa5d0f417e1547683b38fc478970",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/bun-sqlite-new.mdx",
+    "publicUrl": "/docs/get-started/bun-sqlite-new",
+    "outputPath": "src/content/docs-ko/get-started/bun-sqlite-new.mdx",
+    "sourceSha": "cdddacc0b25ced89e6c4f7e786c90430092b32152721e66a44d74c26e04820ae",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/cockroach-existing.mdx",
+    "publicUrl": "/docs/get-started/cockroach-existing",
+    "outputPath": "src/content/docs-ko/get-started/cockroach-existing.mdx",
+    "sourceSha": "a1970a7bbd27d7629e7733492b4707153e6d87fec1f8395f98beeeb14558bf42",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/cockroach-new.mdx",
+    "publicUrl": "/docs/get-started/cockroach-new",
+    "outputPath": "src/content/docs-ko/get-started/cockroach-new.mdx",
+    "sourceSha": "b63517b475d252ff6ff5a1537dc58ef6098dc34560ce82a7803191dbe2af7f5c",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/d1-existing.mdx",
+    "publicUrl": "/docs/get-started/d1-existing",
+    "outputPath": "src/content/docs-ko/get-started/d1-existing.mdx",
+    "sourceSha": "08369e319813c69df39ad300ec38eb680da3e69e85b950b16e684830a66aee68",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/d1-new.mdx",
+    "publicUrl": "/docs/get-started/d1-new",
+    "outputPath": "src/content/docs-ko/get-started/d1-new.mdx",
+    "sourceSha": "b623b82ca2b7fa8c0a7772998c0e2e03ab03dbe5626b7a77b77d302dfe4650c3",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/do-existing.mdx",
+    "publicUrl": "/docs/get-started/do-existing",
+    "outputPath": "src/content/docs-ko/get-started/do-existing.mdx",
+    "sourceSha": "39fee9836127daec1f48b00e643bede8e444956f7df3039deb2493fec447bc05",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/do-new.mdx",
+    "publicUrl": "/docs/get-started/do-new",
+    "outputPath": "src/content/docs-ko/get-started/do-new.mdx",
+    "sourceSha": "1eedd9f6d102f0eb4007ab76c786ef3f3efbaafc07f14aafbe6e984221a02be5",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/effect-postgresql-existing.mdx",
+    "publicUrl": "/docs/get-started/effect-postgresql-existing",
+    "outputPath": "src/content/docs-ko/get-started/effect-postgresql-existing.mdx",
+    "sourceSha": "89fb100a3fab9ee7873cc75b445e96d254c7deee3e9d9d4e2e9e69b0039728eb",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/effect-postgresql-new.mdx",
+    "publicUrl": "/docs/get-started/effect-postgresql-new",
+    "outputPath": "src/content/docs-ko/get-started/effect-postgresql-new.mdx",
+    "sourceSha": "75cb7514f33a38e1a62dcfb7b048e7693952928707a4331472bdb7377446b5e8",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/expo-existing.mdx",
+    "publicUrl": "/docs/get-started/expo-existing",
+    "outputPath": "src/content/docs-ko/get-started/expo-existing.mdx",
+    "sourceSha": "ad2077dd05dfb191da90061a05a7d599d28436eafed1a8c02c691a79f49f85aa",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/expo-new.mdx",
+    "publicUrl": "/docs/get-started/expo-new",
+    "outputPath": "src/content/docs-ko/get-started/expo-new.mdx",
+    "sourceSha": "96823b4a6f0f1448d4541d05fb379bb6b9c37a8d6efafa195be70a9da8364008",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/gel-existing.mdx",
+    "publicUrl": "/docs/get-started/gel-existing",
+    "outputPath": "src/content/docs-ko/get-started/gel-existing.mdx",
+    "sourceSha": "da17760f5b1b1bddb89cee6a45613509e47734b9d69b34a07522a65ae96a079c",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/gel-new.mdx",
+    "publicUrl": "/docs/get-started/gel-new",
+    "outputPath": "src/content/docs-ko/get-started/gel-new.mdx",
+    "sourceSha": "08a82e1219928537443eac1fbb9e8c54e318ca9c6c4cd38baef9fead7fd65600",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/mssql-existing.mdx",
+    "publicUrl": "/docs/get-started/mssql-existing",
+    "outputPath": "src/content/docs-ko/get-started/mssql-existing.mdx",
+    "sourceSha": "5b8bf68928046777a5a453bd8ebbef0aa76451a09eceefc8671472f56483220b",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/mssql-new.mdx",
+    "publicUrl": "/docs/get-started/mssql-new",
+    "outputPath": "src/content/docs-ko/get-started/mssql-new.mdx",
+    "sourceSha": "70f913355d1869bb3cfa79dab0c67e3c58408c4b9057e488f16acfbe14edae0d",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/mysql-existing.mdx",
+    "publicUrl": "/docs/get-started/mysql-existing",
+    "outputPath": "src/content/docs-ko/get-started/mysql-existing.mdx",
+    "sourceSha": "3befc524570f70ba8a11feb9dd14bfec0c50e5a5c540219725afdda963d0f83c",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/mysql-new.mdx",
+    "publicUrl": "/docs/get-started/mysql-new",
+    "outputPath": "src/content/docs-ko/get-started/mysql-new.mdx",
+    "sourceSha": "d4eb5dde0c353bf8dbabae24e11a003c9c61de4a3d9ac0a47653131506486c3d",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/neon-existing.mdx",
+    "publicUrl": "/docs/get-started/neon-existing",
+    "outputPath": "src/content/docs-ko/get-started/neon-existing.mdx",
+    "sourceSha": "f810dcfd8f10c6575832eab441a7b73f1c412c943e7daaa364791858ae065487",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/neon-new.mdx",
+    "publicUrl": "/docs/get-started/neon-new",
+    "outputPath": "src/content/docs-ko/get-started/neon-new.mdx",
+    "sourceSha": "0e08899d10d045110ef5eb36d901ecf7b441c7d51c2bbdb0c5237f142ea3b5e1",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/nile-existing.mdx",
+    "publicUrl": "/docs/get-started/nile-existing",
+    "outputPath": "src/content/docs-ko/get-started/nile-existing.mdx",
+    "sourceSha": "8aa85be6d3446045baca39e6bee5c83c5e71abfdb82b891568b8479a79d04320",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/nile-new.mdx",
+    "publicUrl": "/docs/get-started/nile-new",
+    "outputPath": "src/content/docs-ko/get-started/nile-new.mdx",
+    "sourceSha": "dd338af32ff9e5afeeab7f12836885e0f05a10fd3d5e649009bea601180aa520",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/op-sqlite-existing.mdx",
+    "publicUrl": "/docs/get-started/op-sqlite-existing",
+    "outputPath": "src/content/docs-ko/get-started/op-sqlite-existing.mdx",
+    "sourceSha": "5ce3b9298344ead22502f958e6daa3502a829c2d6cdf8967ff2dd4a4d5a00ba8",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/op-sqlite-new.mdx",
+    "publicUrl": "/docs/get-started/op-sqlite-new",
+    "outputPath": "src/content/docs-ko/get-started/op-sqlite-new.mdx",
+    "sourceSha": "2d3c6162f068d59a305e060b87a7b85efd30144827f6bca619d079a196efe850",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/pglite-existing.mdx",
+    "publicUrl": "/docs/get-started/pglite-existing",
+    "outputPath": "src/content/docs-ko/get-started/pglite-existing.mdx",
+    "sourceSha": "5713a448c9e4ad84a5878f08c716b5f9fd8ba0061701bcacf724470ce2874538",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/pglite-new.mdx",
+    "publicUrl": "/docs/get-started/pglite-new",
+    "outputPath": "src/content/docs-ko/get-started/pglite-new.mdx",
+    "sourceSha": "28eb5abfc524b4e78144c2b00116c7aa158744e2c6dbef056322237084373480",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/planetscale-existing.mdx",
+    "publicUrl": "/docs/get-started/planetscale-existing",
+    "outputPath": "src/content/docs-ko/get-started/planetscale-existing.mdx",
+    "sourceSha": "22490300534c742c0c6b48e1dc6caf04148495084f95e1e89fce7ac79933b7f2",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/planetscale-new.mdx",
+    "publicUrl": "/docs/get-started/planetscale-new",
+    "outputPath": "src/content/docs-ko/get-started/planetscale-new.mdx",
+    "sourceSha": "c3b8d722e7461183ba1614f3776c318465c2790a568f9abedf2d3b8245923113",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/planetscale-postgres-existing.mdx",
+    "publicUrl": "/docs/get-started/planetscale-postgres-existing",
+    "outputPath": "src/content/docs-ko/get-started/planetscale-postgres-existing.mdx",
+    "sourceSha": "f9ae1d7f3a1ea66dc6da11a182d3a7cc854fa1750a16203c067da2715206f87a",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/planetscale-postgres-new.mdx",
+    "publicUrl": "/docs/get-started/planetscale-postgres-new",
+    "outputPath": "src/content/docs-ko/get-started/planetscale-postgres-new.mdx",
+    "sourceSha": "a14d33a2314904dac41e0263fb902a91112f42e151b9606fcd03d8891b0793fd",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/postgresql-existing.mdx",
+    "publicUrl": "/docs/get-started/postgresql-existing",
+    "outputPath": "src/content/docs-ko/get-started/postgresql-existing.mdx",
+    "sourceSha": "eae62ee57a8d58394dffbaaf49abb505ee8b2d72b98ec0f4ed3d579aeff1a0ae",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/postgresql-new.mdx",
+    "publicUrl": "/docs/get-started/postgresql-new",
+    "outputPath": "src/content/docs-ko/get-started/postgresql-new.mdx",
+    "sourceSha": "58e6ceb22de1ce784766267ab1d6eff4ed649ee0bf44b3ba388e724053c9022e",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/singlestore-existing.mdx",
+    "publicUrl": "/docs/get-started/singlestore-existing",
+    "outputPath": "src/content/docs-ko/get-started/singlestore-existing.mdx",
+    "sourceSha": "bf7ad8bb9154f8e0d9835e0f01fa1d18c5dabf21a30e84a2960c650cd70a4cae",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/singlestore-new.mdx",
+    "publicUrl": "/docs/get-started/singlestore-new",
+    "outputPath": "src/content/docs-ko/get-started/singlestore-new.mdx",
+    "sourceSha": "5d1816e5f4919ba25b6a65861ff3cfd436fdac8cf2c3ac07b06d3afc9d77c82d",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/sqlite-cloud-existing.mdx",
+    "publicUrl": "/docs/get-started/sqlite-cloud-existing",
+    "outputPath": "src/content/docs-ko/get-started/sqlite-cloud-existing.mdx",
+    "sourceSha": "96e544cdc180433b7657d5112e991ab2db785ab951d613577b8f4c752d7cf477",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/sqlite-cloud-new.mdx",
+    "publicUrl": "/docs/get-started/sqlite-cloud-new",
+    "outputPath": "src/content/docs-ko/get-started/sqlite-cloud-new.mdx",
+    "sourceSha": "068a2bffe0deb23d37c238081a447394a1cc5b686f97bf06f88681e66a102c58",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/sqlite-existing.mdx",
+    "publicUrl": "/docs/get-started/sqlite-existing",
+    "outputPath": "src/content/docs-ko/get-started/sqlite-existing.mdx",
+    "sourceSha": "0c00fede7bad7b681619727fd4e7554e18edc8e60af809dd1e12a6c66b44f963",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/sqlite-new.mdx",
+    "publicUrl": "/docs/get-started/sqlite-new",
+    "outputPath": "src/content/docs-ko/get-started/sqlite-new.mdx",
+    "sourceSha": "edfdac46a720a27ce7042651db27c7c8f7fdb9a14600d7442d0fd0f0c48bc383",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/supabase-existing.mdx",
+    "publicUrl": "/docs/get-started/supabase-existing",
+    "outputPath": "src/content/docs-ko/get-started/supabase-existing.mdx",
+    "sourceSha": "8085ce6f2c9ca80ba8632f83b0d1075b5f6859071fb06282a2ff53dfa94d6019",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/supabase-new.mdx",
+    "publicUrl": "/docs/get-started/supabase-new",
+    "outputPath": "src/content/docs-ko/get-started/supabase-new.mdx",
+    "sourceSha": "726c67017072e1836506063c1a18ce3a599662458477ae0429ac42fe7e607fe5",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/tidb-existing.mdx",
+    "publicUrl": "/docs/get-started/tidb-existing",
+    "outputPath": "src/content/docs-ko/get-started/tidb-existing.mdx",
+    "sourceSha": "891ed3e6d320d4e0276212cf14e529425756799dd9026c1b42875d5b63e96d67",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/tidb-new.mdx",
+    "publicUrl": "/docs/get-started/tidb-new",
+    "outputPath": "src/content/docs-ko/get-started/tidb-new.mdx",
+    "sourceSha": "5c9b2b1c1c228c9b84aee2d71cd393d230420693f1ad5a32729276e7bfa90f08",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/turso-database-existing.mdx",
+    "publicUrl": "/docs/get-started/turso-database-existing",
+    "outputPath": "src/content/docs-ko/get-started/turso-database-existing.mdx",
+    "sourceSha": "31ad1da7c1be2657f99c71e589e0a653522f3aa54193e6b9156b5429c7e388e0",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/turso-database-new.mdx",
+    "publicUrl": "/docs/get-started/turso-database-new",
+    "outputPath": "src/content/docs-ko/get-started/turso-database-new.mdx",
+    "sourceSha": "7b499c3868a7b2fe3c1b4c1dc9654abf313126423e1294576d7fe616e8141db2",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/turso-existing.mdx",
+    "publicUrl": "/docs/get-started/turso-existing",
+    "outputPath": "src/content/docs-ko/get-started/turso-existing.mdx",
+    "sourceSha": "c82be6c59e3535d4b6903f26eb4a42c923194b5e5ac48cc962766054b38120d3",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/turso-new.mdx",
+    "publicUrl": "/docs/get-started/turso-new",
+    "outputPath": "src/content/docs-ko/get-started/turso-new.mdx",
+    "sourceSha": "92e79ec38341189acbc9104dd22035c15b117d0e685cbc26a24691458ae2c50b",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/vercel-existing.mdx",
+    "publicUrl": "/docs/get-started/vercel-existing",
+    "outputPath": "src/content/docs-ko/get-started/vercel-existing.mdx",
+    "sourceSha": "6a042c6291e92dbcbc8bec1def55149c2c0455ce21b7da56bef78892ee04aa3a",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/vercel-new.mdx",
+    "publicUrl": "/docs/get-started/vercel-new",
+    "outputPath": "src/content/docs-ko/get-started/vercel-new.mdx",
+    "sourceSha": "4b7c5f426b47b23073057c233b5393d3c33b5b73f5ef8df2a82ea810fb5b8904",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/xata-existing.mdx",
+    "publicUrl": "/docs/get-started/xata-existing",
+    "outputPath": "src/content/docs-ko/get-started/xata-existing.mdx",
+    "sourceSha": "a09ac8212a514600de35d857ea668697eaecee56f0e057b9bbdc3eac1a037ff9",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/get-started/xata-new.mdx",
+    "publicUrl": "/docs/get-started/xata-new",
+    "outputPath": "src/content/docs-ko/get-started/xata-new.mdx",
+    "sourceSha": "c50c7214c50e0ac333ecff5c592527360e80dd9434ad859d125d41aba99d84de",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/goodies.mdx",
+    "publicUrl": "/docs/goodies",
+    "outputPath": "src/content/docs-ko/goodies.mdx",
+    "sourceSha": "a606189af51272ae0208dab76b3395543c88233172bff7b02f5a6f8b4141cb19",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/gotchas.mdx",
+    "publicUrl": "/docs/gotchas",
+    "outputPath": "src/content/docs-ko/gotchas.mdx",
+    "sourceSha": "77190d7a43f2ec7d48feeb73d5b4658b4aa6a7ba6eb2578d175b936531e6d2d5",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/graphql.mdx",
+    "publicUrl": "/docs/graphql",
+    "outputPath": "src/content/docs-ko/graphql.mdx",
+    "sourceSha": "e1344db3d77f3a7249cffa7fb1fc5fb73c56880419e999c5766063827802ce56",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides.mdx",
+    "publicUrl": "/docs/guides",
+    "outputPath": "src/content/docs-ko/guides.mdx",
+    "sourceSha": "d612b4fdb50e020004f49617fd360ad6dbae3e810c51e01fc96772860be7653d",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/conditional-filters-in-query.mdx",
+    "publicUrl": "/docs/guides/conditional-filters-in-query",
+    "outputPath": "src/content/docs-ko/guides/conditional-filters-in-query.mdx",
+    "sourceSha": "8fa7e6c1fe345100270587271674165ff71495532d264b805a909ebe8dac8351",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/count-rows.mdx",
+    "publicUrl": "/docs/guides/count-rows",
+    "outputPath": "src/content/docs-ko/guides/count-rows.mdx",
+    "sourceSha": "f8f46a84f73d1e48f8d2f4e9bc1baaf25343f22d984756a7cab70fe24a9624ed",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/cursor-based-pagination.mdx",
+    "publicUrl": "/docs/guides/cursor-based-pagination",
+    "outputPath": "src/content/docs-ko/guides/cursor-based-pagination.mdx",
+    "sourceSha": "8747b4fad4b383525bb6beb91229ca4349e98a5796b2143fe1be03f4bb37a632",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/d1-http-with-drizzle-kit.mdx",
+    "publicUrl": "/docs/guides/d1-http-with-drizzle-kit",
+    "outputPath": "src/content/docs-ko/guides/d1-http-with-drizzle-kit.mdx",
+    "sourceSha": "ef947d54f647f591de66299b6555c878d62feebac6c7c3b5a1daea8ba85fd5e0",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/decrementing-a-value.mdx",
+    "publicUrl": "/docs/guides/decrementing-a-value",
+    "outputPath": "src/content/docs-ko/guides/decrementing-a-value.mdx",
+    "sourceSha": "46884c3db2714d45c4902ef98701284595f71c1bb4d4be35ad355cd86e29081d",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/empty-array-default-value.mdx",
+    "publicUrl": "/docs/guides/empty-array-default-value",
+    "outputPath": "src/content/docs-ko/guides/empty-array-default-value.mdx",
+    "sourceSha": "af63ef7f041465bd07786472422a5753a0e6a4df81f2ad77fea601ee8a98db37",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/full-text-search-with-generated-columns.mdx",
+    "publicUrl": "/docs/guides/full-text-search-with-generated-columns",
+    "outputPath": "src/content/docs-ko/guides/full-text-search-with-generated-columns.mdx",
+    "sourceSha": "276daf8c130d1659d6cf44f78de058032b8299078a59b28528cdf6111c86aaca",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/gel-ext-auth.mdx",
+    "publicUrl": "/docs/guides/gel-ext-auth",
+    "outputPath": "src/content/docs-ko/guides/gel-ext-auth.mdx",
+    "sourceSha": "c5c0b3cc2ea598776a8c52ec8dece73dd1d8f8fba57ff3fe3d4840c097b7c23c",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/include-or-exclude-columns.mdx",
+    "publicUrl": "/docs/guides/include-or-exclude-columns",
+    "outputPath": "src/content/docs-ko/guides/include-or-exclude-columns.mdx",
+    "sourceSha": "ae8347bab113a399eb2dbff62a4a345d1157e2aa0b191831bf1144c2e24c45c7",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/incrementing-a-value.mdx",
+    "publicUrl": "/docs/guides/incrementing-a-value",
+    "outputPath": "src/content/docs-ko/guides/incrementing-a-value.mdx",
+    "sourceSha": "73aaaa0a7583819c9e6661e7d73d29aa1607a17a7278037c04311a98b3dc0600",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/limit-offset-pagination.mdx",
+    "publicUrl": "/docs/guides/limit-offset-pagination",
+    "outputPath": "src/content/docs-ko/guides/limit-offset-pagination.mdx",
+    "sourceSha": "352baf654d6018eddd9c1b4a51f07b6112b5a29fa7080fa6b0053b86344bdfba",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/mysql-local-setup.mdx",
+    "publicUrl": "/docs/guides/mysql-local-setup",
+    "outputPath": "src/content/docs-ko/guides/mysql-local-setup.mdx",
+    "sourceSha": "c57ee43dd19ffaf286617a367908af5f011c37124a2b538e13dc6e40b232b864",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/point-datatype-psql.mdx",
+    "publicUrl": "/docs/guides/point-datatype-psql",
+    "outputPath": "src/content/docs-ko/guides/point-datatype-psql.mdx",
+    "sourceSha": "113e3533c974fc6163b0e1b42f56a4fa7b120c6e7fe1bd0b0e832855fce4b021",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/postgis-geometry-point.mdx",
+    "publicUrl": "/docs/guides/postgis-geometry-point",
+    "outputPath": "src/content/docs-ko/guides/postgis-geometry-point.mdx",
+    "sourceSha": "a700816f89bf225a026418d76752eb070b097e09a745de2d2e2e597c38251a04",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/postgresql-full-text-search.mdx",
+    "publicUrl": "/docs/guides/postgresql-full-text-search",
+    "outputPath": "src/content/docs-ko/guides/postgresql-full-text-search.mdx",
+    "sourceSha": "0620b0d2bbe47cc0213353b48297db9c99fb419ce6f41b0c8e8b97909d81705e",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/postgresql-local-setup.mdx",
+    "publicUrl": "/docs/guides/postgresql-local-setup",
+    "outputPath": "src/content/docs-ko/guides/postgresql-local-setup.mdx",
+    "sourceSha": "358ba99c1a28cb6aec2b964b309d54010f3bb14e7464e936dab8f931a560eccd",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/seeding-using-with-option.mdx",
+    "publicUrl": "/docs/guides/seeding-using-with-option",
+    "outputPath": "src/content/docs-ko/guides/seeding-using-with-option.mdx",
+    "sourceSha": "87cc650c249ace245d6b15f0185feb5b7e605f43ba7ab2d02ce7d88e8a26eca4",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/seeding-with-partially-exposed-schema.mdx",
+    "publicUrl": "/docs/guides/seeding-with-partially-exposed-tables",
+    "outputPath": "src/content/docs-ko/guides/seeding-with-partially-exposed-schema.mdx",
+    "sourceSha": "e3c2baf78f1d7448002a2c92fc0bdae938fa7fafc0621c90461898ad959da7bf",
+    "status": "pending",
+    "isPublic": true,
+    "notes": [
+      "public-slug-alias:/docs/guides/seeding-with-partially-exposed-tables"
+    ]
+  },
+  {
+    "sourcePath": "src/content/docs/guides/select-parent-rows-with-at-least-one-related-child-row.mdx",
+    "publicUrl": "/docs/guides/select-parent-rows-with-at-least-one-related-child-row",
+    "outputPath": "src/content/docs-ko/guides/select-parent-rows-with-at-least-one-related-child-row.mdx",
+    "sourceSha": "ae9bd3e7106c894d63b1e3c9fc852bbf53bf647e3193965ce00f968be5f0d249",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/timestamp-default-value.mdx",
+    "publicUrl": "/docs/guides/timestamp-default-value",
+    "outputPath": "src/content/docs-ko/guides/timestamp-default-value.mdx",
+    "sourceSha": "03898f1fc5c75b6d81c6c7cd0305aa695d79c99305e739c4f438b026e9eecd48",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/toggling-a-boolean-field.mdx",
+    "publicUrl": "/docs/guides/toggling-a-boolean-field",
+    "outputPath": "src/content/docs-ko/guides/toggling-a-boolean-field.mdx",
+    "sourceSha": "f0620ab613bfb6b51be0edbcefaf4d61cc0dc5b3480d894a3fd1b786c2af8188",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/unique-case-insensitive-email.mdx",
+    "publicUrl": "/docs/guides/unique-case-insensitive-email",
+    "outputPath": "src/content/docs-ko/guides/unique-case-insensitive-email.mdx",
+    "sourceSha": "a42e3ea6e71ab2c8adcc40d213ebd435d2eaed2dc61cf000ccb21655efeee626",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/update-many-with-different-value.mdx",
+    "publicUrl": "/docs/guides/update-many-with-different-value",
+    "outputPath": "src/content/docs-ko/guides/update-many-with-different-value.mdx",
+    "sourceSha": "152a50215d28631ec0dc4ce92475b3c85dfc0c4c3f38a18b282d872dbbc6831d",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/upsert.mdx",
+    "publicUrl": "/docs/guides/upsert",
+    "outputPath": "src/content/docs-ko/guides/upsert.mdx",
+    "sourceSha": "e89613e1581ddaddc05cc7d4bed4faa2635a7ca57ec8cdea86ff6069f61de467",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/guides/vector-similarity-search.mdx",
+    "publicUrl": "/docs/guides/vector-similarity-search",
+    "outputPath": "src/content/docs-ko/guides/vector-similarity-search.mdx",
+    "sourceSha": "9a96725df97c9691a25cdd697f2d0dcdec625f6183ca4d260054509529bc3a33",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/indexes-constraints.mdx",
+    "publicUrl": "/docs/indexes-constraints",
+    "outputPath": "src/content/docs-ko/indexes-constraints.mdx",
+    "sourceSha": "7189bb2b15f9a3c138e6da0020f918850e5285f70b6328f822175ab85715e6f7",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/insert.mdx",
+    "publicUrl": "/docs/insert",
+    "outputPath": "src/content/docs-ko/insert.mdx",
+    "sourceSha": "bd1c0381434ad5544018230d21b6e412a6312bd05b86aebc8badc0ca099bb6af",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/joins.mdx",
+    "publicUrl": "/docs/joins",
+    "outputPath": "src/content/docs-ko/joins.mdx",
+    "sourceSha": "f14187ab7133bd0af4aa0946bce0098caaae328e597f89dd99e5193450adb325",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/kit-custom-migrations.mdx",
+    "publicUrl": "/docs/kit-custom-migrations",
+    "outputPath": "src/content/docs-ko/kit-custom-migrations.mdx",
+    "sourceSha": "ac059778ddd92394c7ccdb638a4552470d410478180c575d78caabd9fc60d307",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/kit-migrations-for-teams.mdx",
+    "publicUrl": "/docs/kit-migrations-for-teams",
+    "outputPath": "src/content/docs-ko/kit-migrations-for-teams.mdx",
+    "sourceSha": "9052391ed5334d007a4bc2ad06ebc8ba68b5b13653e2a103c49a5f37a537ae84",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/kit-overview.mdx",
+    "publicUrl": "/docs/kit-overview",
+    "outputPath": "src/content/docs-ko/kit-overview.mdx",
+    "sourceSha": "75256049c116d5eed475aff174c6a0ebdccd92f700a68c1f452ee34938797781",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/kit-seed-data.mdx",
+    "publicUrl": null,
+    "outputPath": "src/content/docs-ko/kit-seed-data.mdx",
+    "sourceSha": "44f0738a3b3999563563a019ee6ceeef3a2236cf2793010f62493b66be5ada61",
+    "status": "pending",
+    "isPublic": false,
+    "notes": [
+      "source-only"
+    ]
+  },
+  {
+    "sourcePath": "src/content/docs/kit-web-mobile.mdx",
+    "publicUrl": "/docs/kit-web-mobile",
+    "outputPath": "src/content/docs-ko/kit-web-mobile.mdx",
+    "sourceSha": "8a1d22efc755d39f17e88bf15b1db3599563c5a05cd64836686e33262fb29db2",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases.mdx",
+    "publicUrl": "/docs/latest-releases",
+    "outputPath": "src/content/docs-ko/latest-releases.mdx",
+    "sourceSha": "b4dd773a201ea6c933323aef2a04c6d00600577953f91729262a43254b3e0405",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-kit-v0232.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-kit-v0232",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-kit-v0232.mdx",
+    "sourceSha": "74e84d5beb629bbb972de999da1db498f3f0eec36cfcc018bc8e94fbded402e4",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0110.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0110",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0110.mdx",
+    "sourceSha": "7390544fff988b42bdef13412c44593a3177f5b547df75d712d938314272bcb0",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0162.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0162",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0162.mdx",
+    "sourceSha": "4c407ad7ece65a25ac47475a19fe68e24bff0cc2f42486d63635f6137f451567",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0272.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0272",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0272.mdx",
+    "sourceSha": "f92a00e0d81170b31e97d128d84ccd7cdebb005cbef6e27991deedf00570a766",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0280.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0280",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0280.mdx",
+    "sourceSha": "5c3a2990de8186b20e9bf756b6963dc2fe19547e194657bdf6b269150b8d58b4",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0281.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0281",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0281.mdx",
+    "sourceSha": "b03e4128698db81c9db1c383ebbfb48d82fcf3df0dca988b622226ed9af20094",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0282.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0282",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0282.mdx",
+    "sourceSha": "2d7f459440956751ee7e9af8fb3435442a9dcf1407b7aaa334cd6badb80f2a74",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0283.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0283",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0283.mdx",
+    "sourceSha": "cc3cc8bd1920e3404dca71c72f17233f965025f32463de594ce0632cf6e5a6d0",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0284.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0284",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0284.mdx",
+    "sourceSha": "5cce722b325c49d89cd7361082775e8dfb6b4de9d2d5fdd99dd2fb4317f06925",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0285.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0285",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0285.mdx",
+    "sourceSha": "dd4ca4a1a9cda0aabb0259d251529c1e9ddd54a1012c2387fbeac5b6f1f1f770",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0286.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0286",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0286.mdx",
+    "sourceSha": "d4310d026800eeeb436a5c40653ff452005219e4686f0efab730ee63b9fa2dd2",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0290.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0290",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0290.mdx",
+    "sourceSha": "e1fdbc904e0e9ae9b78783e14f292782a56b05360947a577773a27191195546d",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0291.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0291",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0291.mdx",
+    "sourceSha": "72269b6c3c718c5f9b4627efee30e7d025bcf45746126d36294f2f2a2412d501",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0292.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0292",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0292.mdx",
+    "sourceSha": "4a934e3f2846ef5f26a898b4e7d94d96a3f3f9ebf8010f7fd0842d2a43849ae5",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0293.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0293",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0293.mdx",
+    "sourceSha": "664a35483fa483c94814174ade49330148007b30b31f9825c6a3a52927dee777",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0294.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0294",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0294.mdx",
+    "sourceSha": "d2e481691dd3c44cb205c75490347652e304c8cf704f0ead2859fdf7587a0232",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0295.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0295",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0295.mdx",
+    "sourceSha": "33ba29b7105414766b8fd5687a6f6bdf4ebe1115999b5cd9f115d9b8b96d662c",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0300.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0300",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0300.mdx",
+    "sourceSha": "9a7d080fe648deff961c194c171593a9726a7caa58705e0dfc68213692550218",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0301.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0301",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0301.mdx",
+    "sourceSha": "9a5dc1506058c96adb3c95a2cd18b3a911177ef0a4bd85f0ae11cdb1b4269968",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v03010.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v03010",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v03010.mdx",
+    "sourceSha": "b618a0eb07a388044740996d6653875b7992ed3df015a10ca950c7d521cd685b",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0302.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0302",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0302.mdx",
+    "sourceSha": "eb5cd2612f4e9b0343d1eade870acd841ba9ee329888cd05556cada934206732",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0303.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0303",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0303.mdx",
+    "sourceSha": "da372e0e9f7d1d11c0f769b1832e4bdde6e5703282c497849a8a2a6339990533",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0304.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0304",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0304.mdx",
+    "sourceSha": "5fafb3a9b68fd26fed585685a46bc6fa37cb4fe8eb12e33f583290c3496e0d23",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0305.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0305",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0305.mdx",
+    "sourceSha": "d9198a50c0c8401638709d5eb472a83fb7f9d6ddbc2bb9e3b1f790a317a2b011",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0306.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0306",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0306.mdx",
+    "sourceSha": "bbf923f5971b196fdea16dfb3bd246120f89bdfc14b9d7bcb719d5bf0ecae28f",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0307.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0307",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0307.mdx",
+    "sourceSha": "aad4fb799db1bcdc573bf57fe4b966940319315b474639cf0cb1b34ae67eea0a",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0308.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0308",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0308.mdx",
+    "sourceSha": "5c35fa09bda64b02ce24dde0401a5f012c1ace5c8019088a1461e26b4b08cca6",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0309.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0309",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0309.mdx",
+    "sourceSha": "03fc7f6affc04ed0071c5278f4e00e46ebf5a7f50ddb781f5a54649c905baf3f",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0310.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0310",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0310.mdx",
+    "sourceSha": "a23c354ca93369922c09d9ac06f4f03d59db7b55a3b6a15c850e19a2783c90b9",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0311.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0311",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0311.mdx",
+    "sourceSha": "6a893e11d76224929fd25420ea6cbba6d0bfce049d6cd2ec55094042aa72a8ab",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0312.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0312",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0312.mdx",
+    "sourceSha": "9ba773d347ae08b20dd9f99f8be50aeb0ee297785adf6eed5b36a15e54750aab",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0313.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0313",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0313.mdx",
+    "sourceSha": "cb733da208d1594c53d3be32f8249ed4fad5e93719f4b22de0ec38b6f592c376",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0314.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0314",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0314.mdx",
+    "sourceSha": "5eb414a12a552affb26b95eebd90251b7d41821671fdb72420edb0a99be53299",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0320.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0320",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0320.mdx",
+    "sourceSha": "aeba25e5fdb3aea862119e6e7bc4178dd02d65f0de2f2b005cef9c219b08b230",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0321.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0321",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0321.mdx",
+    "sourceSha": "c3130511e8a8e0e196d0e2639dc231e13649f4c58e4c60d73344288cec4ed4d7",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v0322.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v0322",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v0322.mdx",
+    "sourceSha": "7241915010d49a31950c96152cd0d58f34a318aaa98106e5bd933244e44af108",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/latest-releases/drizzle-orm-v1beta2.mdx",
+    "publicUrl": "/docs/latest-releases/drizzle-orm-v1beta2",
+    "outputPath": "src/content/docs-ko/latest-releases/drizzle-orm-v1beta2.mdx",
+    "sourceSha": "03f0bbc7e16737fe30477965f777db42925c85ca7cfba71b3f3f6abfd6abab30",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/migrate/components.mdx",
+    "publicUrl": "/docs/migrate/components",
+    "outputPath": "src/content/docs-ko/migrate/components.mdx",
+    "sourceSha": "62310fc9f7c2a92ac426d89e29c9768f0008c3392df04d3c504a8eabed3a11cf",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/migrate/migrate-from-prisma.mdx",
+    "publicUrl": "/docs/migrate/migrate-from-prisma",
+    "outputPath": "src/content/docs-ko/migrate/migrate-from-prisma.mdx",
+    "sourceSha": "e53b7a8d28a5f7ca43322396b31ec788049ec31a9c9fab7a8dfdff419d29e203",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/migrate/migrate-from-sequelize.mdx",
+    "publicUrl": "/docs/migrate/migrate-from-sequelize",
+    "outputPath": "src/content/docs-ko/migrate/migrate-from-sequelize.mdx",
+    "sourceSha": "f6d4b80d6cbeef7d100e21251ddaf64a2d2c9e8524bc6771688ff7bc04321ffd",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/migrate/migrate-from-typeorm.mdx",
+    "publicUrl": "/docs/migrate/migrate-from-typeorm",
+    "outputPath": "src/content/docs-ko/migrate/migrate-from-typeorm.mdx",
+    "sourceSha": "8a749091b8bc0c121763dd05aff063a0f3b47a28159fe6772a66135200e2dd81",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/migrations.mdx",
+    "publicUrl": "/docs/migrations",
+    "outputPath": "src/content/docs-ko/migrations.mdx",
+    "sourceSha": "5c797939d4c7be5db9317578f27d31c1e1dcc64c2e3b5f97597a0a72946b2e1e",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/operators.mdx",
+    "publicUrl": "/docs/operators",
+    "outputPath": "src/content/docs-ko/operators.mdx",
+    "sourceSha": "174fac254c8c00ee2f0aed0ee55788a275c9926fe6688ef8a7aab62f19b4a525",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/overview.mdx",
+    "publicUrl": "/docs/overview",
+    "outputPath": "src/content/docs-ko/overview.mdx",
+    "sourceSha": "f047cfbb11730657b49675dd41712b9a23b70f234d34b683c2a3e370ec3cee30",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/perf-queries.mdx",
+    "publicUrl": "/docs/perf-queries",
+    "outputPath": "src/content/docs-ko/perf-queries.mdx",
+    "sourceSha": "93355c9ba766e6f094226ae6b4c1a6115960594e82fbb710f1882f22af1481b8",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/perf-serverless.mdx",
+    "publicUrl": "/docs/perf-serverless",
+    "outputPath": "src/content/docs-ko/perf-serverless.mdx",
+    "sourceSha": "865dc6d25b7f89938c3be934719adfee3400c6cba754b2b138211b3c172a8639",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/prisma.mdx",
+    "publicUrl": "/docs/prisma",
+    "outputPath": "src/content/docs-ko/prisma.mdx",
+    "sourceSha": "0bbd552ae0ca41961a573fbfa35396e7e768a521effcce0922d1c6de69faca2f",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/query-utils.mdx",
+    "publicUrl": "/docs/query-utils",
+    "outputPath": "src/content/docs-ko/query-utils.mdx",
+    "sourceSha": "bf3b044ac6224c523e8348a18f3b7439d5b57e53b7973f8ba7ec2935e2c80ab1",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/quick.mdx",
+    "publicUrl": null,
+    "outputPath": "src/content/docs-ko/quick.mdx",
+    "sourceSha": "ea7f8863b26e00a31441856ea4870e05d350604b9451ce4d099b15e5c742a2db",
+    "status": "pending",
+    "isPublic": false,
+    "notes": [
+      "source-only"
+    ]
+  },
+  {
+    "sourcePath": "src/content/docs/read-replicas.mdx",
+    "publicUrl": "/docs/read-replicas",
+    "outputPath": "src/content/docs-ko/read-replicas.mdx",
+    "sourceSha": "6569d7a85e206fd77d4e8505cc6b1863822061b85f3aea05f4ce8a4d46a0b4fa",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/relations-schema-declaration.mdx",
+    "publicUrl": "/docs/relations-schema-declaration",
+    "outputPath": "src/content/docs-ko/relations-schema-declaration.mdx",
+    "sourceSha": "9db46a64a09ce38c9356bdf154b8c0969d8a917af6dd363da588119406b0418b",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/relations-v1-v2.mdx",
+    "publicUrl": "/docs/relations-v1-v2",
+    "outputPath": "src/content/docs-ko/relations-v1-v2.mdx",
+    "sourceSha": "eda661203ff9318d3df56aac270770361a2210b394c377f099e634196a464f98",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/relations-v2.mdx",
+    "publicUrl": "/docs/relations-v2",
+    "outputPath": "src/content/docs-ko/relations-v2.mdx",
+    "sourceSha": "a71bbb858e32fb40bb432af416488c66fc48d8249d9f6c812b86465c4f65e58e",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/relations.mdx",
+    "publicUrl": "/docs/relations",
+    "outputPath": "src/content/docs-ko/relations.mdx",
+    "sourceSha": "ec94b7097fe5fe84490fb927d831dcbc944fd651c54e9d8c30cb6e09be4a6f50",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/rls.mdx",
+    "publicUrl": "/docs/rls",
+    "outputPath": "src/content/docs-ko/rls.mdx",
+    "sourceSha": "c65aa5114dd503eedca0468a0b7b876363274cc61a21fae1afd28949e3df5c62",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/rqb-v2.mdx",
+    "publicUrl": "/docs/rqb-v2",
+    "outputPath": "src/content/docs-ko/rqb-v2.mdx",
+    "sourceSha": "e41934216c26a29f4646e4653430b3a6fcfc983b2e98de215f29a54263e77759",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/rqb.mdx",
+    "publicUrl": "/docs/rqb",
+    "outputPath": "src/content/docs-ko/rqb.mdx",
+    "sourceSha": "a4bd76d3f981c61824ed9cc733596c98fd804f4ea6b90b3f0a92933eddd1aee0",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/schemas.mdx",
+    "publicUrl": "/docs/schemas",
+    "outputPath": "src/content/docs-ko/schemas.mdx",
+    "sourceSha": "ea82aac0c6c2b7d310878043a6710304367ecda5b17bc51fad00496d2102fbc5",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/seed-functions.mdx",
+    "publicUrl": "/docs/seed-functions",
+    "outputPath": "src/content/docs-ko/seed-functions.mdx",
+    "sourceSha": "db7433e7cea3137d3bb514c7ef622b0cd02feeb85ef8b3afabebfd213b8b161a",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/seed-limitations.mdx",
+    "publicUrl": null,
+    "outputPath": "src/content/docs-ko/seed-limitations.mdx",
+    "sourceSha": "24aaeca7cc02c028cf167e3f05f443db1a96930af6128522093d0e830d2b0ef4",
+    "status": "pending",
+    "isPublic": false,
+    "notes": [
+      "source-only"
+    ]
+  },
+  {
+    "sourcePath": "src/content/docs/seed-overview.mdx",
+    "publicUrl": "/docs/seed-overview",
+    "outputPath": "src/content/docs-ko/seed-overview.mdx",
+    "sourceSha": "b8e2f8e52995a0f813a7a18a2e0ba96cc444777cabe3e3df42e792ba6a3b4ef3",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/seed-versioning.mdx",
+    "publicUrl": "/docs/seed-versioning",
+    "outputPath": "src/content/docs-ko/seed-versioning.mdx",
+    "sourceSha": "ee1239e849ef4d764978d47604bec59b982bdac5cb483b6ab59e56d8fa35f45e",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/select.mdx",
+    "publicUrl": "/docs/select",
+    "outputPath": "src/content/docs-ko/select.mdx",
+    "sourceSha": "c3d6cc6675cd0e79aae618ab4efd0ba9bdd769f9f5f09986da2ca26292b81a27",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/sequences.mdx",
+    "publicUrl": "/docs/sequences",
+    "outputPath": "src/content/docs-ko/sequences.mdx",
+    "sourceSha": "64a748588f24dd8387f5fc5155570547f650eb4dea4b34a03eaa586b1ad7d1ff",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/set-operations.mdx",
+    "publicUrl": "/docs/set-operations",
+    "outputPath": "src/content/docs-ko/set-operations.mdx",
+    "sourceSha": "909c7b2d6788efb36940bcc9b83188aa8b55322e9ba714b87f98a9fe8299b500",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/sql-schema-declaration.mdx",
+    "publicUrl": "/docs/sql-schema-declaration",
+    "outputPath": "src/content/docs-ko/sql-schema-declaration.mdx",
+    "sourceSha": "2ea0d499cb29bb5e7dc3d69fdda5f89bb130377c6941311a011b35e0146f405d",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/sql.mdx",
+    "publicUrl": "/docs/sql",
+    "outputPath": "src/content/docs-ko/sql.mdx",
+    "sourceSha": "01bc01471859f5367a3327b515b575e158774e79988085f88cf989134f765ae9",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/sustainability.mdx",
+    "publicUrl": "/docs/sustainability",
+    "outputPath": "src/content/docs-ko/sustainability.mdx",
+    "sourceSha": "e6bc406e906ac9d979424fa27b942b455a2f188e3b7dd036a454de638f434a5c",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/transactions.mdx",
+    "publicUrl": "/docs/transactions",
+    "outputPath": "src/content/docs-ko/transactions.mdx",
+    "sourceSha": "0f2f48e6d6c27a6317cac539c5eab45c7bae6e2b19c80ec6b16280ec6ecadb55",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials.mdx",
+    "publicUrl": "/docs/tutorials",
+    "outputPath": "src/content/docs-ko/tutorials.mdx",
+    "sourceSha": "98fe38926ed0785aea7f357950b9abd067acc422674b2aaef1107981bcfd9368",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-on-the-edge/drizzle-with-netlify-edge-functions-neon.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-netlify-edge-functions-neon",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-on-the-edge/drizzle-with-netlify-edge-functions-neon.mdx",
+    "sourceSha": "e19075e4352bab2d5902f85826494f432c542eee76e82f75bc99fa43a32311c2",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-on-the-edge/drizzle-with-netlify-edge-functions-supabase.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-netlify-edge-functions-supabase",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-on-the-edge/drizzle-with-netlify-edge-functions-supabase.mdx",
+    "sourceSha": "21562aaa0ab4b4bf69db47de40b6775ed2aabf0828b553f1826eafe69f4207bb",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-on-the-edge/drizzle-with-supabase-edge-functions.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-supabase-edge-functions",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-on-the-edge/drizzle-with-supabase-edge-functions.mdx",
+    "sourceSha": "558a1b877d93068e274290d441cdeb986f2e1469797531244ca32a7ce2488105",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-on-the-edge/drizzle-with-vercel-edge-functions.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-vercel-edge-functions",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-on-the-edge/drizzle-with-vercel-edge-functions.mdx",
+    "sourceSha": "81475a30d4274d8510fe9d1c5c9f6c7b78a4b2ea06d049c50bd84dcf4c73a542",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-with-db/drizzle-with-neon.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-neon",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-neon.mdx",
+    "sourceSha": "6bbe6457ed1fcff6e0f96a4a231a40575c5909e55831aa4bfe3ebbf722c623c5",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-with-db/drizzle-with-nile.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-nile",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-nile.mdx",
+    "sourceSha": "6b0bb54b72616a428d9bef31ee0ea5e4ea81e8be99d72a89cda0c9f53c10f853",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-with-db/drizzle-with-supabase.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-supabase",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-supabase.mdx",
+    "sourceSha": "ce1f6934afa176f8ac78e12172ed1c507e64ff4bd7413c0aad70918d032f885c",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-with-db/drizzle-with-turso.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-turso",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-turso.mdx",
+    "sourceSha": "ba65f7a3ee8413e872c4b2087c5fc051f56671e79002b8e6016ed79c2ad2f361",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-with-db/drizzle-with-vercel.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-vercel",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-vercel.mdx",
+    "sourceSha": "a869969f5947e74667566713115cc8f7f8650d62971faa7f346f5dfecfd4850f",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-with-db/drizzle-with-xata.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-xata",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-xata.mdx",
+    "sourceSha": "da959f6ac6db51fe234772ad1ce3476870be1f194c40e455e7b39e6abef8a531",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-with-frameworks/drizzle-nextjs-neon.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-nextjs-neon",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-with-frameworks/drizzle-nextjs-neon.mdx",
+    "sourceSha": "eca2497925cb1805aaf7674cb9ea90a2b58e32f648937b87a186f59ce1447316",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/tutorials/drizzle-with-frameworks/drizzle-with-encore.mdx",
+    "publicUrl": "/docs/tutorials/drizzle-with-encore",
+    "outputPath": "src/content/docs-ko/tutorials/drizzle-with-frameworks/drizzle-with-encore.mdx",
+    "sourceSha": "6e4a71dc5c4bc2f5c88a3fb99e084ab63fb8a1c54c1c79bdd580308c320a16d1",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/typebox-legacy.mdx",
+    "publicUrl": "/docs/typebox-legacy",
+    "outputPath": "src/content/docs-ko/typebox-legacy.mdx",
+    "sourceSha": "bad250fc232e200602c3dc00e8d003ede6c88bc5672199511c008a2b38070f0d",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/typebox.mdx",
+    "publicUrl": "/docs/typebox",
+    "outputPath": "src/content/docs-ko/typebox.mdx",
+    "sourceSha": "3a5686f69ab5259391fd473ebf55fa0a99bab404eba63eaaa54492a52a51e79d",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/update.mdx",
+    "publicUrl": "/docs/update",
+    "outputPath": "src/content/docs-ko/update.mdx",
+    "sourceSha": "a934d2588ea58bd2c0967bfc7a158e8a9f24601c4fe1420aedb222cee422ee7e",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/upgrade-21.mdx",
+    "publicUrl": null,
+    "outputPath": "src/content/docs-ko/upgrade-21.mdx",
+    "sourceSha": "b0253e6960d146c7f0641f5fff1344fa4af735805da0b6c20ceea09e603f55b2",
+    "status": "pending",
+    "isPublic": false,
+    "notes": [
+      "source-only"
+    ]
+  },
+  {
+    "sourcePath": "src/content/docs/upgrade-v1.mdx",
+    "publicUrl": "/docs/upgrade-v1",
+    "outputPath": "src/content/docs-ko/upgrade-v1.mdx",
+    "sourceSha": "f5e2c508d69dec4f0fe4002a87b1ffb2c6c33e2a1f6e6b72b3f1c5dadeaa1f0a",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/valibot.mdx",
+    "publicUrl": "/docs/valibot",
+    "outputPath": "src/content/docs-ko/valibot.mdx",
+    "sourceSha": "2f5ab0270f4d8198614eb1774f3d5e5806c78e6500c820b43d12074d5e8757a5",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/views.mdx",
+    "publicUrl": "/docs/views",
+    "outputPath": "src/content/docs-ko/views.mdx",
+    "sourceSha": "a8153f657c28f7e45291dbbe918ad7064397c51f4da9f36c18ab628e9c188ea0",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  },
+  {
+    "sourcePath": "src/content/docs/why-drizzle.mdx",
+    "publicUrl": null,
+    "outputPath": "src/content/docs-ko/why-drizzle.mdx",
+    "sourceSha": "9d73a2dc3a534092ae201dc7ef2b769a8183cdf8585765d2cde5736bbf360e6a",
+    "status": "pending",
+    "isPublic": false,
+    "notes": [
+      "source-only"
+    ]
+  },
+  {
+    "sourcePath": "src/content/docs/zod.mdx",
+    "publicUrl": "/docs/zod",
+    "outputPath": "src/content/docs-ko/zod.mdx",
+    "sourceSha": "b8776f66ac44505e9a959e520f5dffab964edb155fa4c2af15ae650c17751d01",
+    "status": "pending",
+    "isPublic": true,
+    "notes": []
+  }
+]

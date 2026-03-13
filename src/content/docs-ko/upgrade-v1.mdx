@@ -1,0 +1,62 @@
+import Npm from "@mdx-ko/Npm.astro";
+import Npx from "@mdx-ko/Npx.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+
+# Drizzle v1 RC로 업그레이드하기
+
+<Prerequisites>
+  - **beta.1** 릴리스 노트 - `latest`와 `beta` 버전 사이의 변경 사항 모음 - [여기서 읽기](https://github.com/drizzle-team/drizzle-orm/blob/beta/changelogs/drizzle-orm/1.0.0-beta.1.md)
+  - **beta.2** 릴리스 노트 - `latest`와 `beta` 버전 사이의 추가 변경 사항 모음 - [여기서 읽기](https://github.com/drizzle-team/drizzle-orm/releases/tag/v1.0.0-beta.2)
+  - 이상적으로는 수정되거나 변경된 모든 내용을 익히기 위해 다른 `beta.X` 변경 사항도 모두 읽는 것이 좋습니다
+</Prerequisites>
+
+Drizzle release candidate는 drizzle 저장소의 [`beta` 브랜치](https://github.com/drizzle-team/drizzle-orm/tree/beta)와 npm의 `beta` 태그에서 제공됩니다. 따라서 설치하려면 다음을 실행해야 합니다.
+
+<Npm>
+drizzle-orm@beta
+-D drizzle-kit@beta
+</Npm>
+
+`1.0.0-beta.x` 릴리스 패턴을 따르므로 `1.0.0-beta.7`, `1.0.0-beta.8` 같은 버전을 보게 됩니다. 각 beta 업데이트의 릴리스 노트는 [GitHub releases](https://github.com/drizzle-team/drizzle-orm/tags)에서 확인할 수 있습니다.
+
+#### Step 1 - `drizzle-kit up` 실행
+
+> 관련 토론: https://github.com/drizzle-team/drizzle-orm/discussions/2832
+
+우리는 migrations 폴더 구조를 다음과 같이 업데이트했습니다.
+- `journal.json` 제거
+- SQL 파일과 스냅샷을 각각 별도의 migration 폴더로 그룹화
+- `drizzle-kit drop` 명령 제거
+
+이 변경으로 journal 파일과 관련된 잠재적인 Git 충돌이 사라지고, 충돌한 migration을 삭제하거나 수정하는 과정이 단순해집니다.
+
+다가오는 `beta` 릴리스에서는 팀 migration 충돌을 안내하고, 가능한 충돌을 감지하며, 해결 방법을 제안하는 commutativity check를 도입할 예정입니다.
+> Commutativity discussion: https://github.com/drizzle-team/drizzle-orm/discussions/5005
+
+기존 폴더를 새 형식으로 마이그레이션하려면 다음을 실행해야 합니다.
+
+<Npx>
+drizzle-kit up
+</Npx>
+
+#### Step 2 - validator 패키지 import 업데이트
+
+우리는 더 이상 `drizzle-zod`, `drizzle-valibot` 같은 별도 validator 패키지를 유지하지 않고, 이를 `drizzle-orm` 저장소 안으로 옮겼습니다. 이렇게 하면 모든 것이 단일 패키지로 통합되고, 별도의 peer dependency와 버전을 관리할 필요가 없어집니다.
+
+이제 모든 패키지는 `drizzle-orm` import를 통해 사용할 수 있습니다.
+
+- `drizzle-zod` -> `drizzle-orm/zod`
+- `drizzle-valibot` -> `drizzle-orm/valibot`
+- `drizzle-typebox` -> `drizzle-orm/typebox-legacy` (using `@sinclair/typebox`)
+- `drizzle-typebox` -> `drizzle-orm/typebox` (using `typebox`)
+- `drizzle-arktype` -> `drizzle-orm/arktype`
+
+#### Step 3 - Relational Queries를 v2로 업데이트
+
+RQBv2의 모든 변경 사항과 코드베이스를 업데이트하는 옵션은 아래 문서에서 자세히 설명했습니다.
+
+- [relations 정의를 v1에서 v2로 마이그레이션하는 방법](/docs/relations-v1-v2#how-to-migrate-relations-schema-definition-from-v1-to-v2)  
+- [쿼리를 v1에서 v2로 마이그레이션하는 방법](/docs/relations-v1-v2#how-to-migrate-queries-from-v1-to-v2)  
+- [부분 업그레이드, 또는 업그레이드 후에도 v1에 머무르는 방법](/docs/relations-v1-v2#partial-upgrade-or-how-to-stay-on-rqb-v1-even-after-an-upgrade)  
+
+#### Step 3 - 완료 ✅

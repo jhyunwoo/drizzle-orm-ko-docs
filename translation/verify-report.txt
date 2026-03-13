@@ -1,0 +1,320 @@
+Verification failed with 319 issue(s):
+- Inline code count mismatch: src/content/docs-ko/arktype.mdx
+- English residue in src/content/docs-ko/arktype.mdx: codex, inline, term
+- Inline code count mismatch: src/content/docs-ko/batch-api.mdx
+- English residue in src/content/docs-ko/batch-api.mdx: codex, term, inline, batching, non-concurrently, batched, aborts
+- Inline code count mismatch: src/content/docs-ko/cache.mdx
+- English residue in src/content/docs-ko/cache.mdx: codex, term, inline, upstash, redis, case, cache, extension
+- Inline code count mismatch: src/content/docs-ko/column-types/cockroach.mdx
+- English residue in src/content/docs-ko/column-types/cockroach.mdx: title, codex, term, version, inline, here, shape-your-data-schema, bigint, smallint, bool, cockroach, docs
+- Inline code count mismatch: src/content/docs-ko/column-types/mssql.mdx
+- English residue in src/content/docs-ko/column-types/mssql.mdx: title, codex, term, version, inline, here, shape-your-data-schema, tint, bigint, unicode, docs, config
+- Inline code count mismatch: src/content/docs-ko/column-types/mysql.mdx
+- English residue in src/content/docs-ko/column-types/mysql.mdx: title, codex, term, inline, here, shape-your-data-schema, tint, varchar, null, blob, defaultfn
+- Inline code count mismatch: src/content/docs-ko/column-types/pg.mdx
+- English residue in src/content/docs-ko/column-types/pg.mdx: title, codex, term, inline, here, shape-your-data-schema, serial, smallserial, bigserial, bigint, auto, incrementing
+- Inline code count mismatch: src/content/docs-ko/column-types/singlestore.mdx
+- English residue in src/content/docs-ko/column-types/singlestore.mdx: title, codex, term, inline, here, shape-your-data-schema, tint, varchar, null, blob, defaultfn
+- Inline code count mismatch: src/content/docs-ko/column-types/sqlite.mdx
+- English residue in src/content/docs-ko/column-types/sqlite.mdx: title, codex, term, docs, inline, here, shape-your-data-schema, blob, boolean, bigint, null, defaultfn
+- English residue in src/content/docs-ko/connect-aws-data-api-mysql.mdx: codex, term
+- English residue in src/content/docs-ko/connect-aws-data-api-pg.mdx: codex, term, inline, drizzle-orm, aws-sdk, client-rds-data, drizzle-kit
+- Inline code count mismatch: src/content/docs-ko/connect-bun-sql.mdx
+- English residue in src/content/docs-ko/connect-bun-sql.mdx: codex, term, inline, drizzle-orm, drizzle-kit
+- Inline code count mismatch: src/content/docs-ko/connect-bun-sqlite.mdx
+- English residue in src/content/docs-ko/connect-bun-sqlite.mdx: codex, term, inline, docs, async, sync, apis, like, drizzle-orm, drizzle-kit
+- Inline code count mismatch: src/content/docs-ko/connect-cloudflare-d1.mdx
+- English residue in src/content/docs-ko/connect-cloudflare-d1.mdx: codex, term, inline, cloudflare, like, drizzle-orm, drizzle-kit
+- Inline code count mismatch: src/content/docs-ko/connect-cloudflare-do.mdx
+- English residue in src/content/docs-ko/connect-cloudflare-do.mdx: codex, term, cloudflare, inline, like, drizzle-orm, drizzle-kit
+- Inline code count mismatch: src/content/docs-ko/connect-drizzle-proxy.mdx
+- English residue in src/content/docs-ko/connect-drizzle-proxy.mdx: codex, term, data, inline
+- Inline code count mismatch: src/content/docs-ko/connect-effect-postgres.mdx
+- English residue in src/content/docs-ko/connect-effect-postgres.mdx: codex, term, version, inline, here, sql-pg, drizzle-orm, drizzle-kit, types, step, native, available
+- Inline code count mismatch: src/content/docs-ko/connect-expo-sqlite.mdx
+- English residue in src/content/docs-ko/connect-expo-sqlite.mdx: codex, term, inline, expo, babel, config, schema
+- Inline code count mismatch: src/content/docs-ko/connect-neon.mdx
+- English residue in src/content/docs-ko/connect-neon.mdx: codex, term, inline, docs, neon-serverless, websockets, serverless, websocket, cloudflare, serverful, postgresjs, official
+- Inline code count mismatch: src/content/docs-ko/connect-nile.mdx
+- English residue in src/content/docs-ko/connect-nile.mdx: codex, term, inline, docs, checkout, quickstart, migration, drizzle-orm, drizzle-kit, tenant, context, framwork
+- Inline code count mismatch: src/content/docs-ko/connect-node-sqlite.mdx
+- English residue in src/content/docs-ko/connect-node-sqlite.mdx: codex, term, inline, docs, async, sync, apis, like, drizzle-orm, drizzle-kit
+- Inline code count mismatch: src/content/docs-ko/connect-op-sqlite.mdx
+- English residue in src/content/docs-ko/connect-op-sqlite.mdx: codex, term, inline, babel, config, schema, expo
+- English residue in src/content/docs-ko/connect-overview.mdx: node-postgres, expo, todo, andriisherman, data
+- English residue in src/content/docs-ko/connect-pglite.mdx: codex, term, inline, docs, official, repo, wasm, indexeddb, browser, persistence, ephemeral, in-memory
+- Inline code count mismatch: src/content/docs-ko/connect-planetscale-postgres.mdx
+- English residue in src/content/docs-ko/connect-planetscale-postgres.mdx: codex, term, docs, inline, vitess, drizzle-orm, drizzle-kit, types, functions, cloudflare, workers, lambda
+- Inline code count mismatch: src/content/docs-ko/connect-planetscale.mdx
+- English residue in src/content/docs-ko/connect-planetscale.mdx: codex, term, inline, docs, vitess, serverless, serverfull, drizzle-orm, database, drizzle-kit
+- Inline code count mismatch: src/content/docs-ko/connect-prisma-postgres.mdx
+- English residue in src/content/docs-ko/connect-prisma-postgres.mdx: codex, term, inline, docs, unikernels, operation, serverless, drizzle-orm, drizzle-kit, postres
+- Inline code count mismatch: src/content/docs-ko/connect-react-native-sqlite.mdx
+- English residue in src/content/docs-ko/connect-react-native-sqlite.mdx: codex, term, inline, expo-sqlite, popular, library, hermes, runtime, expo
+- English residue in src/content/docs-ko/connect-sqlite-cloud.mdx: codex, term, docs, inline, clouds, drizzle-orm, beta, sqlitecloud, drivers, drizzle-kit
+- English residue in src/content/docs-ko/connect-supabase.mdx: codex, term, docs, inline, firebase, drizzle-orm, drizzle-kit, described, here, transaction
+- Inline code count mismatch: src/content/docs-ko/connect-tidb.mdx
+- English residue in src/content/docs-ko/connect-tidb.mdx: codex, term, inline, docs, serverless, dbaas, drizzle-orm, tidbcloud, drizzle-kit
+- English residue in src/content/docs-ko/connect-turso-database.mdx: codex, term, inline, drizzle-orm, beta, tursodatabase, database, drizzle-kit
+- Inline code count mismatch: src/content/docs-ko/connect-turso.mdx
+- English residue in src/content/docs-ko/connect-turso.mdx: codex, term, cloud, inline, like, drizzle-orm, client, drizzle-kit
+- Inline code count mismatch: src/content/docs-ko/connect-vercel-postgres.mdx
+- English residue in src/content/docs-ko/connect-vercel-postgres.mdx: codex, term, inline, docs, serverless, postgresjs, node-postgres, drizzle-orm, drizzle-kit, official, severless, cloudflare
+- English residue in src/content/docs-ko/connect-xata.mdx: codex, term, docs, inline, downtime, schema, byoc, drizzle-orm, drizzle-kit
+- Code fence mismatch: src/content/docs-ko/custom-types.mdx
+- Inline code count mismatch: src/content/docs-ko/custom-types.mdx
+- English residue in src/content/docs-ko/custom-types.mdx: codex, inline, term, ts-doc, customtypevalues, required, type, custom, column, that, will, infer
+- Code fence mismatch: src/content/docs-ko/data-querying.mdx
+- English residue in src/content/docs-ko/data-querying.mdx: crud, with, getproductsby, name, category, maxprice, string, const, filters, push, ilike, products
+- English residue in src/content/docs-ko/delete.mdx: with, delete, select, with-clause, insert, with-insert-clause, update, with-update-clause
+- English residue in src/content/docs-ko/drizzle-config-file.mdx: drizzle-kit, generate, config, drizzle-dev, drizzle-prod, multi-project-schema
+- English residue in src/content/docs-ko/drizzle-kit-check.mdx: config, drizzle-kit, check, drizzle-dev, drizzle-prod, dialect, migrations-folder
+- English residue in src/content/docs-ko/drizzle-kit-export.mdx: atlas, config, glob, drizzle-kit, export, drizzle-dev, drizzle-prod, push, name, init, seed, users
+- English residue in src/content/docs-ko/drizzle-kit-generate.mdx: drizzle-orm, migration, bytebase, config, glob, drizzle-kit, generate, drizzle-dev, drizzle-prod, name, init, seed
+- English residue in src/content/docs-ko/drizzle-kit-migrate.mdx: config, drizzle-kit, migrate, drizzle-dev, drizzle-prod
+- English residue in src/content/docs-ko/drizzle-kit-pull.mdx: docs, config, drizzle-kit, pull, drizzle-dev, drizzle-prod, expo, drizzle-orm, beta, postgis, dialect, user
+- English residue in src/content/docs-ko/drizzle-kit-push.mdx: docs, introspect, config, glob, drizzle-kit, push, drizzle-dev, drizzle-prod, expo, postgis, strict, verbose
+- English residue in src/content/docs-ko/drizzle-kit-studio.mdx: studio, drizzle-studio, overview, local, config, drizzle-kit, port, host, verbose, safari, brave, localhost
+- English residue in src/content/docs-ko/drizzle-kit-up.mdx: config, drizzle-kit, migrate, drizzle-dev, drizzle-prod, dialect, migrations-folder, assets, gifs
+- English residue in src/content/docs-ko/dynamic-query-building.mdx: dialect, type, query, select, insert, update, delete, pgselect, pginsert, pgupdate, pgdelete, pgselectquerybuilder
+- English residue in src/content/docs-ko/effect-schema.mdx: schema
+- English residue in src/content/docs-ko/eslint-plugin.mdx: eslint, eslint-plugin-drizzle, typescript-eslint, eslint-plugin, parser
+- English residue in src/content/docs-ko/extensions/mysql.mdx: title
+- Missing translated file: src/content/docs-ko/extensions/pg.mdx
+- English residue in src/content/docs-ko/extensions/singlestore.mdx: title
+- English residue in src/content/docs-ko/extensions/sqlite.mdx: title
+- Missing translated file: src/content/docs-ko/faq.mdx
+- Missing translated file: src/content/docs-ko/generated-columns.mdx
+- English residue in src/content/docs-ko/get-started-cockroach.mdx: node-postgres, drizzle-orm, beta, drizzle-kit, types
+- Missing translated file: src/content/docs-ko/get-started-gel.mdx
+- Missing translated file: src/content/docs-ko/get-started-mssql.mdx
+- Missing translated file: src/content/docs-ko/get-started-mysql.mdx
+- Missing translated file: src/content/docs-ko/get-started-postgresql.mdx
+- Missing translated file: src/content/docs-ko/get-started-singlestore.mdx
+- Missing translated file: src/content/docs-ko/get-started-sqlite.mdx
+- Missing translated file: src/content/docs-ko/get-started.mdx
+- Missing translated file: src/content/docs-ko/get-started/bun-sql-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/bun-sql-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/bun-sqlite-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/bun-sqlite-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/cockroach-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/cockroach-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/d1-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/d1-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/do-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/do-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/effect-postgresql-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/effect-postgresql-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/expo-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/expo-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/gel-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/gel-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/mssql-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/mssql-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/mysql-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/mysql-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/neon-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/neon-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/nile-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/nile-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/op-sqlite-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/op-sqlite-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/pglite-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/pglite-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/planetscale-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/planetscale-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/planetscale-postgres-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/planetscale-postgres-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/postgresql-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/postgresql-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/singlestore-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/singlestore-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/sqlite-cloud-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/sqlite-cloud-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/sqlite-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/sqlite-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/supabase-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/supabase-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/tidb-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/tidb-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/turso-database-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/turso-database-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/turso-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/turso-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/vercel-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/vercel-new.mdx
+- Missing translated file: src/content/docs-ko/get-started/xata-existing.mdx
+- Missing translated file: src/content/docs-ko/get-started/xata-new.mdx
+- Missing translated file: src/content/docs-ko/goodies.mdx
+- Missing translated file: src/content/docs-ko/gotchas.mdx
+- Missing translated file: src/content/docs-ko/graphql.mdx
+- Missing translated file: src/content/docs-ko/guides.mdx
+- Missing translated file: src/content/docs-ko/guides/conditional-filters-in-query.mdx
+- Missing translated file: src/content/docs-ko/guides/count-rows.mdx
+- Missing translated file: src/content/docs-ko/guides/cursor-based-pagination.mdx
+- Missing translated file: src/content/docs-ko/guides/d1-http-with-drizzle-kit.mdx
+- Missing translated file: src/content/docs-ko/guides/decrementing-a-value.mdx
+- Missing translated file: src/content/docs-ko/guides/empty-array-default-value.mdx
+- Missing translated file: src/content/docs-ko/guides/full-text-search-with-generated-columns.mdx
+- Missing translated file: src/content/docs-ko/guides/gel-ext-auth.mdx
+- Missing translated file: src/content/docs-ko/guides/include-or-exclude-columns.mdx
+- Missing translated file: src/content/docs-ko/guides/incrementing-a-value.mdx
+- Missing translated file: src/content/docs-ko/guides/limit-offset-pagination.mdx
+- Missing translated file: src/content/docs-ko/guides/mysql-local-setup.mdx
+- Missing translated file: src/content/docs-ko/guides/point-datatype-psql.mdx
+- Missing translated file: src/content/docs-ko/guides/postgis-geometry-point.mdx
+- Missing translated file: src/content/docs-ko/guides/postgresql-full-text-search.mdx
+- Missing translated file: src/content/docs-ko/guides/postgresql-local-setup.mdx
+- Missing translated file: src/content/docs-ko/guides/seeding-using-with-option.mdx
+- Missing translated file: src/content/docs-ko/guides/seeding-with-partially-exposed-schema.mdx
+- Missing translated file: src/content/docs-ko/guides/select-parent-rows-with-at-least-one-related-child-row.mdx
+- Missing translated file: src/content/docs-ko/guides/timestamp-default-value.mdx
+- Missing translated file: src/content/docs-ko/guides/toggling-a-boolean-field.mdx
+- Missing translated file: src/content/docs-ko/guides/unique-case-insensitive-email.mdx
+- Missing translated file: src/content/docs-ko/guides/update-many-with-different-value.mdx
+- Missing translated file: src/content/docs-ko/guides/upsert.mdx
+- Missing translated file: src/content/docs-ko/guides/vector-similarity-search.mdx
+- Missing translated file: src/content/docs-ko/indexes-constraints.mdx
+- Missing translated file: src/content/docs-ko/insert.mdx
+- Missing translated file: src/content/docs-ko/joins.mdx
+- Missing translated file: src/content/docs-ko/kit-custom-migrations.mdx
+- Missing translated file: src/content/docs-ko/kit-migrations-for-teams.mdx
+- Missing translated file: src/content/docs-ko/kit-overview.mdx
+- Missing translated file: src/content/docs-ko/kit-seed-data.mdx
+- Missing translated file: src/content/docs-ko/kit-web-mobile.mdx
+- Missing translated file: src/content/docs-ko/latest-releases.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-kit-v0232.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0110.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0162.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0272.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0280.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0281.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0282.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0283.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0284.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0285.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0286.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0290.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0291.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0292.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0293.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0294.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0295.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0300.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0301.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v03010.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0302.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0303.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0304.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0305.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0306.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0307.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0308.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0309.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0310.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0311.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0312.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0313.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0314.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0320.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0321.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v0322.mdx
+- Missing translated file: src/content/docs-ko/latest-releases/drizzle-orm-v1beta2.mdx
+- Missing translated file: src/content/docs-ko/migrate/components.mdx
+- Missing translated file: src/content/docs-ko/migrate/migrate-from-prisma.mdx
+- Missing translated file: src/content/docs-ko/migrate/migrate-from-sequelize.mdx
+- Missing translated file: src/content/docs-ko/migrate/migrate-from-typeorm.mdx
+- Missing translated file: src/content/docs-ko/migrations.mdx
+- Missing translated file: src/content/docs-ko/operators.mdx
+- Missing translated file: src/content/docs-ko/overview.mdx
+- Missing translated file: src/content/docs-ko/perf-queries.mdx
+- Missing translated file: src/content/docs-ko/perf-serverless.mdx
+- Missing translated file: src/content/docs-ko/prisma.mdx
+- Missing translated file: src/content/docs-ko/query-utils.mdx
+- Missing translated file: src/content/docs-ko/quick.mdx
+- Missing translated file: src/content/docs-ko/read-replicas.mdx
+- Missing translated file: src/content/docs-ko/relations-schema-declaration.mdx
+- Missing translated file: src/content/docs-ko/relations-v1-v2.mdx
+- Missing translated file: src/content/docs-ko/relations-v2.mdx
+- Missing translated file: src/content/docs-ko/relations.mdx
+- Missing translated file: src/content/docs-ko/rls.mdx
+- Missing translated file: src/content/docs-ko/rqb-v2.mdx
+- Missing translated file: src/content/docs-ko/rqb.mdx
+- Missing translated file: src/content/docs-ko/schemas.mdx
+- Missing translated file: src/content/docs-ko/seed-functions.mdx
+- Missing translated file: src/content/docs-ko/seed-limitations.mdx
+- Missing translated file: src/content/docs-ko/seed-overview.mdx
+- Missing translated file: src/content/docs-ko/seed-versioning.mdx
+- Missing translated file: src/content/docs-ko/select.mdx
+- Missing translated file: src/content/docs-ko/sequences.mdx
+- Missing translated file: src/content/docs-ko/set-operations.mdx
+- Missing translated file: src/content/docs-ko/sql-schema-declaration.mdx
+- Missing translated file: src/content/docs-ko/sql.mdx
+- Missing translated file: src/content/docs-ko/sustainability.mdx
+- Missing translated file: src/content/docs-ko/transactions.mdx
+- Missing translated file: src/content/docs-ko/tutorials.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-on-the-edge/drizzle-with-netlify-edge-functions-neon.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-on-the-edge/drizzle-with-netlify-edge-functions-supabase.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-on-the-edge/drizzle-with-supabase-edge-functions.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-on-the-edge/drizzle-with-vercel-edge-functions.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-neon.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-nile.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-supabase.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-turso.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-vercel.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-with-db/drizzle-with-xata.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-with-frameworks/drizzle-nextjs-neon.mdx
+- Missing translated file: src/content/docs-ko/tutorials/drizzle-with-frameworks/drizzle-with-encore.mdx
+- Missing translated file: src/content/docs-ko/typebox-legacy.mdx
+- Missing translated file: src/content/docs-ko/typebox.mdx
+- Missing translated file: src/content/docs-ko/update.mdx
+- Missing translated file: src/content/docs-ko/upgrade-21.mdx
+- Missing translated file: src/content/docs-ko/upgrade-v1.mdx
+- Missing translated file: src/content/docs-ko/valibot.mdx
+- Missing translated file: src/content/docs-ko/views.mdx
+- Missing translated file: src/content/docs-ko/why-drizzle.mdx
+- Missing translated file: src/content/docs-ko/zod.mdx
+- MDX parse failed: src/content/docs-ko/arktype.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/content/docs-ko/cache.mdx :: Expected a closing tag for `<Callout>` (99:1-99:10)
+- MDX parse failed: src/content/docs-ko/column-types/cockroach.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/content/docs-ko/column-types/mssql.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/content/docs-ko/column-types/mysql.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/content/docs-ko/column-types/pg.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/content/docs-ko/column-types/singlestore.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/content/docs-ko/column-types/sqlite.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/content/docs-ko/connect-drizzle-proxy.mdx :: Unexpected closing slash `/` in tag, expected an open tag first
+- MDX parse failed: src/content/docs-ko/connect-expo-sqlite.mdx :: Unexpected closing slash `/` in tag, expected an open tag first
+- MDX parse failed: src/content/docs-ko/connect-neon.mdx :: Unexpected closing tag `</CodeTabs>`, expected corresponding closing tag for `<Section>` (44:1-44:10)
+- MDX parse failed: src/content/docs-ko/connect-op-sqlite.mdx :: Unexpected closing slash `/` in tag, expected an open tag first
+- MDX parse failed: src/content/docs-ko/connect-planetscale-postgres.mdx :: Expected a closing tag for `<Section>` (97:1-97:10)
+- MDX parse failed: src/content/docs-ko/connect-turso.mdx :: Unexpected closing slash `/` in tag, expected an open tag first
+- MDX parse failed: src/content/docs-ko/custom-types.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/content/docs-ko/effect-schema.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/content/docs-ko/extensions/mysql.mdx :: Unexpected `ExpressionStatement` in code: only import/exports are supported
+- MDX parse failed: src/content/docs-ko/extensions/singlestore.mdx :: Unexpected `ExpressionStatement` in code: only import/exports are supported
+- MDX parse failed: src/content/docs-ko/extensions/sqlite.mdx :: Unexpected `ExpressionStatement` in code: only import/exports are supported
+- MDX parse failed: src/mdx-ko/$count.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/ApplyChanges.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/cockroach/ConnectCockroach.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/InstallPackages.mdx :: Unexpected `ExpressionStatement` in code: only import/exports are supported
+- MDX parse failed: src/mdx-ko/get-started/mssql/ConnectMSSQL.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/mysql/ConnectMySQL.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/mysql/QueryPlanetScale.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/postgresql/ConnectBun.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/postgresql/ConnectNeon.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/postgresql/ConnectNile.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/postgresql/ConnectPlanetScalePostgres.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/postgresql/ConnectPostgreSQL.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/postgresql/ConnectSupabase.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/postgresql/QueryNile.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/QueryDatabase.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/RunFile.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/SetupConfig.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/SetupEnv.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/singlestore/ConnectSingleStore.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/sqlite/ConnectBun.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/sqlite/ConnectLibsql.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/sqlite/ConnectSQLiteCloud.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/sqlite/ConnectTursoDatabase.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/sqlite/QueryTurso.mdx :: Could not parse import/exports with acorn
+- MDX parse failed: src/mdx-ko/get-started/sqlite/QueryTursoUpdated.mdx :: Could not parse import/exports with acorn

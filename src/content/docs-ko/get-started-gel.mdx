@@ -1,0 +1,66 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> Gel
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본 사항](/docs/connect-overview)
+- gel-js [기본 사항](https://github.com/geldata/gel-js)
+</Prerequisites>
+
+Drizzle는 `gel-js` 클라이언트를 사용하는 Gel 연결을 기본적으로 지원합니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm gel
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 작성
+<CodeTabs items={["gel", "설정이 포함된 gel"]}>
+```typescript copy
+// Make sure to install the 'gel' package 
+import { drizzle } from 'drizzle-orm/gel';
+
+const db = drizzle(process.env.DATABASE_URL);
+ 
+const result = await db.execute('select 1');
+```
+```typescript copy
+// Make sure to install the 'gel' package
+import { drizzle } from "drizzle-orm/gel";
+
+// You can specify any property from the gel connection options
+const db = drizzle({
+  connection: {
+    dsn: process.env.DATABASE_URL,
+    tlsSecurity: "default",
+  },
+});
+
+const result = await db.execute("select 1");
+```
+</CodeTabs>
+
+기존 드라이버를 제공해야 하는 경우:
+
+```typescript copy
+// Make sure to install the 'gel' package 
+import { drizzle } from "drizzle-orm/gel";
+import { createClient } from "gel";
+
+const gelClient = createClient();
+const db = drizzle({ client: gelClient });
+
+const result = await db.execute('select 1');
+```
+
+#### 다음 단계는?
+
+<WhatsNextPostgres/>

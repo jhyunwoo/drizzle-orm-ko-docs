@@ -1,0 +1,193 @@
+import CodeTab from "@mdx-ko/CodeTab.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from "@mdx-ko/Section.astro";
+import Tab from "@mdx-ko/Tab.astro";
+import Tabs from "@mdx-ko/Tabs.astro";
+import Callout from "@mdx-ko/Callout.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import Npx from "@mdx-ko/Npx.astro";
+
+# `drizzle-kit migrate`
+<Prerequisites>
+- Drizzle 및 `drizzle-kit` 시작하기 - [여기를 읽으세요](/docs/get-started)
+- Drizzle 스키마 기본 사항 - [여기 읽기](/docs/sql-schema-declaration)
+- 데이터베이스 연결 기본 사항 - [여기를 읽어보세요](/docs/connect-overview)
+- Drizzle 마이그레이션 기본 사항 - [여기에서 읽기](/docs/migrations)
+- Drizzle Kit [개요](/docs/kit-overview) 및 [구성 파일](/docs/drizzle-config-file)
+- `drizzle-kit generate` 명령 - [여기를 읽으세요](/docs/drizzle-kit-generate)
+</Prerequisites>
+<br/>
+
+
+`drizzle-kit migrate`을 사용하면 [`drizzle-kit generate`](/docs/drizzle-kit-generate)에서 생성된 SQL 마이그레이션을 적용할 수 있습니다. 
+Drizzle 마이그레이션 관리의 [코드 우선(옵션 3)](/docs/migrations) 접근 방식을 다루도록 설계되었습니다. 
+
+<Callout collapsed="내부적으로는 어떻게 작동하나요?">
+Drizzle Kit `migrate` 명령은 일련의 이벤트를 트리거합니다.
+1. 마이그레이션 폴더를 읽고 모든 `.sql` 마이그레이션 파일을 읽습니다.
+2. 데이터베이스에 연결하고 이슬비 마이그레이션 로그 테이블에서 항목을 가져옵니다.
+3. 이전에 적용된 마이그레이션을 기반으로 실행할 새 마이그레이션을 결정합니다.
+4. SQL 마이그레이션을 실행하고 적용된 마이그레이션을 이슬비 마이그레이션 테이블에 기록합니다.
+
+<Section>
+```plaintext
+  ├ 📂 drizzle       
+  │ ├ 📂 20242409125510_premium_mister_fear
+  │ └ 📂 20242409135510_delicate_professor_xavie
+  └ …
+```
+```plaintext
+┌───────────────────────┐                  
+│ $ drizzle-kit migrate │                  
+└─┬─────────────────────┘                  
+  │                                                         ┌──────────────────────────┐                                         
+  └ 1. reads migration.sql files in migrations folder       │                          │
+    2. fetch migration history from database -------------> │                          │
+  ┌ 3. pick previously unapplied migrations <-------------- │         DATABASE         │
+  └ 4. apply new migration to the database ---------------> │                          │
+                                                            │                          │
+                                                            └──────────────────────────┘
+[✓] done!        
+```
+</Section>
+</Callout>
+
+`drizzle-kit migrate` 명령을 사용하려면 `dialect` 및 데이터베이스 연결 자격 증명을 모두 지정해야 합니다. 
+[drizzle.config.ts](/docs/drizzle-config-file) 구성 파일이나 CLI 옵션을 통해 제공할 수 있습니다.
+
+<CodeTabs items={["구성 파일 포함", "CLI 옵션으로"]}>
+<Section>
+```ts {5,8}
+// drizzle.config.ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  schema: "./src/schema.ts",
+  dbCredentials: {
+    url: "postgresql://user:password@host:port/dbname"
+  },
+});
+```
+```shell
+npx drizzle-kit migrate
+```
+</Section>
+```shell
+npx drizzle-kit migrate --dialect=postgresql --url=postgresql://user:password@host:port/dbname
+```
+</CodeTabs>
+
+### 데이터베이스에 적용된 마이그레이션 로그
+마이그레이션을 실행하면 Drizzle Kit는 데이터베이스에 성공적으로 적용된 마이그레이션에 대한 기록을 유지합니다. 
+`__drizzle_migrations`이라는 마이그레이션 로그 테이블에 저장됩니다.
+
+Drizzle 구성 파일을 통해 해당 테이블의 **테이블** 및 **스키마**(PostgreSQL에만 해당)를 모두 사용자 정의할 수 있습니다.
+```ts filename="drizzle.config.ts" {8-9}
+export default defineConfig({
+  dialect: "postgresql",
+  schema: "./src/schema.ts",
+  dbCredentials: {
+    url: "postgresql://user:password@host:port/dbname"
+  },
+  migrations: {
+    table: 'my-migrations-table', // `__drizzle_migrations` by default
+    schema: 'public', // used in PostgreSQL only, `drizzle` by default
+  },
+});
+```
+
+### 충돌 무시
+
+<Callout type='warning'>
+`--ignore-conflicts`은 `drizzle-orm@1.0.0-beta.16`부터 사용 가능
+</Callout>
+
+교환성 검사를 건너뛰고 우회하기 위해 `migrate` 명령이 필요한 경우 `--ignore-conflicts`을 사용할 수 있습니다. 사용하고 싶은 상황이 생기면
+`drizzle-kit`이 마이그레이션을 제대로 확인하지 않았을 가능성이 크며 이는 버그입니다. 귀하의 사례를 신고해 주시면 문제를 해결할 수 있습니다.
+```shell
+drizzle-kit migrate --ignore-conflicts
+```
+
+### 하나의 프로젝트에 여러 구성 파일
+프로젝트에 여러 구성 파일이 있을 수 있습니다. 이는 동일한 프로젝트에 여러 데이터베이스 단계나 여러 데이터베이스가 있는 경우 매우 유용합니다.
+<Npx>
+  drizzle-kit migrate --config=drizzle-dev.config.ts
+  drizzle-kit migrate --config=drizzle-prod.config.ts
+</Npx>
+```plaintext {5-6}
+📦 <project root>
+ ├ 📂 drizzle
+ ├ 📂 src
+ ├ 📜 .env
+ ├ 📜 drizzle-dev.config.ts
+ ├ 📜 drizzle-prod.config.ts
+ ├ 📜 package.json
+ └ 📜 tsconfig.json
+```
+
+### 확장된 예
+`drizzle-kit generate` 및 `drizzle-kit migrate` 명령을 사용하여 SQL 마이그레이션을 생성하고 이를 데이터베이스에 적용해 보겠습니다.
+```plaintext
+📦 <project root>
+ ├ 📂 drizzle
+ ├ 📂 src
+ │ ├ 📜 schema.ts
+ │ └ 📜 index.ts
+ ├ 📜 drizzle.config.ts
+ └ …
+```
+<CodeTabs items={["drizzle.config.ts", "src/schema.ts"]}>
+```ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  schema: "./src/schema.ts",
+  dbCredentials: {
+    url: "postgresql://user:password@host:port/dbname"
+  },
+  migrations: {
+    table: 'journal', 
+    schema: 'drizzle', 
+  },
+});
+```
+```ts 
+import * as p from "drizzle-orm/pg-core";
+
+export const users = p.pgTable("users", {
+  id: p.serial().primaryKey(),
+  name: p.text(),
+})
+```
+</CodeTabs>
+
+이제 달리자
+```shell
+npx drizzle-kit generate --name=init
+```
+그것은 생성할 것이다
+<Section>
+```plaintext {5}
+📦 <project root>
+ ├ …
+ ├ 📂 migrations
+ │ ├ 📂 20242409125510_init
+ └ …
+```
+```sql
+-- ./drizzle/0000_init.sql
+
+CREATE TABLE "users"(
+  id serial primary key,
+  name text
+)
+```
+</Section>
+
+이제 달리자
+```shell
+npx drizzle-kit migrate
+```
+이제 SQL 마이그레이션이 데이터베이스에 성공적으로 적용되었습니다 ✅

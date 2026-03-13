@@ -1,0 +1,78 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import ConnectPlanetScalePostgres from '@mdx-ko/get-started/postgresql/ConnectPlanetScalePostgres.mdx'
+import CreateTable from '@mdx-ko/get-started/postgresql/CreateTable.mdx'
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import QueryDatabase from '@mdx-ko/get-started/QueryDatabase.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+
+<Breadcrumbs/>
+
+# Drizzle과 PlanetScale Postgres로 시작하기
+
+<Prerequisites>
+  - **dotenv** - 환경 변수를 관리하는 패키지 - [여기에서 읽기](https://www.npmjs.com/package/dotenv)
+  - **tsx** - TypeScript 파일을 실행하는 패키지 - [여기에서 읽기](https://tsx.is/)
+  - **PlanetScale Postgres** - PostgreSQL 데이터베이스 플랫폼 - [여기에서 읽기](https://planetscale.com/docs/postgres)
+  - **node-postgres** - PostgreSQL 데이터베이스를 쿼리하는 패키지 - [여기에서 읽기](https://node-postgres.com/)
+</Prerequisites>
+
+<Callout title='PlanetScale은 MySQL도 제공합니다' type='info'>
+MySQL을 찾고 있나요? [PlanetScale MySQL 가이드](/docs/get-started/planetscale-new)를 확인해 보세요.
+</Callout>
+
+PlanetScale은 MySQL(Vitess)과 PostgreSQL 데이터베이스를 모두 제공합니다. 이 가이드는 표준 `node-postgres` 드라이버를 사용해 PlanetScale Postgres에 연결하는 방법을 다룹니다.
+
+PlanetScale Postgres 데이터베이스를 생성하고 자격 증명을 얻는 자세한 방법은 [PlanetScale Postgres 문서](https://planetscale.com/docs/postgres/tutorials/planetscale-postgres-drizzle)를 참고하세요.
+
+<FileStructure/>
+
+#### 1단계 - **node-postgres** 패키지 설치
+<InstallPackages lib='pg' devlib=' @types/pg'/>
+
+#### 2단계 - 연결 변수 설정
+
+프로젝트 루트에 `.env` 파일을 만들고 데이터베이스 연결 변수를 추가하세요:
+
+```plaintext copy
+DATABASE_URL=postgresql://{username}:{password}@{host}:{port}/postgres?sslmode=verify-full
+```
+
+<Callout title='팁'>
+PlanetScale 대시보드에서 데이터베이스로 이동한 뒤 **"Connect"**를 클릭하고 **"Default role"**을 생성하면 연결 자격 증명을 얻을 수 있습니다. 자세한 단계는 [PlanetScale 연결 가이드](https://planetscale.com/docs/postgres/tutorials/planetscale-postgres-drizzle#create-credentials-and-connect)를 참고하세요.
+</Callout>
+
+#### 3단계 - Drizzle ORM을 데이터베이스에 연결
+
+<ConnectPlanetScalePostgres/>
+
+#### 4단계 - 테이블 생성
+
+<CreateTable />
+
+#### 5단계 - Drizzle config 파일 설정
+
+<SetupConfig dialect='postgresql' env_variable='DATABASE_URL'/>
+
+#### 6단계 - 데이터베이스에 변경 사항 적용
+
+<ApplyChanges />
+
+#### 7단계 - 데이터베이스 시드 및 쿼리
+
+<QueryDatabase dialect='node-postgres' env_variable='DATABASE_URL'/>
+
+#### 8단계 - index.ts 파일 실행
+
+<RunFile/>

@@ -1,0 +1,206 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+
+# Read Replicas
+
+프로젝트에 read replica 인스턴스 집합이 포함되어 있고, read replica에서 `SELECT` query를 관리하는 편리한 방법과
+기본 인스턴스에서 create, delete, update 작업을 수행하는 방법이 필요하다면,
+Drizzle의 `withReplicas()` 함수를 활용할 수 있습니다.
+
+<Tabs items={["PostgreSQL", "MySQL", "SQLite", "SingleStore", "MSSQL", "CockroachDB"]}>
+<Tab>
+```ts copy
+import { sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { boolean, jsonb, pgTable, serial, text, timestamp, withReplicas } from 'drizzle-orm/pg-core';
+
+const usersTable = pgTable('users', {
+	id: serial('id' as string).primaryKey(),
+	name: text('name').notNull(),
+	verified: boolean('verified').notNull().default(false),
+	jsonb: jsonb('jsonb').$type<string[]>(),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+const primaryDb = drizzle("postgres://user:password@host:port/primary_db");
+const read1 = drizzle("postgres://user:password@host:port/read_replica_1");
+const read2 = drizzle("postgres://user:password@host:port/read_replica_2");
+
+const db = withReplicas(primaryDb, [read1, read2]);
+```
+</Tab>
+<Tab>
+```ts copy
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
+import { boolean, mysqlTable, serial, text, withReplicas } from 'drizzle-orm/mysql-core';
+
+const usersTable = mysqlTable('users', {
+	id: serial('id' as string).primaryKey(),
+	name: text('name').notNull(),
+	verified: boolean('verified').notNull().default(false),
+});
+
+const primaryClient = await mysql.createConnection({
+  host: "host",
+  user: "user",
+  database: "primary_db",
+})
+const primaryDb = drizzle({ client: primaryClient });
+
+const read1Client = await mysql.createConnection({
+  host: "host",
+  user: "user",
+  database: "read_1",
+})
+const read1 = drizzle({ client: read1Client });
+
+const read2Client = await mysql.createConnection({
+  host: "host",
+  user: "user",
+  database: "read_2",
+})
+const read2 = drizzle({ client: read2Client });
+
+const db = withReplicas(primaryDb, [read1, read2]);
+```
+</Tab>
+<Tab>
+```ts copy
+import { sql } from 'drizzle-orm';
+import { sqliteTable, int, text, withReplicas } from 'drizzle-orm/sqlite-core';
+import { createClient } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/libsql';
+
+const usersTable = sqliteTable('users', {
+	id: int('id' as string).primaryKey(),
+	name: text('name').notNull(),
+});
+
+const primaryDb = drizzle({ client: createClient({ url: 'DATABASE_URL', authToken: 'DATABASE_AUTH_TOKEN' }) });
+const read1 = drizzle({ client: createClient({ url: 'DATABASE_URL', authToken: 'DATABASE_AUTH_TOKEN' }) });
+const read2 = drizzle({ client: createClient({ url: 'DATABASE_URL', authToken: 'DATABASE_AUTH_TOKEN' }) });
+
+const db = withReplicas(primaryDb, [read1, read2]);
+```
+</Tab>
+<Tab>
+```ts copy
+import { drizzle } from "drizzle-orm/singlestore";
+import mysql from "mysql2/promise";
+import { boolean, singlestoreTable, serial, text, withReplicas } from 'drizzle-orm/singlestore-core';
+
+const usersTable = singlestoreTable('users', {
+	id: serial('id' as string).primaryKey(),
+	name: text('name').notNull(),
+	verified: boolean('verified').notNull().default(false),
+});
+
+const primaryClient = await mysql.createConnection({
+  host: "host",
+  user: "user",
+  database: "primary_db",
+})
+const primaryDb = drizzle({ client: primaryClient });
+
+const read1Client = await mysql.createConnection({
+  host: "host",
+  user: "user",
+  database: "read_1",
+})
+const read1 = drizzle({ client: read1Client });
+
+const read2Client = await mysql.createConnection({
+  host: "host",
+  user: "user",
+  database: "read_2",
+})
+const read2 = drizzle({ client: read2Client });
+
+const db = withReplicas(primaryDb, [read1, read2]);
+```
+</Tab>
+<Tab>
+```ts copy
+import { sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/mssql-postgres';
+import { boolean, mssqlTable, int, text, timestamp, withReplicas } from 'drizzle-orm/mssql-core';
+
+const usersTable = mssqlTable('users', {
+	id: int().primaryKey(),
+	name: text().notNull(),
+	verified: boolean().notNull().default(false),
+	createdAt: timestamp('created_at').notNull(),
+});
+
+const primaryDb = drizzle("postgres://user:password@host:port/primary_db");
+const read1 = drizzle("postgres://user:password@host:port/read_replica_1");
+const read2 = drizzle("postgres://user:password@host:port/read_replica_2");
+
+const db = withReplicas(primaryDb, [read1, read2]);
+```
+</Tab>
+<Tab>
+```ts copy
+import { sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/cockroach';
+import { boolean, jsonb, cockroachTable, int4, text, timestamp, withReplicas } from 'drizzle-orm/cockroach-core';
+
+const usersTable = cockroachTable('users', {
+	id: int4().primaryKey(),
+	name: text().notNull(),
+	verified: boolean().notNull().default(false),
+	jsonb: jsonb().$type<string[]>(),
+	createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+
+const primaryDb = drizzle("postgres://user:password@host:port/primary_db");
+const read1 = drizzle("postgres://user:password@host:port/read_replica_1");
+const read2 = drizzle("postgres://user:password@host:port/read_replica_2");
+
+const db = withReplicas(primaryDb, [read1, read2]);
+```
+</Tab>
+</Tabs>
+
+이제 이전과 같은 방식으로 `db` 인스턴스를 사용할 수 있습니다. Drizzle이
+read replica와 기본 인스턴스 사이의 선택을 자동으로 처리합니다.
+
+```ts
+// Read from either the read1 connection or the read2 connection
+await db.select().from(usersTable)
+
+// Use the primary database for the delete operation
+await db.delete(usersTable).where(eq(usersTable.id, 1))
+```
+
+read 작업이라도 기본 인스턴스를 강제로 사용하려면 `$primary` key를 사용할 수 있습니다.
+
+```ts
+// read from primary
+await db.$primary.select().from(usersTable);
+```
+
+Drizzle에서는 read replica를 고르는 사용자 정의 로직도 지정할 수 있습니다.
+가중치를 둔 선택이나, 임의의 read replica를 고르기 위한 다른 사용자 정의 선택 방식을 만들 수 있습니다.
+다음은 read replica 선택을 위한 사용자 정의 로직 구현 예제로,
+첫 번째 replica가 70% 확률로 선택되고 두 번째 replica는 30%
+확률로 선택됩니다.
+
+read replica를 위한 어떤 형태의 랜덤 선택 방식이든 구현할 수 있다는 점을 기억하세요.
+
+```ts
+const db = withReplicas(primaryDb, [read1, read2], (replicas) => {
+    const weight = [0.7, 0.3];
+    let cumulativeProbability = 0;
+    const rand = Math.random();
+
+    for (const [i, replica] of replicas.entries()) {
+      cumulativeProbability += weight[i]!;
+      if (rand < cumulativeProbability) return replica;
+    }
+    return replicas[0]!
+});
+
+await db.select().from(usersTable)
+```

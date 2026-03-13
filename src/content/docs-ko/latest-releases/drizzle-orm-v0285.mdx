@@ -1,0 +1,15 @@
+---
+title: DrizzleORM v0.28.5 릴리스
+pubDate: 2023-08-24 12:00:00
+description: 런타임 오류를 일으키던 잘못된 OpenTelemetry 타입 import를 수정했습니다.
+---
+
+## 수정 사항
+
+- 런타임 오류를 일으키던 잘못된 OpenTelemetry 타입 import를 수정했습니다
+
+현재 ORM에 포함된 OpenTelemetry 로직은 Drizzle 자체에서 사용하기 위한 것이 아니며, `drizzle-orm`이 OpenTelemetry를 사용해 통계를 수집한 적도 없습니다. OpenTelemetry는 단지 프로토콜일 뿐입니다. `drizzle-orm`에서 이를 사용하는 실제 코드를 보면 tracer를 사용해 쿼리 통계를 수집할 뿐이며, 그 통계를 어디에도 전송하지 않습니다. 이 기능은 ORM 사용자가 해당 통계를 자신이 사용하는 텔레메트리 소비자로 보낼 수 있도록 설계되었습니다.
+
+중요한 점은 현재 버전에서 OpenTelemetry 로직이 비활성화되어 있다는 것입니다. 말 그대로 아무 일도 하지 않습니다. 과거 어느 시점에 실험해 본 적은 있었지만, 릴리스 전에 비활성화했습니다.
+
+직전 릴리스에서 문제가 발생한 이유는 [이 줄](https://github.com/drizzle-team/drizzle-orm/blob/594e96538e588fee5748e372884dbaf32c331524/drizzle-orm/src/tracing.ts#L1)에서 잘못된 타입 import를 사용했기 때문입니다. `import type { ... }` 대신 `import { type ... }` 구문을 사용했고, 그 결과 `import '@opentelemetry/api'` 줄이 런타임까지 새어 나가게 되었습니다.

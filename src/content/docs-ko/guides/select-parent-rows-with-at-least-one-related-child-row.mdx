@@ -1,0 +1,154 @@
+---
+title: 하나 이상의 관련 child row를 가진 parent row 선택하기
+slug: select-parent-rows-with-at-least-one-related-child-row
+---
+
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import IsSupportedChipGroup from "@mdx-ko/IsSupportedChipGroup.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Section from "@mdx-ko/Section.astro";
+
+<IsSupportedChipGroup chips={{PostgreSQL: true, MySQL: true, SQLite: true}}/>
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql), [SQLite](/docs/get-started-sqlite) 시작하기
+- [Select statement](/docs/select)와 [select from subquery](/docs/select#select-from-subquery)
+- [Inner join](/docs/joins#inner-join)
+- [Filter operators](/docs/operators)와 [exists function](/docs/operators#exists)
+</Prerequisites>
+
+이 가이드는 최소 하나의 관련 child row가 있는 parent row를 선택하는 방법을 보여 줍니다. 아래에는 schema 정의와 해당 데이터베이스 데이터 예시가 있습니다:
+
+  ```ts copy
+  import { integer, pgTable, serial, text } from 'drizzle-orm/pg-core';
+
+  export const users = pgTable('users', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    email: text('email').notNull(),
+  });
+
+  export const posts = pgTable('posts', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    content: text('content').notNull(),
+    userId: integer('user_id').notNull().references(() => users.id),
+  });
+  ```
+
+<CodeTabs items={["users.db", "posts.db"]}>
+  <CodeTab>
+    ```plaintext
+    +----+------------+----------------------+
+    | id |    name    |        email         |
+    +----+------------+----------------------+
+    |  1 | John Doe   | john_doe@email.com   |
+    +----+------------+----------------------+
+    |  2 | Tom Brown  | tom_brown@email.com  |
+    +----+------------+----------------------+
+    |  3 | Nick Smith | nick_smith@email.com |
+    +----+------------+----------------------+
+    ```
+  </CodeTab>
+
+  <CodeTab>
+    ```plaintext
+    +----+--------+-----------------------------+---------+
+    | id | title  |          content            | user_id |
+    +----+--------+-----------------------------+---------+
+    |  1 | Post 1 | This is the text of post 1  |       1 |
+    +----+--------+-----------------------------+---------+
+    |  2 | Post 2 | This is the text of post 2  |       1 |
+    +----+--------+-----------------------------+---------+
+    |  3 | Post 3 | This is the text of post 3  |       3 |
+    +----+--------+-----------------------------+---------+
+    ```
+  </CodeTab>
+</CodeTabs>
+
+관련 child row가 하나 이상 있는 parent row를 선택하면서 child 데이터도 함께 가져오려면 `.innerJoin()` 메서드를 사용할 수 있습니다:
+
+<Section>
+  ```ts copy {12}
+  import { eq } from 'drizzle-orm';
+  import { users, posts } from './schema';
+
+  const db = drizzle(...);
+
+  await db
+    .select({
+      user: users,
+      post: posts,
+    })
+    .from(users)
+    .innerJoin(posts, eq(users.id, posts.userId));
+    .orderBy(users.id);
+  ```
+
+  ```sql
+  select users.*, posts.* from users
+    inner join posts on users.id = posts.user_id
+    order by users.id;
+  ```
+
+  ```ts
+  // result data, there is no user with id 2 because he has no posts
+  [
+    {
+      user: { id: 1, name: 'John Doe', email: 'john_doe@email.com' },
+      post: {
+        id: 1,
+        title: 'Post 1',
+        content: 'This is the text of post 1',
+        userId: 1
+      }
+    },
+    {
+      user: { id: 1, name: 'John Doe', email: 'john_doe@email.com' },
+      post: {
+        id: 2,
+        title: 'Post 2',
+        content: 'This is the text of post 2',
+        userId: 1
+      }
+    },
+    {
+      user: { id: 3, name: 'Nick Smith', email: 'nick_smith@email.com' },
+      post: {
+        id: 3,
+        title: 'Post 3',
+        content: 'This is the text of post 3',
+        userId: 3
+      }
+    }
+  ]
+  ```
+</Section>
+
+관련 child row가 하나 이상 있는 parent row만 선택하려면 아래처럼 `exists()` 함수와 subquery를 사용할 수 있습니다:
+
+<Section>
+```ts copy {8}
+import { eq, exists, sql } from 'drizzle-orm';
+
+const sq = db
+  .select({ id: sql`1` })
+  .from(posts)
+  .where(eq(posts.userId, users.id));
+
+await db.select().from(users).where(exists(sq));
+```
+
+```sql
+select * from users where exists (select 1 from posts where posts.user_id = users.id);
+```
+
+```ts
+// result data, there is no user with id 2 because he has no posts
+[
+  { id: 1, name: 'John Doe', email: 'john_doe@email.com' },
+  { id: 3, name: 'Nick Smith', email: 'nick_smith@email.com' }
+]
+```
+</Section>

@@ -1,0 +1,118 @@
+---
+title: PostgreSQL 확장 기능
+---
+
+import Callout from '@mdx-ko/Callout.astro';
+import Section from '@mdx-ko/Section.astro';
+
+### `pg_vector`
+
+<Callout>
+Drizzle 스키마 내부에서 확장 기능을 생성하기 위한 전용 코드는 없습니다. 벡터 타입, 인덱스, 쿼리를 사용하고 있다면, `pg_vector` 확장이 설치된 PostgreSQL 데이터베이스를 사용 중이라고 가정합니다.
+</Callout>
+
+[`pg_vector`](https://github.com/pgvector/pgvector)는 Postgres를 위한 오픈 소스 벡터 유사도 검색 기능입니다.
+
+벡터를 나머지 데이터와 함께 저장할 수 있습니다. 다음을 지원합니다:
+
+- 정확한 최근접 이웃 검색과 근사 최근접 이웃 검색
+- single-precision, half-precision, binary, sparse vectors
+- L2 distance, inner product, cosine distance, L1 distance, Hamming distance, Jaccard distance
+
+#### Column Types
+
+**`vector`**
+
+벡터를 다른 데이터와 함께 저장합니다.
+
+자세한 내용은 공식 pg_vector 문서 **[docs.](https://github.com/pgvector/pgvector)**를 참고하세요.
+
+<Section>
+```ts
+const table = pgTable('table', {
+    embedding: vector({ dimensions: 3 })
+})
+```
+
+```sql
+CREATE TABLE IF NOT EXISTS "table" (
+	"embedding" vector(3)
+);
+```
+</Section>
+
+#### Indexes
+
+이제 `pg_vector`에 대한 인덱스를 지정하고, 조회, 정렬 등에 `pg_vector` 함수를 활용할 수 있습니다.
+
+`pg_vector` 문서의 인덱스 예시 몇 가지를 Drizzle 방식으로 옮겨 보겠습니다.
+
+#### L2 distance, Inner product, Cosine distance
+
+```ts
+// CREATE INDEX ON items USING hnsw (embedding vector_l2_ops);
+// CREATE INDEX ON items USING hnsw (embedding vector_ip_ops);
+// CREATE INDEX ON items USING hnsw (embedding vector_cosine_ops);
+
+const table = pgTable('items', {
+    embedding: vector({ dimensions: 3 })
+}, (table) => [
+  index('l2_index').using('hnsw', table.embedding.op('vector_l2_ops'))
+  index('ip_index').using('hnsw', table.embedding.op('vector_ip_ops'))
+  index('cosine_index').using('hnsw', table.embedding.op('vector_cosine_ops'))
+])
+```
+
+#### L1 distance, Hamming distance, Jaccard distance - pg_vector 0.7.0에 추가됨
+
+```ts
+// CREATE INDEX ON items USING hnsw (embedding vector_l1_ops);
+// CREATE INDEX ON items USING hnsw (embedding bit_hamming_ops);
+// CREATE INDEX ON items USING hnsw (embedding bit_jaccard_ops);
+
+const table = pgTable('table', {
+    embedding: vector({ dimensions: 3 })
+}, (table) => [
+  index('l1_index').using('hnsw', table.embedding.op('vector_l1_ops'))
+  index('hamming_index').using('hnsw', table.embedding.op('bit_hamming_ops'))
+  index('bit_jaccard_index').using('hnsw', table.embedding.op('bit_jaccard_ops'))
+])
+```
+
+#### Helper Functions
+
+쿼리 시에는 벡터용으로 미리 정의된 함수를 사용하거나 SQL template operator를 이용해 직접 함수를 만들 수 있습니다.
+
+다음 helper들도 사용할 수 있습니다:
+
+```ts
+import { l2Distance, l1Distance, innerProduct, 
+          cosineDistance, hammingDistance, jaccardDistance } from 'drizzle-orm'
+
+l2Distance(table.column, [3, 1, 2]) // table.column <-> '[3, 1, 2]'
+l1Distance(table.column, [3, 1, 2]) // table.column <+> '[3, 1, 2]'
+
+innerProduct(table.column, [3, 1, 2]) // table.column <#> '[3, 1, 2]'
+cosineDistance(table.column, [3, 1, 2]) // table.column <=> '[3, 1, 2]'
+
+hammingDistance(table.column, '101') // table.column <~> '101'
+jaccardDistance(table.column, '101') // table.column <%> '101'
+```
+
+`pg_vector`에 사용할 다른 함수가 있다면, 이미 제공되는 함수의 구현을 참고해 그대로 만들 수 있습니다. 예시는 다음과 같습니다.
+
+```ts
+export function l2Distance(
+  column: SQLWrapper | AnyColumn,
+  value: number[] | string[] | TypedQueryBuilder<any> | string,
+): SQL {
+  if (is(value, TypedQueryBuilder<any>) || typeof value === 'string') {
+    return sql`${column} <-> ${value}`;
+  }
+  return sql`${column} <-> ${JSON.stringify(value)}`;
+}
+```
+
+원하는 이름으로 정의하고 operator만 바꾸면 됩니다. 이 예시는 numbers array, strings array, string, 심지어 select query까지 허용합니다. 원하는 타입을 새로 만들어도 되고, 기여해서 PR을 보내 주셔도 좋습니다.
+
+#### Examples

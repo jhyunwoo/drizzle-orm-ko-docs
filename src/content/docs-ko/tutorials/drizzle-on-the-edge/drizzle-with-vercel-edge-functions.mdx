@@ -1,0 +1,704 @@
+---
+title: "Vercel Edge Functions로 Drizzle 사용하기"
+date: "2024-04-17"
+svgs: ['<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="9.63139" height="40.8516" rx="4.8157" transform="matrix(0.873028 0.48767 -0.497212 0.867629 43.4805 67.3037)" fill="currentColor"></rect><rect width="9.63139" height="40.8516" rx="4.8157" transform="matrix(0.873028 0.48767 -0.497212 0.867629 76.9395 46.5342)" fill="currentColor"></rect><rect width="9.63139" height="40.8516" rx="4.8157" transform="matrix(0.873028 0.48767 -0.497212 0.867629 128.424 46.5352)" fill="currentColor"></rect><rect width="9.63139" height="40.8516" rx="4.8157" transform="matrix(0.873028 0.48767 -0.497212 0.867629 94.957 67.3037)" fill="currentColor"></rect></svg>', <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 5L4 19H20L12 5Z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>]
+---
+
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import Npm from '@mdx-ko/Npm.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import Section from "@mdx-ko/Section.astro";
+import Callout from "@mdx-ko/Callout.astro";
+
+이 튜토리얼에서는 [Vercel Functions](https://vercel.com/docs/functions)를 [Edge runtime](https://vercel.com/docs/functions/runtimes/edge-runtime)에서 사용할 때 Drizzle ORM을 사용하는 방법을 보여줍니다.
+
+<Prerequisites>
+- 최신 버전의 [Vercel CLI](https://vercel.com/docs/cli#)가 설치되어 있어야 합니다.
+<Npm>
+-g vercel
+</Npm>
+
+- 기존 Next.js 프로젝트가 있거나 아래 명령으로 새 프로젝트를 만들어야 합니다:
+
+```bash copy
+npx create-next-app@latest --typescript
+```
+- Drizzle ORM과 [Drizzle kit](/docs/kit-overview)이 설치되어 있어야 합니다. 아래 명령을 실행하면 설치할 수 있습니다:
+<Npm>
+drizzle-orm
+-D drizzle-kit
+</Npm>
+</Prerequisites>
+
+<Callout type="warning">
+설치 중 의존성 해결 문제가 발생하는 경우:
+
+React Native를 사용하지 않는다면 `--force` 또는 `--legacy-peer-deps`로 강제 설치하면 문제가 해결됩니다. React Native를 사용 중이라면 사용 중인 React Native 버전과 호환되는 정확한 React 버전을 사용해야 합니다.
+</Callout>
+
+## Edge 호환 driver
+
+Vercel Edge functions에서 Drizzle ORM을 사용할 때는 함수가 Node.js runtime이 아니라 [Edge runtime](https://vercel.com/docs/functions/runtimes/edge-runtime)에서 실행되므로, 표준 Node.js API에 몇 가지 제한이 있어 edge 호환 driver를 사용해야 합니다.
+
+데이터베이스 dialect에 따라 아래 driver 중 하나를 선택할 수 있습니다:
+
+- [Neon serverless driver](/docs/get-started-postgresql#neon)는 TCP 대신 HTTP 또는 WebSockets를 통해 serverless 및 edge 환경에서 Neon Postgres 데이터베이스에 쿼리할 수 있게 해줍니다. `Neon Postgres`에 연결할 때는 이 driver를 권장합니다.
+- [Vercel Postgres driver](/docs/get-started-postgresql#vercel-postgres)는 `Neon serverless driver` 위에 구축되어 있습니다. `Vercel Postgres`에 연결할 때는 이 driver를 권장합니다.
+- [PlanetScale serverless driver](/docs/get-started-mysql#planetscale)는 모든 `MySQL` 클라이언트에 접근해 HTTP 연결을 통해 쿼리를 실행할 수 있게 해주며, 이는 일반적으로 클라우드 공급자에 의해 차단되지 않습니다.
+- [libSQL client](/docs/get-started-sqlite#turso)는 [Turso](https://docs.turso.tech/introduction) 데이터베이스에 접근할 수 있게 해줍니다.
+
+## 탐색
+
+- [Neon Postgres](/docs/tutorials/drizzle-with-vercel-edge-functions#neon-postgres) 섹션으로 바로 이동합니다.
+- [Vercel Postgres](/docs/tutorials/drizzle-with-vercel-edge-functions#vercel-postgres) 섹션으로 바로 이동합니다.
+- [PlanetScale](/docs/tutorials/drizzle-with-vercel-edge-functions#planetscale) 섹션으로 바로 이동합니다.
+- [Turso](/docs/tutorials/drizzle-with-vercel-edge-functions#turso) 섹션으로 바로 이동합니다.
+
+### Neon Postgres
+
+<Steps>
+#### `@neondatabase/serverless` driver 설치
+
+`@neondatabase/serverless` driver를 설치합니다:
+
+<Npm>
+@neondatabase/serverless
+</Npm>
+
+#### 테이블 만들기
+
+`src/db` 디렉터리에 `schema.ts` 파일을 만들고 테이블 스키마를 선언합니다:
+
+```typescript copy filename="src/db/schema.ts"
+import { pgTable, serial, text } from "drizzle-orm/pg-core";
+
+export const usersTable = pgTable('users_table', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  age: text('age').notNull(),
+  email: text('email').notNull().unique(),
+})
+```
+
+#### Drizzle config 파일 설정
+
+**Drizzle config**는 [Drizzle Kit](/docs/kit-overview)에서 사용되며 데이터베이스 연결, migration 폴더, 스키마 파일에 대한 모든 정보를 담고 있는 설정 파일입니다.
+
+프로젝트 루트에 `drizzle.config.ts` 파일을 만들고 아래 내용을 추가합니다:
+
+```typescript copy filename="drizzle.config.ts"
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  schema: "./src/db/schema.ts",
+  dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.POSTGRES_URL!,
+  },
+});
+```
+
+`.env` 파일에서 데이터베이스 연결 문자열을 설정합니다:
+
+```plaintext filename=".env"
+POSTGRES_URL="postgres://[user]:[password]@[host]-[region].aws.neon.tech:5432/[db-name]?sslmode=[ssl-mode]"
+```
+
+#### 데이터베이스에 변경 사항 적용
+
+`drizzle-kit generate` 명령으로 migration을 생성한 다음 `drizzle-kit migrate` 명령으로 실행할 수 있습니다.
+
+migration 생성:
+
+```bash copy
+npx drizzle-kit generate
+```
+
+이 migration은 `drizzle.config.ts`에 지정한 대로 `drizzle` 디렉터리에 저장됩니다. 이 디렉터리에는 데이터베이스 스키마를 업데이트하는 데 필요한 SQL 파일과, migration 단계별 스키마 스냅샷을 저장하는 `meta` 폴더가 포함됩니다.
+
+생성되는 migration 예시는 다음과 같습니다:
+
+```sql
+CREATE TABLE IF NOT EXISTS "users_table" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"age" text NOT NULL,
+	"email" text NOT NULL,
+	CONSTRAINT "users_table_email_unique" UNIQUE("email")
+);
+```
+
+migration 실행:
+
+```bash copy
+npx drizzle-kit migrate
+```
+
+대신 [Drizzle kit push command](/docs/kit-overview#prototyping-with-db-push)를 사용해 변경 사항을 데이터베이스에 직접 push할 수도 있습니다:
+
+```bash copy
+npx drizzle-kit push
+```
+
+<Callout type="warning">Push 명령은 로컬 개발 환경에서 새로운 스키마 설계나 변경 사항을 빠르게 테스트해야 하는 상황에 적합하며, migration 파일을 관리하는 오버헤드 없이 빠르게 반복 작업할 수 있게 해줍니다.</Callout>
+
+#### 데이터베이스에 Drizzle ORM 연결
+
+`src/db` 디렉터리에 `index.ts` 파일을 만들고 데이터베이스 설정을 구성합니다:
+
+```typescript copy filename="src/db/index.ts"
+import { drizzle } from 'drizzle-orm/neon-serverless';
+
+
+export const db = drizzle(process.env.POSTGRES_URL!)
+```
+
+#### API route 만들기
+
+`src/app/api/hello` 디렉터리에 `route.ts` 파일을 만듭니다. 함수 작성 방법에 대해서는 [Functions API Reference](https://vercel.com/docs/functions/functions-api-reference)와 [Vercel Functions Quickstart](https://vercel.com/docs/functions/quickstart)를 참고하세요.
+
+```ts copy filename="src/app/api/hello/route.ts"
+import { db } from "@/db";
+import { usersTable } from "@/db/schema";
+import { NextResponse } from "next/server";
+
+export const dynamic = 'force-dynamic'; // static by default, unless reading the request
+export const runtime = 'edge' // specify the runtime to be edge
+
+export async function GET(request: Request) {
+  const users = await db.select().from(usersTable)
+
+  return NextResponse.json({ users, message: 'success' });
+}
+```
+
+#### 로컬에서 코드 테스트하기
+
+로컬 개발 서버를 시작하려면 `next dev` 명령을 실행합니다:
+
+```bash copy
+npx next dev
+```
+
+브라우저에서 생성한 경로 `(e.g. /api/hello)`로 이동합니다:
+
+```plaintext
+{
+  "users": [],
+  "message": "success"
+}
+```
+
+#### 프로젝트 배포
+
+[대시보드](https://vercel.com/new)에서 새 프로젝트를 만들거나 `vercel` 명령을 실행해 프로젝트를 배포합니다:
+
+```bash copy
+vercel
+```
+
+`POSTGRES_URL` 환경 변수를 추가합니다:
+
+```bash copy
+vercel env add POSTGRES_URL
+```
+
+환경 변수를 반영하도록 프로젝트를 다시 배포합니다:
+
+```bash copy
+vercel
+```
+</Steps>
+
+마지막으로, 배포된 프로젝트의 URL을 사용하고 만들어 둔 경로 `(e.g. /api/hello)`로 이동하여 edge function에 접근할 수 있습니다.
+
+### Vercel Postgres
+
+[문서](/docs/get-started-postgresql#vercel-postgres)에서 Vercel Postgres 클라이언트와 함께 Drizzle을 사용하는 빠른 시작 가이드를 확인할 수 있습니다.
+
+<Steps>
+#### `@vercel/postgres` driver 설치
+
+`@vercel/postgres` driver를 설치합니다:
+
+<Npm>
+@vercel/postgres
+</Npm>
+
+#### 테이블 만들기
+
+`src/db` 디렉터리에 `schema.ts` 파일을 만들고 테이블 스키마를 선언합니다:
+
+```typescript copy filename="src/db/schema.ts"
+import { pgTable, serial, text } from "drizzle-orm/pg-core";
+
+export const usersTable = pgTable('users_table', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  age: text('age').notNull(),
+  email: text('email').notNull().unique(),
+})
+```
+
+#### Drizzle config 파일 설정
+
+**Drizzle config**는 [Drizzle Kit](/docs/kit-overview)에서 사용되며 데이터베이스 연결, migration 폴더, 스키마 파일에 대한 모든 정보를 담고 있는 설정 파일입니다.
+
+프로젝트 루트에 `drizzle.config.ts` 파일을 만들고 아래 내용을 추가합니다:
+
+```typescript copy filename="drizzle.config.ts"
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  schema: "./src/db/schema.ts",
+  dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.POSTGRES_URL!,
+  },
+});
+```
+
+`.env` 파일에서 데이터베이스 연결 문자열을 설정합니다:
+
+```plaintext filename=".env"
+POSTGRES_URL="postgres://[user]:[password]@[host]-[region].aws.neon.tech:5432/[db-name]?sslmode=[ssl-mode]"
+```
+
+#### 데이터베이스에 변경 사항 적용
+
+`drizzle-kit generate` 명령으로 migration을 생성한 다음 `drizzle-kit migrate` 명령으로 실행할 수 있습니다.
+
+migration 생성:
+
+```bash copy
+npx drizzle-kit generate
+```
+
+이 migration은 `drizzle.config.ts`에 지정한 대로 `drizzle` 디렉터리에 저장됩니다. 이 디렉터리에는 데이터베이스 스키마를 업데이트하는 데 필요한 SQL 파일과, migration 단계별 스키마 스냅샷을 저장하는 `meta` 폴더가 포함됩니다.
+
+생성되는 migration 예시는 다음과 같습니다:
+
+```sql
+CREATE TABLE IF NOT EXISTS "users_table" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"age" text NOT NULL,
+	"email" text NOT NULL,
+	CONSTRAINT "users_table_email_unique" UNIQUE("email")
+);
+```
+
+migration 실행:
+
+```bash copy
+npx drizzle-kit migrate
+```
+
+대신 [Drizzle kit push command](/docs/kit-overview#prototyping-with-db-push)를 사용해 변경 사항을 데이터베이스에 직접 push할 수도 있습니다:
+
+```bash copy
+npx drizzle-kit push
+```
+
+<Callout type="warning">Push 명령은 로컬 개발 환경에서 새로운 스키마 설계나 변경 사항을 빠르게 테스트해야 하는 상황에 적합하며, migration 파일을 관리하는 오버헤드 없이 빠르게 반복 작업할 수 있게 해줍니다.</Callout>
+
+#### 데이터베이스에 Drizzle ORM 연결
+
+`src/db` 디렉터리에 `index.ts` 파일을 만들고 데이터베이스 설정을 구성합니다:
+
+```typescript copy filename="src/db/index.ts"
+import { drizzle } from 'drizzle-orm/vercel-postgres';
+
+export const db = drizzle()
+```
+
+#### API route 만들기
+
+`src/app/api/hello` 디렉터리에 `route.ts`를 만듭니다. 함수 작성 방법에 대해서는 [Functions API Reference](https://vercel.com/docs/functions/functions-api-reference)와 [Vercel Functions Quickstart](https://vercel.com/docs/functions/quickstart)를 참고하세요.
+
+```ts copy filename="src/app/api/hello/route.ts"
+
+import { db } from "@/db";
+import { usersTable } from "@/db/schema";
+import { NextResponse } from "next/server";
+
+export const dynamic = 'force-dynamic'; // static by default, unless reading the request
+export const runtime = 'edge' // specify the runtime to be edge
+
+export async function GET(request: Request) {
+  const users = await db.select().from(usersTable)
+
+  return NextResponse.json({ users, message: 'success' });
+}
+```
+
+#### 로컬에서 코드 테스트하기
+
+로컬 개발 서버를 시작하려면 `next dev` 명령을 실행합니다:
+
+```bash copy
+npx next dev
+```
+
+브라우저에서 생성한 경로 `(e.g. /api/hello)`로 이동합니다:
+
+```plaintext
+{
+  "users": [],
+  "message": "success"
+}
+```
+
+#### 프로젝트 배포
+
+[대시보드](https://vercel.com/new)에서 새 프로젝트를 만들거나 `vercel` 명령을 실행해 프로젝트를 배포합니다:
+
+```bash copy
+vercel
+```
+
+`POSTGRES_URL` 환경 변수를 추가합니다:
+
+```bash copy
+vercel env add POSTGRES_URL
+```
+
+환경 변수를 반영하도록 프로젝트를 다시 배포합니다:
+
+```bash copy
+vercel
+```
+</Steps>
+
+마지막으로, 배포된 프로젝트의 URL을 사용하고 만들어 둔 경로 `(e.g. /api/hello)`로 이동하여 edge function에 접근할 수 있습니다.
+
+### PlanetScale
+
+이 튜토리얼에서는 [PlanetScale MySQL](https://planetscale.com)을 사용합니다.
+
+<Steps>
+#### `@planetscale/database` driver 설치
+
+`@planetscale/database` driver를 설치합니다:
+
+<Npm>
+@planetscale/database
+</Npm>
+
+#### 테이블 만들기
+
+`src/db` 디렉터리에 `schema.ts` 파일을 만들고 테이블 스키마를 선언합니다:
+
+```typescript copy filename="src/db/schema.ts"
+import { mysqlTable, serial, text } from "drizzle-orm/mysql-core";
+
+export const usersTable = mysqlTable('users_table', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  age: text('age').notNull(),
+  email: text('email').notNull().unique(),
+})
+```
+
+#### Drizzle config 파일 설정
+
+**Drizzle config**는 [Drizzle Kit](/docs/kit-overview)에서 사용되며 데이터베이스 연결, migration 폴더, 스키마 파일에 대한 모든 정보를 담고 있는 설정 파일입니다.
+
+프로젝트 루트에 `drizzle.config.ts` 파일을 만들고 아래 내용을 추가합니다:
+
+```typescript copy filename="drizzle.config.ts"
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  schema: "./src/db/schema.ts",
+  dialect: "mysql",
+  dbCredentials: {
+    url: process.env.MYSQL_URL!,
+  },
+});
+```
+
+`.env` 파일에서 데이터베이스 연결 문자열을 설정합니다:
+
+```plaintext filename=".env"
+MYSQL_URL="mysql://[user]:[password]@[host].[region].psdb.cloud/[db-name]?ssl={'rejectUnauthorized':[ssl-rejectUnauthorized]}"
+```
+
+#### 데이터베이스에 변경 사항 적용
+
+`drizzle-kit generate` 명령으로 migration을 생성한 다음 `drizzle-kit migrate` 명령으로 실행할 수 있습니다.
+
+migration 생성:
+
+```bash copy
+npx drizzle-kit generate
+```
+
+이 migration은 `drizzle.config.ts`에 지정한 대로 `drizzle` 디렉터리에 저장됩니다. 이 디렉터리에는 데이터베이스 스키마를 업데이트하는 데 필요한 SQL 파일과, migration 단계별 스키마 스냅샷을 저장하는 `meta` 폴더가 포함됩니다.
+
+생성되는 migration 예시는 다음과 같습니다:
+
+```sql
+CREATE TABLE `users_table` (
+	`id` serial AUTO_INCREMENT NOT NULL,
+	`name` text NOT NULL,
+	`age` text NOT NULL,
+	`email` text NOT NULL,
+	CONSTRAINT `users_table_id` PRIMARY KEY(`id`),
+	CONSTRAINT `users_table_email_unique` UNIQUE(`email`)
+);
+```
+
+migration 실행:
+
+```bash copy
+npx drizzle-kit migrate
+```
+
+대신 [Drizzle kit push command](/docs/kit-overview#prototyping-with-db-push)를 사용해 변경 사항을 데이터베이스에 직접 push할 수도 있습니다:
+
+```bash copy
+npx drizzle-kit push
+```
+
+<Callout type="warning">Push 명령은 로컬 개발 환경에서 새로운 스키마 설계나 변경 사항을 빠르게 테스트해야 하는 상황에 적합하며, migration 파일을 관리하는 오버헤드 없이 빠르게 반복 작업할 수 있게 해줍니다.</Callout>
+
+#### 데이터베이스에 Drizzle ORM 연결
+
+`src/db` 디렉터리에 `index.ts` 파일을 만들고 데이터베이스 설정을 구성합니다:
+
+```typescript copy filename="src/db/index.ts"
+import { drizzle } from "drizzle-orm/planetscale-serverless";
+
+export const db = drizzle(process.env.MYSQL_URL!)
+```
+
+#### API route 만들기
+
+`src/app/api/hello` 디렉터리에 `route.ts`를 만듭니다. 함수 작성 방법에 대해서는 [Functions API Reference](https://vercel.com/docs/functions/functions-api-reference)와 [Vercel Functions Quickstart](https://vercel.com/docs/functions/quickstart)를 참고하세요.
+
+```ts copy filename="src/app/api/hello/route.ts"
+import { db } from "@/app/db/db";
+import { usersTable } from "@/app/db/schema";
+import { NextResponse } from "next/server";
+
+export const dynamic = 'force-dynamic'; // static by default, unless reading the request
+export const runtime = 'edge' // specify the runtime to be edge
+
+export async function GET(request: Request) {
+  const users = await db.select().from(usersTable)
+
+  return NextResponse.json({ users, message: 'success' });
+}
+```
+
+#### 로컬에서 코드 테스트하기
+
+로컬 개발 서버를 시작하려면 `next dev` 명령을 실행합니다:
+
+```bash copy
+npx next dev
+```
+
+브라우저에서 생성한 경로 `(e.g. /api/hello)`로 이동합니다:
+
+```plaintext
+{
+  "users": [],
+  "message": "success"
+}
+```
+
+#### 프로젝트 배포
+
+[대시보드](https://vercel.com/new)에서 새 프로젝트를 만들거나 `vercel` 명령을 실행해 프로젝트를 배포합니다:
+
+```bash copy
+vercel
+```
+
+`MYSQL_URL` 환경 변수를 추가합니다:
+
+```bash copy
+vercel env add MYSQL_URL
+```
+
+환경 변수를 반영하도록 프로젝트를 다시 배포합니다:
+
+```bash copy
+vercel
+```
+</Steps>
+
+마지막으로, 배포된 프로젝트의 URL을 사용하고 만들어 둔 경로 `(e.g. /api/hello)`로 이동하여 edge function에 접근할 수 있습니다.
+
+### Turso
+
+문서에서 Turso와 함께 Drizzle을 사용하는 [빠른 시작 가이드](/docs/get-started-sqlite#turso) 또는 [튜토리얼](/docs/tutorials/drizzle-with-turso)을 확인할 수 있습니다.
+
+<Steps>
+#### `@libsql/client` driver 설치
+
+`@libsql/client` driver를 설치합니다:
+
+<Npm>
+@libsql/client
+</Npm>
+
+#### 테이블 만들기
+
+`src/db` 디렉터리에 `schema.ts` 파일을 만들고 테이블 스키마를 선언합니다:
+
+```typescript copy filename="src/db/schema.ts"
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+export const usersTable = sqliteTable('users_table', {
+  id: integer('id').primaryKey(),
+  name: text('name').notNull(),
+  age: text('age').notNull(),
+  email: text('email').notNull().unique(),
+})
+```
+
+#### Drizzle config 파일 설정
+
+**Drizzle config**는 [Drizzle Kit](/docs/kit-overview)에서 사용되며 데이터베이스 연결, migration 폴더, 스키마 파일에 대한 모든 정보를 담고 있는 설정 파일입니다.
+
+프로젝트 루트에 `drizzle.config.ts` 파일을 만들고 아래 내용을 추가합니다:
+
+```typescript copy filename="drizzle.config.ts"
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  schema: "./src/db/schema.ts",
+  dialect: "turso",
+  dbCredentials: {
+    url: process.env.TURSO_CONNECTION_URL!,
+    authToken: process.env.TURSO_AUTH_TOKEN!,
+  },
+});
+```
+
+`.env` 파일에서 데이터베이스 연결 문자열과 auth token을 설정합니다:
+
+```plaintext filename=".env"
+TURSO_CONNECTION_URL="libsql://[db-name].turso.io"
+TURSO_AUTH_TOKEN="[auth-token]"
+```
+
+#### 데이터베이스에 변경 사항 적용
+
+`drizzle-kit generate` 명령으로 migration을 생성한 다음 `drizzle-kit migrate` 명령으로 실행할 수 있습니다.
+
+migration 생성:
+
+```bash copy
+npx drizzle-kit generate
+```
+
+이 migration은 `drizzle.config.ts`에 지정한 대로 `drizzle` 디렉터리에 저장됩니다. 이 디렉터리에는 데이터베이스 스키마를 업데이트하는 데 필요한 SQL 파일과, migration 단계별 스키마 스냅샷을 저장하는 `meta` 폴더가 포함됩니다.
+
+생성되는 migration 예시는 다음과 같습니다:
+
+```sql
+CREATE TABLE `users_table` (
+	`id` integer PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`age` text NOT NULL,
+	`email` text NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `users_table_email_unique` ON `users_table` (`email`);
+```
+
+migration 실행:
+
+```bash copy
+npx drizzle-kit migrate
+```
+
+대신 [Drizzle kit push command](/docs/kit-overview#prototyping-with-db-push)를 사용해 변경 사항을 데이터베이스에 직접 push할 수도 있습니다:
+
+```bash copy
+npx drizzle-kit push
+```
+
+<Callout type="warning">Push 명령은 로컬 개발 환경에서 새로운 스키마 설계나 변경 사항을 빠르게 테스트해야 하는 상황에 적합하며, migration 파일을 관리하는 오버헤드 없이 빠르게 반복 작업할 수 있게 해줍니다.</Callout>
+
+#### 데이터베이스에 Drizzle ORM 연결
+
+`src/db` 디렉터리에 `index.ts` 파일을 만들고 데이터베이스 설정을 구성합니다:
+
+```typescript copy filename="src/db/index.ts"
+import { drizzle } from 'drizzle-orm/libsql';
+
+export const db = drizzle({ connection: {
+  url: process.env.TURSO_CONNECTION_URL!,
+  authToken: process.env.TURSO_AUTH_TOKEN!,
+}})
+```
+
+#### API route 만들기
+
+`src/app/api/hello` 디렉터리에 `route.ts`를 만듭니다. 함수 작성 방법에 대해서는 [Functions API Reference](https://vercel.com/docs/functions/functions-api-reference)와 [Vercel Functions Quickstart](https://vercel.com/docs/functions/quickstart)를 참고하세요.
+
+```ts copy filename="src/app/api/hello/route.ts"
+import { db } from "@/app/db/db";
+import { usersTable } from "@/app/db/schema";
+import { NextResponse } from "next/server";
+
+export const dynamic = 'force-dynamic'; // static by default, unless reading the request
+export const runtime = 'edge' // specify the runtime to be edge
+
+export async function GET(request: Request) {
+  const users = await db.select().from(usersTable)
+
+  return NextResponse.json({ users, message: 'success' });
+}
+```
+
+#### 로컬에서 코드 테스트하기
+
+로컬 개발 서버를 시작하려면 `next dev` 명령을 실행합니다:
+
+```bash copy
+npx next dev
+```
+
+브라우저에서 생성한 경로 `(e.g. /api/hello)`로 이동합니다:
+
+```plaintext
+{
+  "users": [],
+  "message": "success"
+}
+```
+
+#### 프로젝트 배포
+
+[대시보드](https://vercel.com/new)에서 새 프로젝트를 만들거나 `vercel` 명령을 실행해 프로젝트를 배포합니다:
+
+```bash copy
+vercel
+```
+
+`TURSO_CONNECTION_URL` 환경 변수를 추가합니다:
+
+```bash copy
+vercel env add TURSO_CONNECTION_URL
+```
+
+`TURSO_AUTH_TOKEN` 환경 변수를 추가합니다:
+
+```bash copy
+vercel env add TURSO_AUTH_TOKEN
+```
+
+환경 변수를 반영하도록 프로젝트를 다시 배포합니다:
+
+```bash copy
+vercel
+```
+</Steps>
+
+마지막으로, 배포된 프로젝트의 URL을 사용하고 만들어 둔 경로 `(e.g. /api/hello)`로 이동하여 edge function에 접근할 수 있습니다.

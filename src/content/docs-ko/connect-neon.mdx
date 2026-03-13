@@ -1,0 +1,154 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from "@mdx-ko/Section.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> Neon Postgres
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- Neon serverless database - [웹사이트](https://neon.tech)
+- Neon serverless driver - [문서](https://neon.tech/docs/serverless/serverless-driver) & [GitHub](https://github.com/neondatabase/serverless)
+- Drizzle PostgreSQL drivers - [문서](/docs/get-started-postgresql)
+</Prerequisites>
+
+Drizzle은 `neon-http`와 `neon-websockets` 드라이버를 사용한 Neon 연결을 네이티브하게 지원합니다. 이 드라이버들은 내부적으로 **neon-serverless** 드라이버를 사용합니다.  
+  
+`neon-http`와 `neon-websockets` 드라이버를 사용하면 TCP 대신 HTTP나 WebSockets를 통해 serverless 환경에서 Neon 데이터베이스에 접근할 수 있습니다.  
+HTTP를 통한 쿼리는 단일의 비대화형 트랜잭션에서 더 빠릅니다.  
+  
+세션 또는 대화형 트랜잭션 지원이 필요하거나, `pg` 드라이버를 완전히 호환되는 드롭인 대체제로 사용해야 한다면 WebSocket 기반의 `neon-serverless` 드라이버를 사용할 수 있습니다.  
+[Postgres](/docs/get-started/postgresql-new)를 사용해 Neon 데이터베이스에 직접 연결할 수도 있습니다.
+  
+Cloudflare Worker에서 Neon Serverless 드라이버와 함께 Drizzle ORM을 사용하는 예시는 **[여기](http://driz.link/neon-cf-ex)**를 참고하세요.  
+서버 환경에서 Neon을 사용하려면, Neon의 **[공식 Node.js 문서](https://neon.tech/docs/guides/node)**에 설명된 것처럼 PostgresJS 드라이버를 사용할 수 있습니다. 자세한 내용은 **[문서](#postgresjs)**를 참고하세요.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm @neondatabase/serverless
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+<CodeTabs items={["Neon HTTP", "Neon Websockets", "node-postgres", "postgres.js"]}>
+```typescript
+import { drizzle } from 'drizzle-orm/neon-http';
+
+const db = drizzle(process.env.DATABASE_URL);
+
+const result = await db.execute('select 1');
+```
+<Section> 
+```typescript 
+import { drizzle } from 'drizzle-orm/neon-serverless';
+
+const db = drizzle(process.env.DATABASE_URL);
+
+const result = await db.execute('select 1');
+```
+```typescript
+// For Node.js - make sure to install the 'ws' and 'bufferutil' packages
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from 'ws';
+
+const db = drizzle({
+  connection: process.env.DATABASE_URL,
+  ws: ws,
+});
+
+const result = await db.execute('select 1');
+```
+<Callout type="warning" emoji="⚙️"> 
+Node.js처럼 `WebSocket` 전역이 정의되지 않은 환경에서 WebSockets를 사용하려면 추가 설정이 필요합니다. 
+프로젝트 의존성에 `ws`와 `bufferutil` 패키지를 추가하고, Drizzle 설정에서 `ws`를 지정하세요. 
+</Callout>
+</Section> 
+```typescript 
+// Make sure to install the 'pg' package 
+import { drizzle } from 'drizzle-orm/node-postgres';
+
+const db = drizzle(process.env.DATABASE_URL);
+ 
+const result = await db.execute('select 1');
+```
+```typescript
+// Make sure to install the 'postgres' package
+import { drizzle } from 'drizzle-orm/postgres-js';
+
+const db = drizzle(process.env.DATABASE_URL);
+
+const result = await db.execute('select 1');
+```
+</CodeTabs>
+
+기존 드라이버를 직접 제공해야 하는 경우:
+
+<CodeTabs items={["Neon HTTP", "Neon Websockets", "node-postgres", "postgres.js"]}>
+```typescript
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+
+const sql = neon(process.env.DATABASE_URL!);
+const db = drizzle({ client: sql });
+
+const result = await db.execute('select 1');
+```
+<Section> 
+```typescript 
+import { Pool } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle({ client: pool })
+
+const result = await db.execute('select 1');
+```
+```typescript
+// For Node.js - make sure to install the 'ws' and 'bufferutil' packages
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+
+neonConfig.webSocketConstructor = ws;
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle({ client: pool })
+
+const result = await db.execute('select 1');
+```
+<Callout type="warning" emoji="⚙️"> 
+Node.js처럼 `WebSocket` 전역이 정의되지 않은 환경에서 WebSockets를 사용하려면 추가 설정이 필요합니다. 
+프로젝트 의존성에 `ws`와 `bufferutil` 패키지를 추가하고, Drizzle 설정에서 `ws`를 지정하세요. 
+</Callout>
+</Section> 
+```typescript 
+// Make sure to install the 'pg' package 
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+const db = drizzle({ client: pool });
+ 
+const result = await db.execute('select 1');
+```
+```typescript
+// Make sure to install the 'postgres' package
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+
+const queryClient = postgres(process.env.DATABASE_URL);
+const db = drizzle({ client: queryClient });
+
+const result = await db.execute('select 1');
+```
+</CodeTabs>
+
+#### 다음 단계는?
+
+<WhatsNextPostgres/>

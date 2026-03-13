@@ -1,0 +1,74 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+import ConnectSingleStore from '@mdx-ko/get-started/singlestore/ConnectSingleStore.mdx';
+import UpdateSchema from '@mdx-ko/get-started/singlestore/UpdateSchema.mdx';
+import IntrospectSingleStore from '@mdx-ko/get-started/singlestore/IntrospectSingleStore.mdx';
+import QueryDatabase from '@mdx-ko/get-started/QueryDatabase.mdx';
+import QueryDatabaseUpdated from '@mdx-ko/get-started/QueryDatabaseUpdated.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import TransferCode from '@mdx-ko/get-started/TransferCode.mdx';
+
+<Breadcrumbs/>
+
+# 기존 프로젝트에서 Drizzle과 SingleStore 시작하기
+
+<Prerequisites>  
+  - **dotenv** - 환경 변수를 관리하는 패키지 - [여기에서 읽어보세요](https://www.npmjs.com/package/dotenv)
+  - **tsx** - TypeScript 파일을 실행하는 패키지 - [여기에서 읽어보세요](https://tsx.is/)
+  - **mysql2** - SingleStore 데이터베이스를 조회하는 패키지 - [여기에서 읽어보세요](https://github.com/sidorares/node-mysql2)
+</Prerequisites>
+
+<FileStructure/>
+
+#### 1단계 - `mysql2` 패키지 설치
+
+<InstallPackages lib='mysql2'/>
+
+#### 2단계 - 연결 변수 설정
+
+<SetupEnv env_variable='DATABASE_URL' />
+
+#### 3단계 - Drizzle config 파일 설정
+
+<SetupConfig dialect='singlestore' env_variable='DATABASE_URL'/>
+
+#### 4단계 - 데이터베이스 introspect 하기
+
+<IntrospectSingleStore/>
+
+#### 5단계 - 실제 스키마 파일로 코드 옮기기
+
+<TransferCode/>
+
+#### 6단계 - 데이터베이스에 Drizzle ORM 연결하기
+
+<ConnectSingleStore/>
+
+#### 7단계 - 데이터베이스 조회하기
+
+<QueryDatabase dialect='singlestore' env_variable='DATABASE_URL'/>
+
+#### 8단계 - index.ts 파일 실행하기
+
+<RunFile/>
+
+#### 9단계 - 테이블 스키마 업데이트하기(선택 사항)
+
+<UpdateSchema/>
+
+#### 10단계 - 데이터베이스에 변경 사항 적용하기(선택 사항)
+
+<ApplyChanges/>
+
+#### 11단계 - 새 필드를 포함해 데이터베이스 조회하기(선택 사항)
+
+<QueryDatabaseUpdated dialect='singlestore' env_variable='DATABASE_URL' />

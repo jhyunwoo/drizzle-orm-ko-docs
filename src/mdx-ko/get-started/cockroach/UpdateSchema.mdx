@@ -1,0 +1,14 @@
+테이블 스키마를 업데이트하려면 `schema.ts` 파일에서 업데이트할 수 있습니다. 예를 들어, `users_table`에 새 열 `phone`을 추가해 보겠습니다.
+```typescript copy filename="src/db/schema.ts" {9}
+import { cockroachTable, unique, int4, varchar } from "drizzle-orm/cockroach-core"
+
+export const users = cockroachTable("users", {
+	id: int4().primaryKey().generatedAlwaysAsIdentity({ name: "users_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
+	name: varchar({ length: 255 }).notNull(),
+	age: integer().notNull(),
+	email: varchar({ length: 255 }).notNull(),
+	phone: varchar(),
+}, (table) => [
+	unique("users_email_unique").on(table.email)
+]);
+```

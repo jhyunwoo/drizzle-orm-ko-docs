@@ -1,0 +1,116 @@
+---
+const articles = await Astro.glob("../../content/docs-ko/latest-releases/*.mdx");
+
+const filteredArticles = articles.sort(
+  (a, b) =>
+    new Date(b.frontmatter.pubDate).getTime() - new Date(a.frontmatter.pubDate).getTime(),
+);
+
+const options = {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+};
+---
+
+<div class="learn__title-block">
+  <div class="latest-releases_title">최신 릴리스</div>
+</div>
+<div class="latest-updates__cards">
+  {
+    filteredArticles.map((update) => (
+      <a href={`/docs/${update.file.split("src/content/docs-ko/").at(-1)?.replace(/\.mdx$/, "")}`} class="latest-updates__card">
+        <div class="latest-updates__card_title">{update.frontmatter.title}</div>
+        <div class="latest-updates__card_date">
+          {new Date(update.frontmatter.pubDate).toLocaleDateString("ko-KR", options)}
+        </div>
+        <div class="latest-updates__card_description">{update.frontmatter.description}</div>
+        <div class="latest-updates__card_link">더 읽기</div>
+      </a>
+    ))
+  }
+</div>
+
+<style>
+  html.dark .latest-releases_title {
+    color: #c8c9ca;
+  }
+
+  .latest-releases_title {
+    color: #0f172a;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 48px;
+    letter-spacing: -0.48px;
+    margin-bottom: 16px;
+    margin-top: 8px;
+  }
+
+  .latest-updates__cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+    width: 100%;
+  }
+
+  html.dark .latest-updates__card {
+    background-color: #171717;
+    border: 1px solid #303030;
+  }
+
+  .latest-updates__card {
+    padding: 24px;
+    border-radius: 8px;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    line-height: normal;
+    text-decoration: none;
+  }
+
+  html.dark .latest-updates__card_title {
+    color: #c8c9ca;
+  }
+
+  .latest-updates__card_title {
+    color: #222124;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.198px;
+  }
+
+  html.dark .latest-updates__card_date {
+    color: #c4c5c6;
+  }
+
+  .latest-updates__card_date {
+    color: #7e868c;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: -0.132px;
+    margin-top: 8px;
+  }
+
+  html.dark .latest-updates__card_description {
+    color: #c4c5c6;
+  }
+
+  .latest-updates__card_description {
+    color: #5f5f61;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: -0.176px;
+    margin-top: 16px;
+  }
+
+  .learn__title-block {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .latest-updates__card_link {
+    display: none;
+  }
+</style>

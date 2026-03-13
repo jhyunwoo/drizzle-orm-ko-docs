@@ -1,0 +1,137 @@
+---
+title: 쿼리에서 조건부 필터 사용하기
+slug: conditional-filters-in-query
+---
+import Section from "@mdx-ko/Section.astro";
+import IsSupportedChipGroup from "@mdx-ko/IsSupportedChipGroup.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+
+<IsSupportedChipGroup chips={{PostgreSQL: true, MySQL: true, SQLite: true}}/>
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql), [SQLite](/docs/get-started-sqlite) 시작하기;
+- [Select statement](/docs/select);
+- [Filtering](/docs/select#filtering)과 [Filter operators](/docs/operators);
+</Prerequisites>
+
+쿼리에 조건부 필터를 전달하려면 아래처럼 `.where()` 메서드와 논리 연산자를 사용할 수 있습니다:
+
+<Section>
+```ts copy {9}
+import { ilike } from 'drizzle-orm';
+
+const db = drizzle(...)
+
+const searchPosts = async (term?: string) => {
+  await db
+    .select()
+    .from(posts)
+    .where(term ? ilike(posts.title, term) : undefined);
+};
+
+await searchPosts();
+await searchPosts('AI');
+```
+
+
+```sql
+select * from posts;
+select * from posts where title ilike 'AI';
+```
+</Section>
+
+조건부 필터를 조합하려면 아래처럼 `and()` 또는 `or()` 연산자를 사용할 수 있습니다:
+
+<Section>
+```ts copy {7,8,9,10,11,12,13}
+import { and, gt, ilike, inArray } from 'drizzle-orm';
+
+const searchPosts = async (term?: string, categories: string[] = [], views = 0) => {
+  await db
+    .select()
+    .from(posts)
+    .where(
+      and(
+        term ? ilike(posts.title, term) : undefined,
+        categories.length > 0 ? inArray(posts.category, categories) : undefined,
+        views > 100 ? gt(posts.views, views) : undefined,
+      ),
+    );
+};
+
+await searchPosts();
+await searchPosts('AI', ['Tech', 'Art', 'Science'], 200);
+```
+
+```sql
+select * from posts;
+select * from posts
+  where (
+    title ilike 'AI'
+    and category in ('Tech', 'Science', 'Art')
+    and views > 200
+  );
+```
+</Section>
+
+프로젝트의 서로 다른 부분에서 조건부 필터를 조합해야 한다면, 변수를 만들어 필터를 push한 뒤 `.where()` 메서드에서 `and()` 또는 `or()` 연산자와 함께 사용할 수 있습니다:
+
+```ts copy {7,10}
+import { SQL, ... } from 'drizzle-orm';
+
+const searchPosts = async (filters: SQL[]) => {
+  await db
+    .select()
+    .from(posts)
+    .where(and(...filters));
+};
+
+const filters: SQL[] = [];
+filters.push(ilike(posts.title, 'AI'));
+filters.push(inArray(posts.category, ['Tech', 'Art', 'Science']));
+filters.push(gt(posts.views, 200));
+
+await searchPosts(filters);
+```
+
+Drizzle은 유용하고 유연한 API를 제공하므로, 직접 커스텀 해법을 만들 수 있습니다. 아래는 커스텀 필터 연산자를 만드는 방법입니다:
+
+<Section>
+
+```ts copy {5,14}
+import { AnyColumn, ... } from 'drizzle-orm';
+
+// length less than
+const lenlt = (column: AnyColumn, value: number) => {
+  return sql`length(${column}) < ${value}`;
+};
+
+const searchPosts = async (maxLen = 0, views = 0) => {
+  await db
+    .select()
+    .from(posts)
+    .where(
+      and(
+        maxLen ? lenlt(posts.title, maxLen) : undefined,
+        views > 100 ? gt(posts.views, views) : undefined,
+      ),
+    );
+};
+
+await searchPosts(8);
+await searchPosts(8, 200);
+```
+
+```sql
+select * from posts where length(title) < 8;
+select * from posts where (length(title) < 8 and views > 200);
+```
+</Section>
+
+Drizzle 필터 연산자는 내부적으로는 단순한 SQL expression입니다. 아래는 Drizzle에서 `lt` 연산자가 구현된 예시입니다:
+
+```js
+const lt = (left, right) => {
+  return sql`${left} < ${bindIfParam(right, left)}`; // bindIfParam is internal magic function
+};
+```

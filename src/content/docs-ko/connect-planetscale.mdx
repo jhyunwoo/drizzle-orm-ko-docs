@@ -1,0 +1,69 @@
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from "@mdx-ko/Callout.astro";
+import Tabs from "@mdx-ko/Tabs.astro";
+import Tab from "@mdx-ko/Tab.astro";
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+# Drizzle \<\> PlanetScale MySQL
+
+<Prerequisites>
+
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- PlanetScale 데이터베이스 - [웹사이트](https://planetscale.com/docs)
+- PlanetScale http 드라이버 - [GitHub](https://github.com/planetscale/database-js)
+- Drizzle MySQL 드라이버 - [docs](/docs/get-started-mysql)
+
+</Prerequisites>
+
+PlanetScale은 MySQL (Vitess)과 PostgreSQL 데이터베이스를 모두 제공합니다. 이 페이지는 PlanetScale MySQL 연결을 다룹니다.
+
+PlanetScale Postgres는 [PlanetScale Postgres connection guide](/docs/connect-planetscale-postgres)를 참고하세요.
+
+Drizzle ORM을 사용하면 공식 **[`database-js`](https://github.com/planetscale/database-js)**
+드라이버를 통해 http로 PlanetScale MySQL에 접근할 수 있으며,
+우리의 `drizzle-orm/planetscale-serverless` 패키지로 serverless 환경과 serverfull 환경 모두에서 사용할 수 있습니다.
+
+또한 `mysql2` 드라이버를 사용해 TCP로 PlanetScale MySQL에 접근할 수도 있습니다. 자세한 내용은 **[여기](/docs/get-started-mysql)**를 참고하세요.
+
+#### 1단계 - 패키지 설치
+
+<Npm>drizzle-orm @planetscale/database -D drizzle-kit</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+
+```typescript copy"
+import { drizzle } from "drizzle-orm/planetscale-serverless";
+
+const db = drizzle({ connection: {
+  host: process.env["DATABASE_HOST"],
+  username: process.env["DATABASE_USERNAME"],
+  password: process.env["DATABASE_PASSWORD"],
+}});
+
+const response = await db.select().from(...)
+```
+
+기존 드라이버를 직접 제공해야 하는 경우
+
+```typescript copy"
+import { drizzle } from "drizzle-orm/planetscale-serverless";
+import { Client } from "@planetscale/database";
+
+const client = new Client({
+  host: process.env["DATABASE_HOST"],
+  username: process.env["DATABASE_USERNAME"],
+  password: process.env["DATABASE_PASSWORD"],
+});
+
+const db = drizzle({ client });
+```
+
+PlanetScale 공식 **[MySQL courses](https://planetscale.com/courses/mysql-for-developers)**도 꼭 확인해 보세요.
+정말 훌륭하다고 생각합니다 🙌
+
+#### 다음 단계
+
+<WhatsNextPostgres />

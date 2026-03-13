@@ -1,0 +1,102 @@
+import IsSupportedChipGroup from '@mdx-ko/IsSupportedChipGroup.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Section from '@mdx-ko/Section.astro';
+
+# SQL Delete
+테이블의 모든 row를 삭제할 수 있습니다:
+```typescript copy
+await db.delete(users);
+```
+그리고 filter와 조건을 사용해 삭제할 수도 있습니다:
+```typescript copy
+await db.delete(users).where(eq(users.name, 'Dan'));
+```
+
+### Limit
+
+<IsSupportedChipGroup chips={{ 'PostgreSQL': false, 'MySQL': true, 'SQLite': true, 'SingleStore': true, 'MSSQL': false, 'CockroachDB': false }} />
+
+`.limit()`을 사용해 query에 `limit` clause를 추가할 수 있습니다. 예를 들면:
+<Section>
+```typescript
+await db.delete(users).where(eq(users.name, 'Dan')).limit(2);
+```
+```sql
+delete from "users" where "users"."name" = $1 limit $2;
+```
+</Section>
+
+### Order By
+`.orderBy()`를 사용해 query에 `order by` clause를 추가하여 지정한 field로 결과를 정렬할 수 있습니다:
+<Section>
+```typescript
+import { asc, desc } from 'drizzle-orm';
+
+await db.delete(users).where(eq(users.name, 'Dan')).orderBy(users.name);
+await db.delete(users).where(eq(users.name, 'Dan')).orderBy(desc(users.name));
+
+// order by multiple fields
+await db.delete(users).where(eq(users.name, 'Dan')).orderBy(users.name, users.name2);
+await db.delete(users).where(eq(users.name, 'Dan')).orderBy(asc(users.name), desc(users.name2));
+```
+```sql
+delete from "users" where "users"."name" = $1 order by "name";
+delete from "users" where "users"."name" = $1 order by "name" desc;
+
+delete from "users" where "users"."name" = $1 order by "name", "name2";
+delete from "users" where "users"."name" = $1 order by "name" asc, "name2" desc;
+```
+</Section>
+
+### Returning
+<IsSupportedChipGroup chips={{ 'PostgreSQL': true, 'SQLite': true, 'MySQL': false, 'SingleStore': false, 'MSSQL': false, 'CockroachDB': true }} />
+PostgreSQL과 SQLite에서는 row를 삭제하고 그 값을 다시 받을 수 있습니다:
+```typescript copy
+const deletedUser = await db.delete(users)
+  .where(eq(users.name, 'Dan'))
+  .returning();
+
+// partial return
+const deletedUserIds: { deletedId: number }[] = await db.delete(users)
+  .where(eq(users.name, 'Dan'))
+  .returning({ deletedId: users.id });
+```
+
+## Output
+<IsSupportedChipGroup chips={{ 'MSSQL': true }} />
+PostgreSQL과 SQLite에서는 다음과 같이 row를 insert하고 그 값을 다시 받을 수 있습니다:
+```typescript copy
+await db.insert(users).values({ name: "Dan" }).output();
+
+// partial return
+await db.insert(users).values({ name: "Partial Dan" }).output({ insertedId: users.id });
+```
+
+## WITH DELETE clause
+
+<Callout>
+  [select](/docs/select#with-clause), [insert](/docs/insert#with-insert-clause), [update](/docs/update#with-update-clause)에서 WITH statement를 사용하는 방법을 확인하세요
+</Callout>
+
+`with` clause를 사용하면 common table expression (CTE)라고 불리는 더 작은 subquery로 나누어 복잡한 query를 단순화하는 데 도움이 됩니다:
+<Section>
+```typescript copy
+const averageAmount = db.$with('average_amount').as(
+  db.select({ value: sql`avg(${orders.amount})`.as('value') }).from(orders)
+);
+
+const result = await db
+	.with(averageAmount)
+	.delete(orders)
+	.where(gt(orders.amount, sql`(select * from ${averageAmount})`))
+	.returning({
+		id: orders.id
+	});
+```
+```sql
+with "average_amount" as (select avg("amount") as "value" from "orders") 
+delete from "orders" 
+where "orders"."amount" > (select * from "average_amount") 
+returning "id"
+```
+</Section>

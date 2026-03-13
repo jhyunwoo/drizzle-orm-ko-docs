@@ -1,0 +1,41 @@
+---
+title: DrizzleORM v0.31.1 릴리스
+pubDate: 2024-06-04
+description: React Live Queries 🎉
+---
+
+# 새 기능
+
+## Live Queries 🎉
+
+> ### Drizzle + Expo에 대한 전체 설명은 [discussions](https://github.com/drizzle-team/drizzle-orm/discussions/2447)를 참고하세요
+
+`v0.31.1`부터 Drizzle ORM은 Expo SQLite Live Queries를 네이티브하게 지원합니다!
+필요한 데이터베이스 변경 사항을 감지하고 데이터베이스 쿼리를 자동으로 다시 실행하는 네이티브 `useLiveQuery` React Hook을 구현했습니다. SQL-like 쿼리와 Drizzle Queries 모두에서 동작합니다.
+
+```tsx
+import { useLiveQuery, drizzle } from 'drizzle-orm/expo-sqlite';
+import { openDatabaseSync } from 'expo-sqlite';
+import { users } from './schema';
+import { Text } from 'react-native';
+
+const expo = openDatabaseSync('db.db', { enableChangeListener: true }); // <-- enable change listeners
+const db = drizzle(expo);
+
+const App = () => {
+  // Re-renders automatically when data changes
+  const { data } = useLiveQuery(db.select().from(users));
+
+  // const { data, error, updatedAt } = useLiveQuery(db.query.users.findFirst());
+  // const { data, error, updatedAt } = useLiveQuery(db.query.users.findMany());
+
+
+  return <Text>{JSON.stringify(data)}</Text>;
+};
+
+export default App;
+```
+
+저희는 ORM 자체의 API를 변경하지 않고, 기존 React Hook API 관례를 유지하기로 했습니다. 그래서 `db.select().from(users).useLive()`나 `db.query.users.useFindMany()` 대신 `useLiveQuery(databaseQuery)` 형태를 제공합니다.
+
+또한 `React Query`와 `Electric SQL`의 관례를 따라, 명시적이고 간결한 오류 처리를 위해 hook의 결과로 `data`, `error`, `updatedAt` 필드를 제공하기로 결정했습니다.

@@ -1,0 +1,26 @@
+---
+title: DrizzleORM v0.30.10 릴리스
+pubDate: 2024-05-01
+description: 모든 WHERE 표현식에 `.if()` 함수를 추가했고 AWS DataAPI에서 세션 `.all`, `.values`, `.execute` 함수의 내부 매핑을 수정했습니다.
+---
+
+## 새 기능
+
+### 🎉 모든 WHERE 표현식에 `.if()` 함수 추가
+
+#### 조회 수가 100보다 큰 모든 게시물 선택하기
+
+```ts {5}
+async function someFunction(views = 0) {
+  await db
+    .select()
+    .from(posts)
+    .where(gt(posts.views, views).if(views > 100));
+}
+```
+
+## 버그 수정
+
+- AWS DataAPI에서 세션 `.all`, `.values`, `.execute` 함수의 내부 매핑을 수정했습니다
+
+AWS DataAPI로 시작하는 방법은 [documentation](/docs/get-started-postgresql#aws-data-api)의 가이드를 참고하세요.

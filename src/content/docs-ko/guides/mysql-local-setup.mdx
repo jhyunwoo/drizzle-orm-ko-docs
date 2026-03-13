@@ -1,0 +1,86 @@
+---
+title: MySQL 로컬 설정 방법
+slug: mysql-local-setup
+---
+
+import Section from "@mdx-ko/Section.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Steps from '@mdx-ko/Steps.astro';
+
+<Prerequisites>
+- 최신 [Docker Desktop](https://www.docker.com/products/docker-desktop/)을 설치하세요. 운영체제에 맞는 안내를 따르세요.
+</Prerequisites>
+
+<Steps>
+
+#### MySQL 이미지 가져오기
+
+Docker Hub에서 최신 MySQL 이미지를 가져옵니다. 터미널에서 `docker pull mysql`을 실행해 Docker Hub의 최신 MySQL 버전을 내려받으세요:
+
+```bash copy
+docker pull mysql
+```
+
+원한다면 특정 태그를 붙여 원하는 버전을 내려받을 수도 있습니다:
+
+```bash copy
+docker pull mysql:8.2
+```
+
+MySQL 이미지 다운로드가 끝나면 Docker Desktop의 `Images` 탭에서 확인하거나 `docker images`를 실행해 확인할 수 있습니다:
+
+<Section>
+```bash copy
+docker images
+```
+
+```plaintext
+REPOSITORY   TAG       IMAGE ID       CREATED        SIZE
+mysql        latest    4e8a34aea708   2 months ago   609MB
+```
+</Section>
+
+#### MySQL 인스턴스 시작하기
+
+새 MySQL 컨테이너를 시작하려면 다음 명령을 실행합니다:
+
+```bash copy
+docker run --name drizzle-mysql -e MYSQL_ROOT_PASSWORD=mypassword -d -p 3306:3306 mysql
+```
+
+1. `--name` 옵션은 컨테이너 이름을 `drizzle-mysql`로 지정합니다.
+2. `-e MYSQL_ROOT_PASSWORD=` 옵션은 `MYSQL_ROOT_PASSWORD` 환경 변수를 지정한 값으로 설정합니다. 이는 root 사용자의 비밀번호입니다.
+3. `-d` 플래그는 컨테이너를 detached mode(백그라운드)로 실행합니다.
+4. `-p` 옵션은 컨테이너의 `3306` 포트를 호스트 머신의 `3306` 포트에 매핑하여, 이 포트를 통해 호스트 시스템에서 MySQL에 접근할 수 있게 합니다.
+5. `mysql` 인자는 컨테이너에 사용할 이미지를 지정합니다. `mysql:8.2` 같은 다른 버전도 지정할 수 있습니다.
+
+다음과 같은 다른 파라미터도 지정할 수 있습니다:
+
+1. `-e MYSQL_DATABASE=`는 컨테이너 생성 시 새 데이터베이스를 만듭니다. 기본값은 `mysql`입니다.
+2. `-e MYSQL_USER=`와 `-e MYSQL_PASSWORD=`는 컨테이너 생성 시 비밀번호가 있는 새 사용자를 만듭니다. 다만 `root` 사용자를 위해서는 여전히 `MYSQL_ROOT_PASSWORD`를 지정해야 합니다.
+
+컨테이너가 실행 중인지 확인하려면 Docker Desktop의 `Containers` 탭을 보거나 `docker ps` 명령을 사용하세요:
+
+```plaintext
+CONTAINER ID   IMAGE         COMMAND                  CREATED          STATUS          PORTS                               NAMES
+19506a8dc12b   mysql         "docker-entrypoint.s…"   4 seconds ago    Up 3 seconds    33060/tcp, 0.0.0.0:3306->3306/tcp   drizzle-mysql
+```
+
+#### 데이터베이스 URL 설정
+
+MySQL 데이터베이스에 연결하려면 데이터베이스 URL을 제공해야 합니다. URL 형식은 다음과 같습니다:
+
+```plaintext
+mysql://<user>:<password>@<host>:<port>/<database>
+```
+
+placeholder를 실제 값으로 바꾸어야 합니다. 예를 들어 위에서 만든 컨테이너의 경우 URL은 다음과 같습니다:
+
+```plaintext
+mysql://root:mypassword@localhost:3306/mysql
+```
+
+이제 애플리케이션에서 이 URL을 사용해 데이터베이스에 연결할 수 있습니다.
+</Steps>

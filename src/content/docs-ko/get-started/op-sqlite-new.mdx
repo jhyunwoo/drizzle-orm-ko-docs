@@ -1,0 +1,241 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Npx from '@mdx-ko/Npx.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import TransferCode from '@mdx-ko/get-started/TransferCode.mdx';
+import QueryDatabase from '@mdx-ko/get-started/QueryDatabase.mdx';
+import QueryDatabaseUpdated from '@mdx-ko/get-started/QueryDatabaseUpdated.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+import CreateTable from '@mdx-ko/get-started/sqlite/CreateTable.mdx';
+import ConnectLibsql from '@mdx-ko/get-started/sqlite/ConnectLibsql.mdx';
+
+<Breadcrumbs/>
+
+# Drizzle과 OP-SQLite 시작하기
+
+<Prerequisites>  
+  - **OP-SQLite** - react-native용 SQLite 라이브러리 - [여기에서 읽기](https://github.com/OP-Engineering/op-sqlite)
+</Prerequisites>
+
+
+#### Step 1 - Expo 템플릿으로 프로젝트 설정하기
+<Npx>
+create expo-app --template blank-typescript
+</Npx>
+
+이 템플릿에 대한 자세한 내용은 [여기](https://docs.expo.dev/more/create-expo/#create-a-new-project)에서 확인할 수 있습니다.
+
+#### 기본 파일 구조
+
+템플릿을 설치하고 `db` 폴더를 추가하면 다음과 같은 구성을 보게 됩니다. `db/schema.ts` 파일에는 Drizzle 테이블 정의가 있고, `drizzle` 폴더에는 SQL 마이그레이션 파일과 스냅샷이 들어 있습니다.
+
+```plaintext
+📦 <project root>
+ ├ 📂 assets
+ ├ 📂 drizzle
+ ├ 📂 db
+ │  └ 📜 schema.ts
+ ├ 📜 .gitignore
+ ├ 📜 .npmrc
+ ├ 📜 app.json
+ ├ 📜 App.tsx
+ ├ 📜 babel.config.ts
+ ├ 📜 drizzle.config.ts
+ ├ 📜 package.json
+ └ 📜 tsconfig.json
+```
+
+#### Step 2 - 필요한 패키지 설치하기
+<Npm>
+  drizzle-orm @op-engineering/op-sqlite
+  -D drizzle-kit
+</Npm>
+
+#### Step 3 - 데이터베이스에 Drizzle ORM 연결하기
+
+루트 디렉터리에 `App.tsx` 파일을 만들고 연결을 초기화합니다:
+
+```ts
+import { open } from '@op-engineering/op-sqlite';
+import { drizzle } from 'drizzle-orm/op-sqlite';
+
+const opsqliteDb = open({
+  name: 'db',
+});
+
+const db = drizzle(opsqliteDb);
+```
+
+#### Step 4 - 테이블 만들기
+
+`db` 디렉터리에 `schema.ts` 파일을 만들고 테이블을 선언합니다:
+
+```typescript copy filename="src/db/schema.ts"
+import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+export const usersTable = sqliteTable("users_table", {
+  id: int().primaryKey({ autoIncrement: true }),
+  name: text().notNull(),
+  age: int().notNull(),
+  email: text().notNull().unique(),
+});
+```
+
+#### Step 5 - Drizzle config 파일 설정하기
+
+**Drizzle config** - [Drizzle Kit](/docs/kit-overview)에서 사용하는 설정 파일로, 데이터베이스 연결, 마이그레이션 폴더, 스키마 파일에 대한 모든 정보를 담고 있습니다.
+
+프로젝트 루트에 `drizzle.config.ts` 파일을 만들고 다음 내용을 추가합니다:
+
+```ts
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  dialect: 'sqlite',
+  driver: 'expo',
+  schema: './db/schema.ts',
+  out: './drizzle',
+});
+```
+
+#### Step 6 - `metro` config 설정하기
+
+루트 폴더에 `metro.config.js` 파일을 만들고 다음 코드를 추가합니다:
+
+```js copy filename="metro.config.js"
+const { getDefaultConfig } = require('expo/metro-config');
+/** @type {import('expo/metro-config').MetroConfig} */
+const config = getDefaultConfig(__dirname);
+config.resolver.sourceExts.push('sql');
+module.exports = config;
+```
+
+#### Step 7 - `babel` config 업데이트하기
+```js copy filename="babel.config.js"
+module.exports = function(api) {
+  api.cache(true);
+  return {
+    presets: ['babel-preset-expo'],
+    plugins: [["inline-import", { "extensions": [".sql"] }]] // <-- add this
+  };
+};
+```
+
+#### Step 8 - 데이터베이스에 변경 사항 적용하기
+
+Expo에서는 `drizzle-kit generate` 명령으로 마이그레이션을 생성한 뒤, 런타임에서 `drizzle-orm`의 `migrate()` 함수를 사용해 적용해야 합니다.
+
+마이그레이션 생성:
+```bash copy
+npx drizzle-kit generate
+```
+
+#### Step 9 - 마이그레이션 적용 후 DB 조회하기
+
+마이그레이션과 사용자 생성, 조회, 수정, 삭제 쿼리를 포함하도록 `App.tsx` 파일을 작성해 봅시다.
+
+```ts copy
+import { Text, View } from 'react-native';
+import { open } from '@op-engineering/op-sqlite';
+import { useEffect, useState } from 'react';
+import { drizzle } from 'drizzle-orm/op-sqlite';
+import { usersTable } from './db/schema';
+import { useMigrations } from 'drizzle-orm/op-sqlite/migrator';
+import migrations from './drizzle/migrations';
+
+const opsqliteDb = open({
+  name: 'db',
+});
+
+const db = drizzle(opsqliteDb);
+
+export default function App() {
+  const { success, error } = useMigrations(db, migrations);
+  const [items, setItems] = useState<typeof usersTable.$inferSelect[] | null>(null);
+
+  useEffect(() => {
+    if (!success) return;
+
+    (async () => {
+      await db.delete(usersTable);
+
+      await db.insert(usersTable).values([
+        {
+            name: 'John',
+            age: 30,
+            email: 'john@example.com',
+        },
+      ]);
+
+      const users = await db.select().from(usersTable);
+      setItems(users);
+    })();
+  }, [success]);
+
+  if (error) {
+    return (
+      <View>
+        <Text>Migration error: {error.message}</Text>
+      </View>
+    );
+  }
+
+  if (!success) {
+    return (
+      <View>
+        <Text>Migration is in progress...</Text>
+      </View>
+    );
+  }
+
+  if (items === null || items.length === 0) {
+    return (
+      <View>
+        <Text>Empty</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+      }}
+    >
+      {items.map((item) => (
+        <Text key={item.id}>{item.email}</Text>
+      ))}
+    </View>
+  );
+}
+```
+
+#### Step 10 - Expo 앱 prebuild 및 실행하기
+
+<CodeTabs items={['npm', 'yarn', 'pnpm', 'bun']}>
+```bash copy
+npx expo run:ios
+```
+```bash copy
+yarn expo run:ios
+```
+```bash copy
+pnpm expo run:ios
+```
+```bash copy
+bun expo run:ios
+```
+</CodeTabs>

@@ -1,0 +1,169 @@
+import Tabs from '@mdx-ko/Tabs.astro';
+import Tab from '@mdx-ko/Tab.astro';
+import Npm from '@mdx-ko/Npm.astro';
+
+# ESLint Drizzle Plugin
+
+특정 시나리오에서는 타입 체크를 수행하는 것이 불가능하거나, 가능하더라도 에러 메시지를 이해하기 어렵다고 판단되는 경우가 있습니다. 그래서 저희는 권장 규칙을 포함한 ESLint 패키지를 만들기로 했습니다. 이 패키지는 개발 중 중요한 시나리오를 처리할 수 있도록 개발자를 돕는 것을 목표로 합니다.
+
+## 설치
+
+<Npm>
+eslint-plugin-drizzle
+@typescript-eslint/eslint-plugin @typescript-eslint/parser
+</Npm>
+
+## 사용법
+
+**`.eslintrc.yml` 예시**
+```yml
+root: true
+parser: '@typescript-eslint/parser'
+parserOptions:
+  project: './tsconfig.json'
+plugins:
+  - drizzle
+rules:
+  'drizzle/enforce-delete-with-where': "error"
+  'drizzle/enforce-update-with-where': "error"
+```
+
+**전체 설정**
+
+이 플러그인은 모든 규칙을 사용하는 `all` 설정을 내보냅니다. 단, deprecated 규칙은 제외됩니다.
+
+```yml
+root: true
+extends:
+  - "plugin:drizzle/all"
+parser: '@typescript-eslint/parser'
+parserOptions:
+  project: './tsconfig.json'
+plugins:
+  - drizzle
+```
+
+**권장 설정**
+
+현재 시점에서 `all`은 `recommended`와 동일합니다.
+
+```yml
+root: true
+extends:
+  - "plugin:drizzle/recommended"
+parser: '@typescript-eslint/parser'
+parserOptions:
+  project: './tsconfig.json'
+plugins:
+  - drizzle
+```
+
+## 규칙
+
+### **enforce-delete-with-where**
+
+`.delete()` 구문에서 `.where()` 절과 함께 `delete`를 사용하도록 강제합니다. 대부분의 경우 테이블의 모든 행을 삭제할 필요는 없고, 어떤 형태로든 `WHERE` 구문이 필요합니다.
+
+선택적으로 플러그인 옵션에 `drizzleObjectName`을 정의할 수 있으며, 이 값은 `string` 또는 `string[]`를 받을 수 있습니다. 이 기능은 Drizzle이 아닌 객체나 클래스에 `delete` 메서드가 있을 때 유용합니다. 그런 `delete` 메서드도 ESLint 규칙을 트리거할 수 있기 때문입니다. 이를 피하려면 코드베이스에서 사용하는 Drizzle 객체 이름(예: `db`)을 정의해 두면, `delete` 메서드가 그 객체에서 왔을 때만 규칙이 트리거됩니다.
+
+예시, config 1:
+```yml
+rules:
+  'drizzle/enforce-delete-with-where': "error"
+```
+
+```ts
+class MyClass {
+  public delete() {
+    return {}
+  }
+}
+
+const myClassObj = new MyClass();
+
+// ---> Will be triggered by ESLint Rule
+myClassObj.delete()
+
+const db = drizzle(...)
+// ---> Will be triggered by ESLint Rule
+db.delete()
+```
+
+예시, config 2:
+```yml
+rules:
+  'drizzle/enforce-delete-with-where':
+    - "error"
+    - "drizzleObjectName": 
+      - "db"
+```
+```ts
+class MyClass {
+  public delete() {
+    return {}
+  }
+}
+
+const myClassObj = new MyClass();
+
+// ---> Will NOT be triggered by ESLint Rule
+myClassObj.delete()
+
+const db = drizzle(...)
+// ---> Will be triggered by ESLint Rule
+db.delete()
+```
+
+### **enforce-update-with-where**:
+
+`.update()` 구문에서 `.where()` 절과 함께 `update`를 사용하도록 강제합니다. 대부분의 경우 테이블의 모든 행을 업데이트할 필요는 없고, 어떤 형태로든 `WHERE` 구문이 필요합니다.
+
+선택적으로 플러그인 옵션에 `drizzleObjectName`을 정의할 수 있으며, 이 값은 `string` 또는 `string[]`를 받을 수 있습니다. 이 기능은 Drizzle이 아닌 객체나 클래스에 `delete` 메서드가 있을 때 유용합니다. 마찬가지로 `update` 메서드도 ESLint 규칙을 트리거할 수 있습니다. 이를 피하려면 코드베이스에서 사용하는 Drizzle 객체 이름(예: `db`)을 정의해 두면, `delete` 메서드가 그 객체에서 왔을 때만 규칙이 트리거됩니다.
+
+예시, config 1:
+```yml
+rules:
+  'drizzle/enforce-update-with-where': "error"
+```
+
+```ts
+class MyClass {
+  public update() {
+    return {}
+  }
+}
+
+const myClassObj = new MyClass();
+
+// ---> Will be triggered by ESLint Rule
+myClassObj.update()
+
+const db = drizzle(...)
+// ---> Will be triggered by ESLint Rule
+db.update()
+```
+
+예시, config 2:
+```yml
+rules:
+  'drizzle/enforce-update-with-where':
+    - "error"
+    - "drizzleObjectName": 
+      - "db"
+```
+```ts
+class MyClass {
+  public update() {
+    return {}
+  }
+}
+
+const myClassObj = new MyClass();
+
+// ---> Will NOT be triggered by ESLint Rule
+myClassObj.update()
+
+const db = drizzle(...)
+// ---> Will be triggered by ESLint Rule
+db.update()
+```

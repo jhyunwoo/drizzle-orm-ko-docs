@@ -1,0 +1,62 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import ConnectPgLite from '@mdx-ko/get-started/postgresql/ConnectPgLite.mdx'
+import CreateTable from '@mdx-ko/get-started/postgresql/CreateTable.mdx'
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import QueryDatabase from '@mdx-ko/get-started/QueryDatabase.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+
+<Breadcrumbs/>
+
+# Drizzle과 PGlite로 시작하기
+
+<Prerequisites>
+  - **dotenv** - 환경 변수를 관리하는 패키지 - [여기에서 읽기](https://www.npmjs.com/package/dotenv)
+  - **tsx** - TypeScript 파일을 실행하는 패키지 - [여기에서 읽기](https://tsx.is/)
+  - **ElectricSQL** - [웹사이트](https://electric-sql.com/)
+  - **pglite 드라이버** - [문서](https://pglite.dev/) & [GitHub](https://github.com/electric-sql/pglite)
+</Prerequisites>
+
+<FileStructure/>
+
+#### 1단계 - 필요한 패키지 모두 설치
+<InstallPackages lib='@electric-sql/pglite' />
+
+#### 2단계 - 연결 변수 설정
+
+<SetupEnv env_variable='DATABASE_URL' />
+
+#### 3단계 - Drizzle ORM을 데이터베이스에 연결
+
+<ConnectPgLite/>
+
+#### 4단계 - 테이블 생성
+
+<CreateTable />
+
+#### 5단계 - Drizzle config 파일 설정
+
+<SetupConfig dialect='postgresql' env_variable='DATABASE_URL'/>
+
+#### 6단계 - 데이터베이스에 변경 사항 적용
+
+<ApplyChanges />
+
+#### 7단계 - 데이터베이스 시드 및 쿼리
+
+<QueryDatabase dialect='pglite' env_variable='DATABASE_URL'/>
+
+#### 8단계 - index.ts 파일 실행
+
+<RunFile/>

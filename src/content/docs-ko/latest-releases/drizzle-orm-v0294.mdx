@@ -1,0 +1,99 @@
+---
+title: DrizzleORM v0.29.4 릴리스
+pubDate: 2024-02-22
+description: Neon HTTP Batch 지원을 추가했고 database-js의 기본 동작과 인스턴스를 업데이트했습니다.
+---
+import Section from "@mdx-ko/Section.astro";
+
+## 새 기능
+
+### 🎉 Neon HTTP Batch
+
+더 자세한 내용은 [Neon docs](https://neon.tech/docs/serverless/serverless-driver#issue-multiple-queries-with-the-transaction-function)와 [Neon과 Drizzle 시작하기](/docs/get-started-postgresql#neon)를 확인할 수 있습니다.
+
+<Section>
+```ts copy {8}
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { usersTable } from './schema';
+
+const sql = neon(process.env.DRIZZLE_DATABASE_URL!);
+const db = drizzle(sql);
+
+const batchResponse: BatchType = await db.batch([
+	db.insert(usersTable).values({ id: 1, name: 'John' }).returning({
+		id: usersTable.id,
+	}),
+	db.insert(usersTable).values({ id: 2, name: 'Dan' }),
+	db.query.usersTable.findMany({}),
+	db.query.usersTable.findFirst({}),
+]);
+```
+
+```ts
+type BatchType = [
+	{
+		id: number;
+	}[],
+	NeonHttpQueryResult<never>,
+	{
+		id: number;
+		name: string;
+		verified: number;
+		invitedBy: number | null;
+	}[],
+	{
+		id: number;
+		name: string;
+		verified: number;
+		invitedBy: number | null;
+	} | undefined,
+];
+```
+</Section>
+
+## 개선 사항
+
+`database-js`와 `PlanetScale` 팀의 도움으로 `database-js`의 기본 동작과 인스턴스를 업데이트했습니다.
+
+`database-js` core 팀의 제안에 따라 `connect()` 대신 `Client` 인스턴스를 사용해야 합니다:
+
+```ts copy {1,5}
+import { Client } from '@planetscale/database';
+import { drizzle } from 'drizzle-orm/planetscale-serverless';
+
+// create the connection
+const client = new Client({
+	host: process.env['DATABASE_HOST'],
+	username: process.env['DATABASE_USERNAME'],
+	password: process.env['DATABASE_PASSWORD'],
+});
+
+const db = drizzle(client);
+```
+
+> 경고: 이 버전에는 breaking change가 없지만, `0.30.0`부터는 `Client` 인스턴스가 아닌 다른 것을 사용하려고 하면 오류가 발생합니다.
+>
+> 향후 런타임 오류를 방지하려면 지금부터 PlanetScale 연결을 변경하기 시작하는 것을 권장합니다.
+
+이전 문서에서는 `connect()`를 사용하라고 안내했고, drizzle에 전달할 수 있는 것도 이 함수뿐이라고 설명했습니다. 이번 릴리스에서는 `new Client()` 지원을 추가하고, `database-js` 팀의 제안에 따라 `connect()`를 deprecated 처리합니다. 이번 릴리스에서는 `connect()` 함수 결과를 전달하려고 하면 `warning`이 표시됩니다:
+
+**경고 문구**
+
+```mdx
+Warning: You need to pass an instance of Client:
+
+import { Client } from "@planetscale/database";
+
+const client = new Client({
+  host: process.env["DATABASE_HOST"],
+  username: process.env["DATABASE_USERNAME"],
+  password: process.env["DATABASE_PASSWORD"],
+});
+
+const db = drizzle(client);
+
+Starting from version 0.30.0, you will encounter an error if you attempt to use anything other than a Client instance.
+
+Please make the necessary changes now to prevent any runtime errors in the future
+```

@@ -1,0 +1,449 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import SimpleLinkCards from '@mdx-ko/SimpleLinkCards.astro';
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from '@mdx-ko/Section.astro';
+import Flex from "@mdx-ko/Flex.astro"
+import LinksList from "@mdx-ko/LinksList.astro"
+
+# Drizzle Relations 기초
+
+데이터베이스, 특히 관계형 데이터베이스의 세계에서 관계(relations)라는 개념은 절대적으로 핵심적입니다.
+"관계"를 서로 다른 데이터 조각 사이의 연결과 링크라고 생각해 보세요. 현실 세계에서 사람들이 서로 관계를 맺고, 사물이 특정 범주와 연결되듯이,
+데이터베이스도 관계를 사용해 서로 다른 종류의 정보가 어떻게 연결되고 함께 동작하는지를 모델링합니다.
+
+### 정규화
+정규화는 중복(duplication)을 줄이고 데이터 무결성(정확성과 일관성)을 높이기 위해 데이터베이스 안의 데이터를 구조화하는 과정입니다.
+지저분한 서류 캐비닛을 정리하는 일과 비슷하다고 생각해 보세요. 여러 종류의 문서를 하나의 폴더에 마구 넣는 대신,
+논리적인 폴더와 분류로 나누어 두면 모든 것을 더 쉽게 찾고 관리할 수 있습니다.
+
+<Callout collapsed="정규화가 중요한 이유는 무엇인가요?">
+- **데이터 중복 감소**: 고객이 주문할 때마다 고객 주소를 저장한다고 상상해 보세요. 주소가 바뀌면 여러 곳을 모두 수정해야 합니다. 정규화는 정보를 한 곳에 저장하고 다른 곳에서는 이를 참조하도록 도와 반복을 최소화합니다.
+- **데이터 무결성 향상**: 중복이 줄어들수록 불일치가 발생할 가능성도 줄어듭니다. 한 곳의 주소를 수정하면 필요한 모든 곳에서 동일하게 반영됩니다.
+- **이상 현상 방지**: 정규화는 다음과 같은 문제를 예방하는 데 도움을 줍니다.
+  1. **삽입 이상(Insertion Anomalies)**: 관련 정보가 없어서 새 데이터를 추가하기 어려운 문제
+  2. **갱신 이상(Update Anomalies)**: 같은 정보를 여러 행에서 반복해서 수정해야 하는 문제
+  3. **삭제 이상(Deletion Anomalies)**: 겉보기에 관련 없어 보이는 데이터를 삭제하다가 중요한 정보를 잃어버리는 문제
+- **이해와 유지보수 용이성**: 정규화된 데이터베이스는 일반적으로 더 논리적인 구조를 가지며, 이해하고, 질의하고, 수정하기가 더 쉽습니다.
+</Callout>
+
+정규화는 보통 "정규형"(1NF, 2NF, 3NF 그 이상)으로 설명됩니다. 세부 내용은 꽤 기술적으로 느껴질 수 있지만, 핵심 아이디어는 단순합니다.
+
+#### 1NF (제1정규형): `Atomic Values`
+
+**목표**: 각 컬럼은 하나의 더 이상 쪼갤 수 없는 단일 값을 담아야 합니다. 하나의 셀 안에 반복되는 데이터 그룹이 있어서는 안 됩니다.
+
+**예시**: `123 Main St, City, USA` 전체를 하나의 `address` 컬럼에 넣는 대신,
+`street_address`, `city`, `state`, `zip_code` 같은 개별 컬럼으로 나누어 저장합니다.
+
+```sql
+-- Unnormalized (violates 1NF)
+CREATE TABLE Customers_Unnormalized (
+    customer_id INT PRIMARY KEY,
+    name VARCHAR(255),
+    address VARCHAR(255) -- Problem: Multiple pieces of info in one column
+);
+
+-- Normalized to 1NF
+CREATE TABLE Customers_1NF (
+    customer_id INT PRIMARY KEY,
+    name VARCHAR(255),
+    street_address VARCHAR(255),
+    city VARCHAR(255),
+    state VARCHAR(255),
+    zip_code VARCHAR(10)
+);
+```
+
+#### 2NF (제2정규형): `Eliminate Redundant Data Dependent on Part of the Key`
+
+**목표**: 복합 기본 키(두 개 이상의 컬럼으로 이루어진 기본 키)를 가진 테이블에 적용됩니다.
+2NF는 모든 비키 속성이 복합 기본 키의 일부가 아니라 전체 기본 키 전체에 완전히 의존하도록 보장합니다.
+
+`order_items`라는 테이블이 있다고 상상해 봅시다. 이 테이블은 주문 안의 상품을 추적하며, 하나의 주문에 여러 상품이 들어갈 수 있기 때문에
+복합 기본 키 (`order_id`, `product_id`)를 사용합니다. (이 단순화된 예에서는 각 상품이 주문당 한 번만 등장한다고 가정하지만,
+복합 키의 논리는 그대로 적용됩니다.)
+
+<Callout collapsed="시각적 예시 펼치기">
+```sql
+CREATE TABLE OrderItems_Unnormalized (
+    order_id INT,
+    product_id VARCHAR(10),
+    product_name VARCHAR(100),
+    product_price DECIMAL(10, 2),
+    quantity INT,
+    order_date DATE,
+    PRIMARY KEY (order_id, product_id) -- Composite Primary Key
+);
+
+INSERT INTO OrderItems_Unnormalized (order_id, product_id, product_name, product_price, quantity, order_date) VALUES
+(101, 'A123', 'Laptop', 1200.00, 1, '2023-10-27'),
+(101, 'B456', 'Mouse', 25.00, 2, '2023-10-27'),
+(102, 'A123', 'Laptop', 1200.00, 1, '2023-10-28'),
+(103, 'C789', 'Keyboard', 75.00, 1, '2023-10-29');
+```
+```
++------------------------------------------------------------------------------------+
+| OrderItems_Unnormalized                                                            |
++------------------------------------------------------------------------------------+
+| PK (order_id, product_id) | product_name | product_price | quantity | order_date   |
++------------------------------------------------------------------------------------+
+| 101, A123               | Laptop       | 1200.00       | 1        | 2023-10-27     |
+| 101, B456               | Mouse        | 25.00         | 2        | 2023-10-27     |
+| 102, A123               | Laptop       | 1200.00       | 1        | 2023-10-28     |
+| 103, C789               | Keyboard     | 75.00         | 1        | 2023-10-29     |
++------------------------------------------------------------------------------------+
+```
+</Callout>
+
+**문제**: 같은 `product_id`가 다른 주문에 등장할 때마다 `product_name`과 `product_price`가 반복된다는 점에 주목해 보세요.
+이 속성들은 복합 기본 키 (`order_id`, `product_id`) 전체가 아니라 그 일부인 `product_id`에만 의존합니다.
+이것을 부분 함수 종속(partial dependency)이라고 합니다.
+
+2NF를 만족하려면 부분 종속된 속성(`product_name`, `product_price`)을 제거하고,
+그 속성들이 새 테이블의 기본 키에 완전히 종속되도록 별도의 테이블로 분리해야 합니다.
+
+<Callout collapsed="2NF로 정규화: 시각적 설명">
+```
++-------------------+     1:M     +---------------------------+
+| Products          | <---------- | OrderItems_2NF            |
++-------------------+             +---------------------------+
+| PK product_id     |             | PK (order_id, product_id) |
+| product_name      |             | quantity                  |
+| product_price     |             | order_date                |
++-------------------+             | FK product_id             |
+                                  +---------------------------+
+```
+```sql
+CREATE TABLE Products (
+    product_id VARCHAR(10) PRIMARY KEY,
+    product_name VARCHAR(100),
+    product_price DECIMAL(10, 2)
+);
+
+CREATE TABLE OrderItems_2NF (
+    order_id INT,
+    product_id VARCHAR(10),
+    quantity INT,
+    order_date DATE,
+    PRIMARY KEY (order_id, product_id), -- Composite Primary Key remains
+    FOREIGN KEY (product_id) REFERENCES Products(product_id) -- Foreign Key to Products
+);
+
+-- Insert data into Products
+INSERT INTO Products (product_id, product_name, product_price) VALUES
+('A123', 'Laptop', 1200.00),
+('B456', 'Mouse', 25.00),
+('C789', 'Keyboard', 75.00);
+
+-- Insert data into OrderItems_2NF (referencing Products)
+INSERT INTO OrderItems_2NF (order_id, product_id, quantity, order_date) VALUES
+(101, 'A123', 1, '2023-10-27'),
+(101, 'B456', 2, '2023-10-27'),
+(102, 'A123', 1, '2023-10-28'),
+(103, 'C789', 1, '2023-10-29');
+```
+</Callout>
+
+#### 3NF (제3정규형): `Eliminate Redundant Data Dependent on Non-Key Attributes`
+
+**목표**: 다른 비키 속성에 의존하는 데이터를 제거합니다. 즉, 이행적 종속(transitive dependency)을 없애는 것입니다.
+
+**문제**: `suppliers` 테이블이 있다고 해 봅시다. 공급업체 정보를 저장하면서 `zip_code`, `city`, `state`도 함께 저장합니다. 이때 `supplier_id`는 기본 키입니다.
+
+<Callout collapsed="">
+```sql
+CREATE TABLE suppliers (
+    supplier_id VARCHAR(10) PRIMARY KEY,
+    supplier_name VARCHAR(255),
+    zip_code VARCHAR(10),
+    city VARCHAR(100),
+    state VARCHAR(50)
+);
+
+INSERT INTO suppliers (supplier_id, supplier_name, zip_code, city, state) VALUES
+('S1', 'Acme Corp', '12345', 'Anytown', 'NY'),
+('S2', 'Beta Inc', '67890', 'Otherville', 'CA'),
+('S3', 'Gamma Ltd', '12345', 'Anytown', 'NY');
+```
+```
++---------------------------------------------------------------+
+| suppliers                                                     |
++---------------------------------------------------------------+
+| PK supplier_id | supplier_name | zip_code | city      | state |
++---------------------------------------------------------------+
+| S1             | Acme Corp     | 12345    | Anytown    | NY   |
+| S2             | Beta Inc      | 67890    | Otherville | CA   |
+| S3             | Gamma Ltd     | 12345    | Anytown    | NY   |
++---------------------------------------------------------------+
+```
+</Callout>
+
+**해결책**: 3NF를 만족하려면 비키 속성(`zip_code`)에 의존하는 속성(`city`, `state`)을 제거하고,
+비키 속성 자체(`zip_code`)를 키로 사용하는 별도 테이블로 옮겨야 합니다.
+
+<Callout collapsed="3NF로 정규화: 시각적 설명">
+```
++-------------------+     1:M     +--------------------+
+| zip_codes         | <---------- | suppliers          |
++-------------------+             +--------------------+
+| PK zip_code       |             | PK supplier_id     |
+| city              |             | supplier_name      |
+| state             |             | FK zip_code        |
++-------------------+             +--------------------+
+```
+```sql
+CREATE TABLE zip_codes (
+    zip_code VARCHAR(10) PRIMARY KEY,
+    city VARCHAR(100),
+    state VARCHAR(50)
+);
+
+CREATE TABLE suppliers (
+    supplier_id VARCHAR(10) PRIMARY KEY,
+    supplier_name VARCHAR(255),
+    zip_code VARCHAR(10), -- Foreign Key to zip_codes
+    FOREIGN KEY (zip_code) REFERENCES zip_codes(zip_code)
+);
+
+-- Insert data into zip_codes
+INSERT INTO zip_codes (zip_code, city, state) VALUES
+('12345', 'Anytown', 'NY'),
+('67890', 'Otherville', 'CA');
+
+-- Insert data into suppliers (referencing zip_codes)
+INSERT INTO suppliers (supplier_id, supplier_name, zip_code) VALUES
+('S1', 'Acme Corp', '12345'),
+('S2', 'Beta Inc', '67890'),
+('S3', 'Gamma Ltd', '12345');
+```
+</Callout>
+
+<Callout title="알아두면 좋아요">
+`4NF`, `5NF`, `6NF`, `EKNF`, `ETNF`, `DKNF` 같은 추가 정규형도 존재합니다. 여기서는 다루지 않지만,
+가이드와 튜토리얼 섹션에서 이를 위한 전용 튜토리얼 세트를 별도로 만들 예정입니다.
+</Callout>
+
+### 데이터베이스 관계
+#### One-to-One
+
+일대일 관계에서는 `table A`의 각 레코드가 `table B`의 최대 한 레코드와만 연결되고,
+`table B`의 각 레코드도 `table A`의 최대 한 레코드와만 연결됩니다. 매우 직접적이고 배타적인 짝지음입니다.
+
+<Callout collapsed="사용 사례 및 예시">
+1. **사용자 프로필과 사용자 계정 상세 정보**: 웹사이트를 떠올려 보세요. 각 사용자 계정(Users 테이블)은 더 자세한 정보를 담는 하나의 사용자 프로필(UserProfiles 테이블)만 가질 수 있습니다.
+2. **직원과 주차 공간**: Employees 테이블과 ParkingSpaces 테이블을 생각해 보세요. 각 직원은 최대 하나의 주차 공간만 배정받고, 각 주차 공간도 최대 한 명의 직원에게만 배정됩니다.
+3. **구조화를 위한 테이블 분리**: 경우에 따라 더 나은 구조나 보안을 위해 매우 넓은 테이블을 둘로 나누면서 1:1 관계를 유지하기도 합니다.
+
+```
+Table A (One Side)      Table B (One Side)
++---------+             +---------+
+| PK (A)  | <---------> | FK (A)  | (Foreign Key referencing Table A)
+| ...     |             | ...     |
++---------+             +---------+
+```
+</Callout>
+
+
+#### One-to-Many
+
+일대다 관계에서는 `table A`의 한 레코드가 `table B`의 여러 레코드와 연결될 수 있지만,
+`table B`의 각 레코드는 `table A`의 최대 한 레코드와만 연결됩니다. 흔히 "부모-자식" 관계라고 생각하면 됩니다.
+
+<Callout collapsed="사용 사례 및 예시">
+1. **고객과 주문**: 한 고객은 여러 주문을 할 수 있지만, 각 주문은 오직 한 고객에게만 속합니다.
+2. **저자와 책**: 한 저자는 여러 책을 쓸 수 있지만, (단순화를 위해) 각 책은 한 명의 주 저자만 가진다고 가정할 수 있습니다.
+3. **부서와 직원**: 한 부서에는 여러 직원이 속할 수 있지만, 각 직원은 하나의 부서에만 속합니다.
+
+```
+Table A (One Side)      Table B (Many Side)
++---------+             +---------+
+| PK (A)  | ----------> | FK (A)  | (Foreign Key referencing Table A)
+| ...     |             | ...     |
++---------+             +---------+
+     (One)                  (Many)
+```
+</Callout>
+
+#### Many-to-Many
+
+다대다 관계에서는 `table A`의 한 레코드가 `table B`의 여러 레코드와 연결될 수 있고,
+`table B`의 한 레코드도 `table A`의 여러 레코드와 연결될 수 있습니다. 더 복잡한 양방향 관계입니다.
+
+<Callout collapsed="사용 사례 및 예시">
+1. **학생과 강의**: 한 학생은 여러 강의를 수강할 수 있고, 한 강의에는 여러 학생이 등록할 수 있습니다.
+2. **제품과 카테고리**: 하나의 제품은 여러 카테고리에 속할 수 있습니다. (예: "T-shirt"는 "Clothing"과 "Summer Wear" 둘 다에 들어갈 수 있습니다.) 또한 하나의 카테고리에는 여러 제품이 포함될 수 있습니다.
+3. **저자와 책**: 한 권의 책은 여러 저자가 함께 쓸 수 있고, 한 저자도 여러 책을 쓸 수 있습니다.
+
+```
+Table A (Many Side)    Junction Table      Table B (Many Side)
++---------+          +-------------+     +---------+
+| PK (A)  | -------->| FK (A)      | <----| FK (B)  |
+| ...     |          | FK (B)      |     | ...     |
++---------+          +-------------+     +---------+
+     (Many)             (Junction)          (Many)
+```
+</Callout>
+
+다대다 관계는 두 메인 테이블 사이에 외래 키를 직접 두어 구현하지 않습니다.
+대신 `junction` 테이블(연결 테이블, associative table, bridging table이라고도 부릅니다)이 필요합니다.
+이 테이블은 두 테이블의 레코드를 연결하는 중간자 역할을 합니다.
+
+```sql
+-- Table for Students (Many side)
+CREATE TABLE students (
+    iid INT PRIMARY KEY,
+    name VARCHAR(255)
+);
+
+-- Table for Courses (Many side)
+CREATE TABLE courses (
+    id INT PRIMARY KEY,
+    name VARCHAR(255),
+    credits INT
+);
+
+-- Junction Table: Enrollments (Connects Students and Courses - M-M relationship)
+CREATE TABLE enrollments (
+    id INT PRIMARY KEY AUTO_INCREMENT, -- Optional, but good practice for junction tables
+    student_id INT,
+    course_id INT,
+    enrollment_date DATE,
+    -- Composite Foreign Keys (often part of a composite primary key or unique constraint)
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    FOREIGN KEY (course_id) REFERENCES courses(id),
+    UNIQUE KEY (student_id, course_id) -- Prevent duplicate enrollments for the same student and course
+);
+```
+
+### 왜 Foreign Keys가 필요한가요?
+
+외래 키 제약은 단순히 데이터를 검증하는 방법이라고 생각할 수도 있습니다.
+즉, 외래 키 컬럼에 어떤 값을 넣을 때 그 값이 실제로 다른 테이블의 기본 키 컬럼에 존재하는지를 보장하는 수단이라고 말이죠.
+반은 맞는 생각입니다. 외래 키는 실제로 이런 값 검사를 메커니즘으로 사용합니다.
+
+하지만 이 검증이 목적 그 자체는 아니고, 훨씬 더 큰 목적을 달성하기 위한 수단이라는 점을 이해하는 것이 중요합니다.
+외래 키 제약은 본질적으로 다음을 위한 것입니다.
+
+<Callout collapsed="1. 관계를 명시적으로 정의하고 강제하기">
+
+앞서 Customers와 Orders 사이의 `One-to-Many` 관계 같은 예를 살펴봤습니다.
+외래 키는 SQL 언어가 데이터베이스에 다음과 같이 말하는 방식입니다.
+
+> 데이터베이스야, 여기서는 1-M 관계를 강제하고 싶어. Orders 테이블의 customer_id 컬럼에 들어가는 모든 값은
+Customers 테이블의 유효한 customer_id와 반드시 대응해야 해.
+
+이건 단순한 권고가 아니라, 데이터베이스가 적극적으로 강제하는 제약입니다.
+외래 키 덕분에 데이터베이스는 관계를 인지하게 됩니다.
+</Callout>
+
+<Callout collapsed="2. 참조 무결성 유지하기">
+- 이것이 관계 맥락에서 말하는 "데이터 무결성"의 핵심입니다. 참조 무결성이란 테이블 간의 관계가 시간에 따라 일관되고 유효하게 유지된다는 뜻입니다.
+- 외래 키는 고아 레코드(orphaned record)를 방지합니다. 고아 레코드란 무엇일까요? 고객-주문 예시에서 Orders 테이블에는 존재하지만 Customers 테이블의 대응 고객이 없는 주문이 바로 고아 레코드입니다. 외래 키는 이런 상황이 발생하지 않도록 막아 주거나, 주문이 있는 고객을 삭제하려 할 때 어떤 일이 일어날지를 제어합니다. (`CASCADE`, `SET NULL` 등)
+- 고아 레코드를 막는 것이 왜 중요할까요? 고아 레코드는 데이터의 논리 구조를 깨뜨립니다. 고객 없는 주문이 생기면 중요한 맥락을 잃게 됩니다. 쿼리는 신뢰할 수 없게 되고, 리포트는 부정확해지며, 애플리케이션 로직도 무너질 수 있습니다.
+
+**예시**:
+```
+Without a foreign key, you could accidentally delete a customer from the Customers 
+table while their orders still exist in the Orders table. Suddenly, you have orders that point to 
+a customer that no longer exists! A foreign key constraint prevents this data inconsistency.
+```
+</Callout>
+
+<Callout collapsed="3. 데이터베이스 설계와 이해를 돕기">
+- 외래 키는 단지 기술적인 강제 수단만이 아니라, 데이터베이스 설계 문서화의 핵심 요소이기도 합니다.
+- 데이터베이스 스키마에서 외래 키를 보는 순간 바로 이런 사실을 알 수 있습니다.
+`Table 'X' is related to Table 'Y' in this way.`
+관계를 시각적이고 구조적으로 명확하게 보여 주는 지표가 되는 것입니다.
+- 덕분에 데이터베이스는 시간이 지나도 더 쉽게 이해하고, 유지보수하고, 발전시킬 수 있습니다. 새로 합류한 개발자도 데이터베이스의 각 부분이 어떻게 연결되는지 빠르게 파악할 수 있습니다.
+</Callout>
+
+본질적으로 외래 키 제약은 단순히 값을 검사하는 것이 아니라 다음을 위한 것입니다.
+
+1. 데이터 관계의 규칙 정의
+2. 데이터베이스 수준에서 그 규칙을 적극적으로 강제
+3. 관계 안에서의 데이터 무결성과 일관성 보장
+4. 데이터베이스를 더 견고하고, 신뢰할 수 있으며, 이해하기 쉬운 구조로 만들기
+
+### 왜 Foreign Keys를 사용하지 않기도 하나요?
+
+외래 키는 매우 유익하지만, 특정 상황에서는 신중히 재고하거나 주의해서 사용해야 할 수도 있습니다.
+대개는 예외적인 경우이며, 보통은 트레이드오프가 따릅니다.
+
+<Callout collapsed="1. 매우 높은 쓰기 부하 환경에서의 성능 오버헤드">
+- **시나리오**: 극단적으로 대용량 트랜잭션이 발생하는 시스템(예: 실시간 로깅, 초고빈도 거래 플랫폼, 대규모 IoT 데이터 수집)
+- **설명**: 외래 키가 있는 테이블에 데이터를 삽입하거나 갱신할 때마다 데이터베이스는 참조 무결성을 보장하기 위해 검사를 수행해야 합니다. 매우 쓰기 중심적인 환경에서는 이런 검사가 작지만 눈에 띄는 성능 오버헤드를 만들 수 있습니다.
+</Callout>
+
+<Callout collapsed="2. 분산 데이터베이스 시스템과 노드 간 외래 키">
+- **시나리오**: 데이터가 여러 데이터베이스 노드나 클러스터에 분산된 시스템(샤딩된 데이터베이스, 클라우드 환경, 마이크로서비스에서 흔함)
+- **설명**: 노드 간 외래 키는 상당한 복잡성과 성능 오버헤드를 유발할 수 있습니다. 참조 무결성을 검증하려면 노드 간 통신이 필요하고, 이는 지연 시간을 증가시킵니다. 일관성 유지를 위한 분산 트랜잭션도 더 복잡하고, 로컬 트랜잭션보다 성능이 떨어질 수 있습니다. 이런 아키텍처에서는 애플리케이션 레벨의 데이터 무결성 검사나 eventual consistency 모델을 대안으로 고려하기도 합니다.
+</Callout>
+
+<Callout collapsed="3. 레거시 시스템 및 비관계형 데이터와의 통합">
+- **시나리오**: 관계형 데이터베이스를 오래된 레거시 시스템이나 비관계형 데이터 저장소(NoSQL, 평면 파일, 외부 API 등)와 통합하는 경우
+- **설명**: 레거시 시스템이나 비관계형 데이터는 외래 키가 강제하는 참조 무결성 규칙을 일관되게 따르지 않을 수 있습니다. 이런 상황에서 외래 키를 강제로 적용하면 데이터 가져오기 문제, 데이터 불일치, 복잡한 변환 작업, 애플리케이션 레벨 무결성 관리가 필요해질 수 있습니다. 외부 데이터 소스의 품질과 일관성을 신중히 평가하고, 데이터베이스 수준에서 외래 키를 엄격히 강제하는 대신 애플리케이션 로직이나 ETL 프로세스를 통해 무결성을 보장해야 할 수도 있습니다.
+</Callout>
+
+또한 PlanetScale 팀이 설명한 훌륭한 자료도 확인해 볼 수 있습니다. [article](https://planetscale.com/docs/learn/operating-without-foreign-key-constraints#why-does-planetscale-not-recommend-constraints)
+
+### 다형성 관계
+
+다형성 관계(polymorphic relationships)는 하나의 관계가 서로 다른 종류의 엔티티나 테이블을 가리킬 수 있게 하는 더 고급 개념입니다.
+즉, 어떤 공통점을 가진 여러 종류의 데이터를 더 유연하고 적응력 있게 연결하는 방식입니다.
+
+예를 들어 `activities` 로그가 있다고 상상해 봅시다. 하나의 activity는 `comment`, `like`, `share`가 될 수 있습니다.
+각 `activity` 유형은 서로 다른 세부 정보를 가집니다. activity 유형마다 별도의 테이블과 관계를 각각 만드는 대신,
+다형성 접근 방식을 사용할 수 있습니다.
+
+<Callout collapsed="일반적인 시나리오 및 예시">
+- **Comments/Reviews**: "Comment"는 기사, 제품, 비디오 등 서로 다른 종류의 콘텐츠와 연결될 수 있습니다.
+Comments 테이블에 article_id, product_id, video_id 컬럼을 각각 따로 두는 대신,
+다형성 관계를 사용할 수 있습니다.
+```
++---------------------+
+| **Comments**        |
++---------------------+
+| PK comment_id       |
+| commentable_type    | ------>  [Polymorphic Relationship]
+| commentable_id      | -------->
+| user_id             |
+| comment_text        |
+| ...                 |
++---------------------+
+          ^
+          |
++---------------------+    +---------------------+    +---------------------+
+| **Articles**        |    | **Products**        |    | **Videos**          |
++---------------------+    +---------------------+    +---------------------+
+| PK article_id       |    | PK product_id       |    | PK video_id         |
+| ...                 |    | ...                 |    | ...                 |
++---------------------+    +---------------------+    +---------------------+
+```
+- **Notifications:** 알림은 사용자, 주문, 시스템 이벤트 등 다양한 대상과 연결될 수 있습니다.
+```
++----------------------+
+| **Notifications**    |
++----------------------+
+| PK notification_id  |
+| notifiable_type     | ------>  [Polymorphic Relationship]
+| notifiable_id       | -------->
+| user_id             |
+| message             |
+| ...                  |
++----------------------+
+           ^
+           |
++---------------------+    +---------------------+    +-----------------------+
+| **Users**           |    | **Orders**          |    | **System Events**     |
++---------------------+    +---------------------+    +-----------------------+
+| PK user_id          |    | PK order_id         |    | PK event_id           |
+| ...                 |    | ...                 |    | ...                   |
++---------------------+    +---------------------+    +-----------------------+
+```
+</Callout>
+
+다형성 관계는 더 복잡하며, 보통은 애플리케이션 레벨에서 처리하거나
+(특정 데이터베이스 시스템에 따라) 더 고급 데이터베이스 기능을 사용해 구현합니다. 표준 SQL은 일반적인 외래 키처럼
+다형성 외래 키 제약을 직접 강제하는 내장 지원을 제공하지 않습니다.

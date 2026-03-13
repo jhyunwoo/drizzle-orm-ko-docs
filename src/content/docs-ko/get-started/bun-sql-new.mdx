@@ -1,0 +1,71 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Npx from '@mdx-ko/Npx.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import TransferCode from '@mdx-ko/get-started/TransferCode.mdx';
+import QueryDatabase from '@mdx-ko/get-started/QueryDatabase.mdx';
+import QueryDatabaseUpdated from '@mdx-ko/get-started/QueryDatabaseUpdated.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+import CreateTable from '@mdx-ko/get-started/postgresql/CreateTable.mdx';
+import ConnectBun from '@mdx-ko/get-started/postgresql/ConnectBun.mdx';
+
+<Breadcrumbs/>
+
+# Drizzle과 Bun:SQLite 시작하기
+
+<Prerequisites>  
+  - **bun** - JavaScript 올인원 툴킷 - [여기에서 읽어보세요](https://bun.sh/)
+  - **Bun SQL** - PostgreSQL 데이터베이스 작업을 위한 네이티브 바인딩 - [여기에서 읽어보세요](https://bun.sh/docs/api/sql)
+</Prerequisites>
+
+<Callout type='error'>
+버전 `1.2.0`에서 Bun은 동시 구문 실행에 문제가 있어 여러 쿼리를 동시에 실행하려고 하면 오류가 발생할 수 있습니다.
+추적할 수 있도록 [github issue](https://github.com/oven-sh/bun/issues/16774)를 만들었습니다. 이 문제가 수정되면 Bun의 SQL 쪽에서는 더 이상 이런 오류를 만나지 않아야 합니다.
+</Callout>
+
+<FileStructure />
+
+#### 1단계 - 필요한 패키지 설치
+<Npm>
+  drizzle-orm
+  -D drizzle-kit @types/bun
+</Npm>
+
+#### 2단계 - 연결 변수 설정
+
+<SetupEnv env_variable='DATABASE_URL' />
+
+#### 3단계 - 데이터베이스에 Drizzle ORM 연결하기
+
+<ConnectBun/>
+
+#### 4단계 - 테이블 만들기
+
+<CreateTable/>
+
+#### 5단계 - Drizzle config 파일 설정
+
+<SetupConfig dialect='postgresql' env_variable='DATABASE_URL'/>
+
+#### 6단계 - 데이터베이스에 변경 사항 적용하기
+
+<ApplyChanges />
+
+#### 7단계 - 데이터베이스에 시드 데이터를 넣고 조회하기
+
+<QueryDatabase dialect='bun-sql' env_variable='DATABASE_URL'/>
+
+#### 8단계 - index.ts 파일 실행하기
+
+`bun`으로 스크립트를 실행하려면 다음 명령을 사용하세요:
+```bash copy
+bun src/index.ts
+```

@@ -1,0 +1,42 @@
+---
+title: Cloudflare D1 HTTP API와 Drizzle Kit
+slug: d1-http-with-drizzle-kit
+---
+
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+
+<Prerequisites>
+- [Drizzle Kit](/docs/kit-overview)
+- [Drizzle Studio](/docs/kit-overview#drizzle-studio)
+- [Drizzle Chrome Extension](https://chromewebstore.google.com/detail/drizzle-studio/mjkojjodijpaneehkgmeckeljgkimnmd)
+- `drizzle-kit@0.21.3` 이상을 설치해야 합니다
+- [Cloudflare 계정](https://dash.cloudflare.com/login), 배포된 [D1 database](https://developers.cloudflare.com/d1/), 그리고 D1 편집 권한이 있는 토큰이 있어야 합니다
+</Prerequisites>
+
+Cloudflare D1 HTTP API와 함께 Drizzle Kit을 사용하려면 `drizzle.config.ts` 파일을 다음과 같이 설정해야 합니다:
+
+```ts copy filename="drizzle.config.ts" {7, 9-11}
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  schema: './src/schema.ts',
+  out: './migrations',
+  dialect: 'sqlite',
+  driver: 'd1-http',
+  dbCredentials: {
+    accountId: process.env.CLOUDFLARE_ACCOUNT_ID!,
+    databaseId: process.env.CLOUDFLARE_DATABASE_ID!,
+    token: process.env.CLOUDFLARE_D1_TOKEN!,
+  },
+});
+```
+
+`accountId`, `databaseId`, `token`은 [Cloudflare dashboard](https://dash.cloudflare.com/login?)에서 확인할 수 있습니다.
+
+1. `accountId`를 얻으려면 **Workers & Pages** -> **Overview**로 이동한 뒤, 오른쪽 사이드바의 **Account ID**를 복사합니다.
+2. `databaseId`를 얻으려면 연결하려는 D1 데이터베이스를 열고 **Database ID**를 복사합니다.
+3. `token`을 얻으려면 **My profile** -> **API Tokens**로 이동해 D1 편집 권한이 있는 토큰을 생성합니다.
+
+`drizzle.config.ts` 파일 설정이 끝나면, Drizzle Kit은 Cloudflare D1 HTTP API를 사용해 `migrate`, `push`, `introspect`, `studio` 명령을 실행할 수 있게 해 줍니다.
+
+[Drizzle Chrome Extension](https://chromewebstore.google.com/detail/drizzle-studio/mjkojjodijpaneehkgmeckeljgkimnmd)을 사용하면 Cloudflare D1 데이터베이스를 관리자 패널 안에서 직접 탐색할 수도 있습니다.

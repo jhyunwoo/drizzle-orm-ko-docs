@@ -1,0 +1,54 @@
+---
+title: SQL 값 감소
+slug: decrementing-a-value
+---
+import Section from "@mdx-ko/Section.astro";
+import IsSupportedChipGroup from "@mdx-ko/IsSupportedChipGroup.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+
+<IsSupportedChipGroup chips={{PostgreSQL: true, MySQL: true, SQLite: true}}/>
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql), [SQLite](/docs/get-started-sqlite) 시작하기
+- [Update statement](/docs/update)
+- [Filters](/docs/operators)와 [sql operator](/docs/sql)
+</Prerequisites>
+
+컬럼 값을 감소시키려면 아래처럼 `update().set()` 메서드를 사용할 수 있습니다:
+
+<Section>
+```ts copy {8}
+import { eq, sql } from 'drizzle-orm';
+
+const db = drizzle(...)
+  
+await db
+  .update(table)
+  .set({
+    counter: sql`${table.counter} - 1`,
+  })
+  .where(eq(table.id, 1));
+```
+
+```sql
+update "table" set "counter" = "counter" - 1 where "id" = 1;
+```
+</Section>
+
+Drizzle은 단순하고 유연한 API를 제공하므로, 커스텀 해법도 쉽게 만들 수 있습니다. 아래는 커스텀 decrement 함수를 만드는 방법입니다:
+
+```ts copy {4,10,11}
+import { AnyColumn } from 'drizzle-orm';
+
+const decrement = (column: AnyColumn, value = 1) => {
+  return sql`${column} - ${value}`;
+};
+
+await db
+  .update(table)
+  .set({
+    counter1: decrement(table.counter1),
+    counter2: decrement(table.counter2, 10),
+  })
+  .where(eq(table.id, 1));
+```

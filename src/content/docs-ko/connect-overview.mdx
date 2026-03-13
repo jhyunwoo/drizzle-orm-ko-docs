@@ -1,0 +1,185 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Section from "@mdx-ko/Section.astro";
+import LinksList from "@mdx-ko/LinksList.astro"
+import Flex from "@mdx-ko/Flex.astro"
+
+# Drizzle과 데이터베이스 연결
+Drizzle ORM은 **database drivers**를 통해 데이터베이스에서 SQL 쿼리를 실행합니다.
+<CodeTabs items={["index.ts", "schema.ts"]}>
+
+<CodeTab>
+```ts
+import { drizzle } from "drizzle-orm/node-postgres"
+import { users } from "./schema"
+
+const db = drizzle(process.env.DATABASE_URL);
+const usersCount = await db.$count(users);
+```
+```
+                        ┌──────────────────────┐
+                        │   db.$count(users)   │ <--- drizzle query
+                        └──────────────────────┘
+                            │               ʌ
+select count(*) from users -│               │
+                            │               │- [{ count: 0 }]
+                            v               │
+                         ┌─────────────────────┐
+                         │    node-postgres    │ <--- database driver
+                         └─────────────────────┘
+                            │               ʌ
+01101000 01100101 01111001 -│               │
+                            │               │- 01110011 01110101 01110000
+                            v               │
+                         ┌────────────────────┐
+                         │      Database      │
+                         └────────────────────┘
+```
+</CodeTab>
+
+```ts
+import { pgTable, integer, text } from "drizzle-orm";
+
+export const users = pgTable("users", {
+  id: integer("id").generateAlwaysAsIdentity(),
+  name: text("name"),
+})
+```
+</CodeTabs>
+
+내부적으로 Drizzle은 필요할 경우 `db.$client`를 통해 접근할 수 있는 **node-postgres** 드라이버 인스턴스를 생성합니다.
+<Section>
+```ts
+import { drizzle } from "drizzle-orm/node-postgres"
+
+const db = drizzle(process.env.DATABASE_URL);
+const pool = db.$client;
+```
+```ts
+// above is equivalent to
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+const db = drizzle({ client: pool });
+```
+</Section>
+
+Drizzle은 설계상 모든 **edge** 또는 **serverless** 런타임과 기본적으로 호환됩니다. serverless 데이터베이스에 접근해야 할 때도 문제없이 사용할 수 있습니다.
+
+<CodeTabs items={["Neon HTTP", "WebSockets를 사용하는 Neon", "Vercel Postgres", "PlanetScale HTTP", "Cloudflare d1"]}>
+```ts
+import { drizzle } from "drizzle-orm/neon-http";
+
+const db = drizzle(process.env.DATABASE_URL);
+```
+```ts
+import { drizzle } from "drizzle-orm/neon-serverless";
+
+const db = drizzle(process.env.DATABASE_URL);
+```
+```ts
+import { drizzle } from "drizzle-orm/vercel-postgres";
+
+const db = drizzle();
+```
+```ts
+import { drizzle } from "drizzle-orm/planetscale";
+
+const db = drizzle(process.env.DATABASE_URL);
+```
+```ts
+import { drizzle } from "drizzle-orm/d1";
+
+const db = drizzle({ connection: env.DB });
+```
+</CodeTabs>
+
+그리고 물론 [Bun SQLite](/docs/connect-bun-sqlite)나 [Expo SQLite](/docs/connect-expo-sqlite) 같은 런타임 전용 드라이버도 지원합니다:
+<Section>
+```ts
+import { drizzle } from "drizzle-orm/bun-sqlite"
+
+const db = drizzle(); // <--- will create an in-memory db
+const db = drizzle("./sqlite.db");
+```
+```ts
+import { drizzle } from "drizzle-orm/expo-sqlite";
+import { openDatabaseSync } from "expo-sqlite";
+
+const expo = openDatabaseSync("db.db");
+const db = drizzle(expo);
+```
+</Section>
+
+#### 데이터베이스 연결 URL
+데이터베이스 연결 URL 개념이 익숙하지 않은 경우를 위해 예시를 보여드리면 다음과 같습니다.
+```
+postgresql://alex:AbC123dEf@ep-cool-darkness-123456.us-east-2.aws.neon.tech/dbname
+             └──┘ └───────┘ └─────────────────────────────────────────────┘ └────┘
+              ʌ    ʌ          ʌ                                              ʌ
+        role -│    │          │- hostname                                    │- database
+                   │
+                   │- password
+
+```
+#### 다음 단계
+드라이버별 문서를 자유롭게 확인해 보세요.
+
+<rem/>
+<Flex>
+  <LinksList
+    title='PostgreSQL 드라이버'
+    links={[
+        ["PostgreSQL", "/docs/get-started-postgresql"],
+        ["Neon", "/docs/connect-neon"],
+        ["Vercel Postgres", "/docs/connect-vercel-postgres"],
+        ["Supabase", "/docs/connect-supabase"],
+        ["Xata", "/docs/connect-xata"],
+        ["PGLite", "/docs/connect-pglite"],
+      ]}
+  />
+  <LinksList
+    title='MySQL 드라이버'
+    links={[
+        ["MySQL", "/docs/get-started-mysql"],
+        ["PlanetsScale", "/docs/connect-planetscale"],
+        ["TiDB", "/docs/connect-tidb"],
+      ]}
+  />
+  <LinksList
+  title='SQLite 드라이버'
+  links={[
+      ["SQLite", "/docs/get-started-sqlite"],
+      ["Turso Cloud", "/docs/connect-turso"],
+      ["Turso Database", "/docs/connect-turso-database"],
+      ["Cloudflare D1", "/docs/connect-cloudflare-d1"],
+      ["Bun SQLite", "/docs/connect-bun-sqlite"],
+      ["SQLite Cloud", "/docs/connect-sqlite-cloud"],
+    ]}
+  />
+  <LinksList
+  title='네이티브 SQLite'
+  links={[
+      ["Expo SQLite", "/docs/get-started/expo-new"],
+      ["OP SQLite", "/docs/connect-op-sqlite"],
+      ["React Native SQLite", "/docs/connect-react-native-sqlite"],
+    ]}
+  />
+  <LinksList
+  title='기타'
+  links={[
+      ["Drizzle Proxy", "/docs/connect-drizzle-proxy"],
+    ]}
+  />
+</Flex>
+{/* TODO: @AndriiSherman ["AWS Data API", "/docs/get-started/aws-data-api"],  */}

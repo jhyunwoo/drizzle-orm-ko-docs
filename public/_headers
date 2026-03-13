@@ -1,0 +1,23 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), geolocation=(), microphone=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; manifest-src 'self'; connect-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'
+  Cache-Control: public, max-age=0, must-revalidate
+
+/search-index.json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/svg/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/drizzle-studio.jpg
+  Cache-Control: public, max-age=31536000, immutable

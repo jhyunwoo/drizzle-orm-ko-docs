@@ -1,0 +1,266 @@
+import { Image } from "astro:assets";
+import roman from "@/assets/images/core/roman.jpg";
+import smm from "@/assets/images/core/smm.jpg";
+import group from "@/assets/images/core/group.jpeg";
+import alex_sherman from "@/assets/images/core/alex_sherman.jpg";
+import reka from "@/assets/images/team/reka.png";
+import andrew from "@/assets/images/core/andrew.jpeg";
+import blokh from "@/assets/images/core/blokh.jpeg";
+import dan from "@/assets/images/core/dan.jpeg";
+
+# Drizzle Sustainability
+
+우리는 2021년부터 Drizzle을 만들어 왔고, 그동안 프로젝트는 몇 번의 진화와 감정적인 붕괴를 겪었지만 핵심 아이디어와 비전은 한 번도 바뀌지 않았습니다.
+
+그동안 멋진 개인 후원자부터 훌륭한 기업들까지, 100명이 넘는 스폰서가 우리 작업을 지원해 주었습니다.
+
+그리고 2026년 3월 기준으로 PlanetScale이 Drizzle 코어 팀 전체를 채용했고, 지금 우리가 가진 가장 큰 후원자가 되었습니다!
+
+PlanetScale은 팀 전체를 채용해 우리가 Drizzle을 풀타임으로 계속 개발하고, 로드맵을 계속 밀어붙이고, 더 많은 개선 사항을 출시하고, 커뮤니티에 선보이고 싶었던 야심찬 것들을 계속 만들 수 있게 했습니다.
+
+PlanetScale 팀과 Sam Lambert와 정말 많은 좋은 대화를 나눈 끝에, 우리는 모두 같은 결론에 도달했습니다:
+Drizzle을 지구상에서 가장 지속 가능한 ORM으로 만드는 가장 좋은 방법은 그냥 힘을 합치는 것이라는 점이었습니다.
+
+그래서 이제 PlanetScale은 우리의 가장 큰 스폰서가 되었고, 우리를 채용했고, 우리는 우리가 사랑하는 일을 계속할 수 있게 되었습니다:
+
+- 커뮤니티를 위해 만들고,
+- DX에 집착하고,
+- SQL과 데이터베이스를 훨씬 더 재미있고 쉽게 다룰 수 있게 만드는 것
+
+## Our Team
+
+여기 Drizzle 코어 팀원 전원이 있습니다.
+
+<Image src={group} alt="group" />
+
+#### 이제 각자에 대해 이야기해 볼게요:
+
+<style>{`
+  .team-member {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .team-member__info {
+    flex: 0 0 50%;
+    max-width: 50%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .team-member__name {
+    margin-top: 0 !important;
+    margin-bottom: 0.75rem;
+  }
+
+  .team-member__photo {
+    width: 100%;
+    max-width: 50%;
+    flex: 0 0 50%;
+    border-radius: 12px;
+  }
+
+  @media (max-width: 900px) {
+    .team-member {
+      flex-direction: column-reverse;
+      gap: 1rem;
+    }
+
+    .team-member__photo {
+      width: 100%;
+      max-width: 320px;
+      flex: 0 0 auto;
+      align-self: center;
+    }
+
+    .team-member__info {
+      max-width: 100%;
+      flex: 0 0 auto;
+    }
+  }
+`}</style>
+
+<section class="team-member">
+  <div class="team-member__info">
+    <h4 class="team-member__name">Oleksandr Blokh (Alex)</h4>
+    <p>
+      Alex는 Drizzle을 공동으로 만든 사람이며 Drizzle 팀의 시작을 함께
+      이끌었습니다. <code>drizzle-orm</code>의 첫 코드가 작성된 2021년부터
+      지금까지 함께해 왔습니다.
+    </p>
+    <p>
+      현재는 Drizzle 코어 개발을 이끌고 있으며 Drizzle Studio,
+      OneDollarStats, RubberBoots, 그리고 다른 여러 프로젝트를 작업하고
+      있습니다.
+    </p>
+    <p>
+      X에서 <a href="https://x.com/_alexblokh">팔로우</a> •{" "}
+      <a href="https://github.com/AlexBlokh">GitHub</a>
+    </p>
+  </div>
+  <Image
+    class="team-member__photo"
+    src={blokh}
+    alt="Oleksandr Blokh"
+    width={400}
+  />
+</section>
+
+<section class="team-member">
+  <div class="team-member__info">
+    <h4 class="team-member__name">Andrii Sherman (Andrew)</h4>
+    <p>
+      Andrew는 Drizzle의 또 다른 공동 창립자이자 공동 제작자입니다.
+      2020년에 그는 Java로 된 Drizzle ORM을 작성했습니다. 이후 TypeScript
+      세계에서도 같은 종류의 도구가 필요하다는 것을 보고 Alex와 함께
+      TypeScript로 방향을 전환했습니다. 모든 것은 거기서 시작됐습니다.
+    </p>
+    <p>
+      X에서 <a href="https://x.com/andrii_sherman">팔로우</a> •{" "}
+      <a href="https://github.com/AndriiSherman">GitHub</a>
+    </p>
+  </div>
+  <Image
+    class="team-member__photo"
+    src={andrew}
+    alt="Andrii Sherman"
+    width={400}
+  />
+</section>
+
+<section class="team-member">
+  <div class="team-member__info">
+    <h4 class="team-member__name">Dan Kochetov</h4>
+    <p>
+      Dan은 <code>drizzle-orm</code>의 전면 재작업을 처음으로 맡아 오늘날
+      여러분이 알고 있는 API로 바꿔 놓은 사람입니다. 또한 Relational Queries의
+      첫 번째 버전도 만들었습니다.
+    </p>
+    <p>
+      잠시 휴식을 가진 뒤 이제 Dan은 다시 돌아와 Drizzle을 위한 더 많은 훌륭한
+      것들을 출시할 준비를 마쳤습니다.
+    </p>
+    <p>
+      X에서 <a href="https://x.com/bloberenober">팔로우</a> •{" "}
+      <a href="https://github.com/dankochetov">GitHub</a>
+    </p>
+  </div>
+  <Image class="team-member__photo" src={dan} alt="Dan Kochetov" width={400} />
+</section>
+
+<section class="team-member">
+  <div class="team-member__info">
+    <h4 class="team-member__name">Roman Nabukhotnyi (Zeus)</h4>
+    <p>
+      Roman(Zeus)은 가능한 모든 형태로 Drizzle Studio를 여러분에게 제공하기
+      위해 열심히 일하고 있습니다.
+    </p>
+    <p>
+      Roman은 X에서{" "}
+      <a href="https://x.com/nabukhotnyi">Drizzle Studio에 대해 많은 글을 쓰고 있습니다</a> •
+      <a href="https://github.com/RomanNabukhotnyi">GitHub</a>
+    </p>
+  </div>
+  <Image
+    class="team-member__photo"
+    src={roman}
+    alt="Roman Nabukhontyi"
+    width={400}
+  />
+</section>
+
+<section class="team-member">
+  <div class="team-member__info">
+    <h4 class="team-member__name">Serhii Reka</h4>
+    <p>
+      Serhii는 Relational Queries를 다시 작성했고, TypeScript 타입을 최고
+      수준으로 다뤘으며, 지금도 <code>drizzle</code> 생태계에 훌륭한 기능들을
+      계속 추가하고 있습니다.
+    </p>
+    <p>
+      X에서 <a href="https://x.com/s_reka_">팔로우</a> •{" "}
+      <a href="https://github.com/Sukairo-02">GitHub</a>
+    </p>
+  </div>
+  <Image class="team-member__photo" src={reka} alt="Serhii Reka" width={400} />
+</section>
+
+<section class="team-member">
+  <div class="team-member__info">
+    <h4 class="team-member__name">Oleksandr Sherman</h4>
+    <p>
+      Oleksandr("Sania")는 <code>drizzle-kit</code>의 마법사입니다. 그는
+      <code>alternation-engine</code>, drizzle-kit 테스트 스위트를 다시 쓰는
+      데 도움을 줬고, 지금은 <code>drizzle-kit</code> 태그가 달린 GitHub
+      이슈를 0개로 만드는 임무를 수행 중입니다.
+    </p>
+    <p>
+      X에서 <a href="https://x.com/_alex_sherman">팔로우</a> •{" "}
+      <a href="https://github.com/AleksandrSherman">GitHub</a>
+    </p>
+  </div>
+  <Image
+    class="team-member__photo"
+    src={alex_sherman}
+    alt="Oleksandr Sherman"
+    width={400}
+  />
+</section>
+
+<section class="team-member">
+  <div class="team-member__info">
+    <h4 class="team-member__name">SMM Manager</h4>
+    <p>
+      "예전에는 X에서 공짜로 하던 일을, 이제는 직업으로 책임지고 있습니다"
+      (c)
+    </p>
+    <p>
+      팔로우: <a href="https://x.com/DrizzleOrm">X</a>
+    </p>
+  </div>
+  <Image class="team-member__photo" src={smm} alt="SMM Manager" width={400} />
+</section>
+
+## Revenue flow
+
+Drizzle은 `drizzle-orm` 저장소 하나만 있는 것이 아닙니다. 우리가 직접 만들고 수익화하고 있는 여러 제품이 있습니다.
+
+#### Drizzle Studio
+
+Drizzle Studio는 현대적인 웹 기반 데이터베이스 브라우저이며, 다음과 같은 형태로 제공됩니다:
+
+1. Drizzle ORM 프로젝트를 위한 [Drizzle Studio for Local Development](https://orm.drizzle.team/drizzle-studio/overview)
+2. PlanetScale, Cloudflare D1, Vercel Postgres, AWS Data API를 각 서비스의 네이티브 콘솔 안에서 직접 탐색할 수 있게 해주는 [Drizzle Studio Chrome Extension](https://driz.link/extension)
+3. [Drizzle Studio Gateway](https://gateway.drizzle.team)는 인프라 안에 배포해 데이터베이스에 비공개로 연결할 수 있는, 더 강력해진 Studio의 Docker 배포 버전입니다
+4. `Drizzle Studio embeddable Component` - React/Vue/Svelte/VanillaJS 등 어떤 UI에도 삽입할 수 있는, 프레임워크에 구애받지 않는 사전 번들된 Drizzle Studio 웹 컴포넌트입니다
+
+#### OneDollarStats
+
+우리가 만드는 모든 것과 마찬가지로, 이 분석 제품도 원래는 여러 상업 프로젝트에서 우리 스스로 사용하기 위해 만들었습니다.
+우리는 이것을 이렇게 저렴하게 제공할 방법을 찾았고, 커뮤니티도 웹 분석에 큰 비용을 쓰지 않아도 되도록 공개했습니다.
+
+현재는 제한 없이 월 1달러로 가격을 책정했고, 곧 사용량 기반 요금제도 도입할 예정입니다.
+
+https://onedollarstats.com/
+
+#### Rubber Boots
+
+아직 공개하지 않은 어떤 것
+
+## Drizzle LLC
+
+Drizzle은 우크라이나에 기반을 둔 법인입니다.
+Drizzle 코어 팀원 5명 외에도, 우리는 아웃소싱과 컨설팅을 통해 다양한 프로덕션급 앱을 함께 만드는 개발자 18명과 더 일하고 있습니다.
+
+이것은 실제로 두 가지 큰 방식으로 Drizzle 개발에 도움이 됩니다.
+
+- 첫째, 또 다른 수익원을 제공해 주므로 오픈소스 작업에 계속 재투자하고, 새로운 아이디어를 시험하고, Drizzle을 더 앞으로 밀어붙일 수 있습니다.
+- 둘째, 엄청난 양의 실전 경험을 얻게 해줍니다. 우리는 다양한 언어와 큰 TypeScript 비중을 바탕으로 웹, 모바일, 데스크톱 등 온갖 종류의 프로젝트를 다룹니다.
+  즉, 여러 프레임워크, 호스팅 플랫폼, 그리고 사람들이 제품을 만들고 배포하는 다양한 방식을 직접 경험하게 된다는 뜻이기도 합니다.
+
+오늘날의 Drizzle이 지금의 모습이 된 큰 이유 중 하나는, 우리가 단 하나의 것만 만드는 데 스스로를 가두지 않았기 때문입니다. 우리는 끊임없이 서로 다른 종류의 프로젝트를 진행하고 있고, 그것이 새로운 아이디어와 더 넓은 시야, 그리고 지금의 Drizzle을 만들 수 있게 해 주는 경험을 제공합니다.

@@ -1,0 +1,230 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Npx from '@mdx-ko/Npx.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import TransferCode from '@mdx-ko/get-started/TransferCode.mdx';
+import QueryTurso from '@mdx-ko/get-started/sqlite/QueryTurso.mdx';
+import QueryDatabaseUpdated from '@mdx-ko/get-started/QueryDatabaseUpdated.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+import CreateTable from '@mdx-ko/get-started/sqlite/CreateTable.mdx';
+import ConnectLibsql from '@mdx-ko/get-started/sqlite/ConnectLibsql.mdx';
+
+<Breadcrumbs/>
+
+# Drizzle과 SQLite Durable Objects 시작하기
+
+<Prerequisites>  
+  - **dotenv** - 환경 변수를 관리하기 위한 패키지 - [여기에서 읽기](https://www.npmjs.com/package/dotenv)
+  - **tsx** - TypeScript 파일을 실행하기 위한 패키지 - [여기에서 읽기](https://tsx.is/)
+  - **Cloudflare SQLite Durable Objects** - Durable Object 안에 포함된 SQLite 데이터베이스 - [여기에서 읽기](https://developers.cloudflare.com/durable-objects/api/sql-storage/)
+  - **wrangler** - Cloudflare 개발자 플랫폼용 명령줄 인터페이스 - [여기에서 읽기](https://developers.cloudflare.com/workers/wrangler)
+</Prerequisites>
+
+<FileStructure />
+
+#### Step 1 - 필요한 패키지 설치하기
+<InstallPackages lib='wrangler'/>
+
+#### Step 2 - wrangler.toml 설정하기
+
+D1 데이터베이스용 `wrangler.toml` 파일이 필요하며, 내용은 다음과 비슷합니다:
+```toml
+#:schema node_modules/wrangler/config-schema.json
+name = "sqlite-durable-objects"
+main = "src/index.ts"
+compatibility_date = "2024-11-12"
+compatibility_flags = [ "nodejs_compat" ]
+
+# Bind a Durable Object. Durable objects are a scale-to-zero compute primitive based on the actor model.
+# Durable Objects can live for as long as needed. Use these when you need a long-running "server", such as in realtime apps.
+# Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#durable-objects
+[[durable_objects.bindings]]
+name = "MY_DURABLE_OBJECT"
+class_name = "MyDurableObject"
+
+# Durable Object migrations.
+# Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#migrations
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["MyDurableObject"]
+
+# We need rules so we can import migrations in the next steps
+[[rules]] 
+type = "Text"
+globs = ["**/*.sql"]
+fallthrough = true
+```
+
+#### Step 3 - 데이터베이스에 Drizzle ORM 연결하기
+
+```ts
+import { drizzle, type DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
+import { DurableObject } from 'cloudflare:workers'
+
+export class MyDurableObject extends DurableObject {
+	storage: DurableObjectStorage;
+	db: DrizzleSqliteDODatabase;
+
+	constructor(ctx: DurableObjectState, env: Env) {
+		super(ctx, env);
+		this.storage = ctx.storage;
+		this.db = drizzle(this.storage, { logger: false });
+	}
+}
+```
+
+#### Step 4 - wrangler 타입 생성하기
+
+<Npx>
+wrangler types
+</Npx>
+
+<Callout>
+이 명령의 출력으로 `worker-configuration.d.ts` 파일이 생성됩니다.
+</Callout>
+
+#### Step 5 - 테이블 만들기
+
+<CreateTable/>
+
+#### Step 6 - Drizzle config 파일 설정하기
+
+**Drizzle config** - [Drizzle Kit](/docs/kit-overview)에서 사용하는 설정 파일로, 데이터베이스 연결, 마이그레이션 폴더, 스키마 파일에 대한 모든 정보를 담고 있습니다.
+
+프로젝트 루트에 `drizzle.config.ts` 파일을 만들고 다음 내용을 추가합니다:
+
+```typescript copy filename="drizzle.config.ts"
+import 'dotenv/config';
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  out: './drizzle',
+  schema: './src/db/schema.ts',
+  dialect: 'sqlite',
+  driver: 'durable-sqlite',
+});
+```
+
+#### Step 7 - 데이터베이스에 변경 사항 적용하기
+
+마이그레이션 생성:
+```bash copy
+npx drizzle-kit generate
+```
+
+Cloudflare Workers에서만 마이그레이션을 적용할 수 있습니다.
+이를 위해 `MyDurableObject`에 migrate 기능을 정의해 봅시다:
+```ts copy {4-5,17-19}
+import { drizzle, type DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
+import { DurableObject } from 'cloudflare:workers'
+import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
+import migrations from '../drizzle/migrations';
+
+export class MyDurableObject extends DurableObject {
+	storage: DurableObjectStorage;
+	db: DrizzleSqliteDODatabase;
+
+	constructor(ctx: DurableObjectState, env: Env) {
+		super(ctx, env);
+		this.storage = ctx.storage;
+		this.db = drizzle(this.storage, { logger: false });
+	}
+
+	async migrate() {
+		migrate(this.db, migrations);
+	}
+}
+```
+
+#### Step 8 - 마이그레이션 적용 및 데이터베이스 조회하기
+
+```typescript copy
+import { drizzle, DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
+import { DurableObject } from 'cloudflare:workers'
+import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
+import migrations from '../drizzle/migrations';
+import { usersTable } from './db/schema';
+
+export class MyDurableObject extends DurableObject {
+	storage: DurableObjectStorage;
+	db: DrizzleSqliteDODatabase<any>;
+
+	constructor(ctx: DurableObjectState, env: Env) {
+		super(ctx, env);
+		this.storage = ctx.storage;
+		this.db = drizzle(this.storage, { logger: false });
+
+		// Make sure all migrations complete before accepting queries.
+		// Otherwise you will need to run `this.migrate()` in any function
+		// that accesses the Drizzle database `this.db`.
+		ctx.blockConcurrencyWhile(async () => {
+			await this._migrate();
+		});
+	}
+
+	async insertAndList(user: typeof usersTable.$inferInsert) {
+		await this.insert(user);
+		return this.select();
+	}
+
+	async insert(user: typeof usersTable.$inferInsert) {
+		await this.db.insert(usersTable).values(user);
+	}
+
+	async select() {
+		return this.db.select().from(usersTable);
+	}
+
+	async _migrate() {
+		migrate(this.db, migrations);
+	}
+}
+
+export default {
+	/**
+	 * This is the standard fetch handler for a Cloudflare Worker
+	 *
+	 * @param request - The request submitted to the Worker from the client
+	 * @param env - The interface to reference bindings declared in wrangler.toml
+	 * @param ctx - The execution context of the Worker
+	 * @returns The response to be sent back to the client
+	 */
+	async fetch(request: Request, env: Env): Promise<Response> {
+		const id: DurableObjectId = env.MY_DURABLE_OBJECT.idFromName('durable-object');
+		const stub = env.MY_DURABLE_OBJECT.get(id);
+
+		// Option A - Maximum performance.
+		// Prefer to bundle all the database interaction within a single Durable Object call
+		// for maximum performance, since database access is fast within a DO.
+		const usersAll = await stub.insertAndList({
+			name: 'John',
+			age: 30,
+			email: 'john@example.com',
+		});
+		console.log('New user created. Getting all users from the database: ', users);
+
+		// Option B - Slow but maybe useful sometimes for debugging.
+		// You can also directly call individual Drizzle queries if they are exposed
+		// but keep in mind every query is a round-trip to the Durable Object instance.
+		await stub.insert({
+			name: 'John',
+			age: 30,
+			email: 'john@example.com',
+		});
+		console.log('New user created!');
+		
+		const users = await stub.select();
+		console.log('Getting all users from the database: ', users);
+
+		return Response.json(users);
+	}
+}
+```

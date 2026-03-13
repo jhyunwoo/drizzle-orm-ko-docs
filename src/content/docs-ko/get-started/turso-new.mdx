@@ -1,0 +1,122 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Npx from '@mdx-ko/Npx.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import TransferCode from '@mdx-ko/get-started/TransferCode.mdx';
+import QueryTurso from '@mdx-ko/get-started/sqlite/QueryTurso.mdx';
+import QueryDatabaseUpdated from '@mdx-ko/get-started/QueryDatabaseUpdated.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+import CreateTable from '@mdx-ko/get-started/sqlite/CreateTable.mdx';
+import ConnectLibsql from '@mdx-ko/get-started/sqlite/ConnectLibsql.mdx';
+import LibsqlTable from '@mdx-ko/LibsqlTable.mdx';
+import LibsqlTabs from '@mdx-ko/LibsqlTabs.mdx';
+
+<Breadcrumbs/>
+
+# Drizzle과 Turso Cloud 시작하기
+
+<Prerequisites>  
+  - **dotenv** - 환경 변수를 관리하기 위한 패키지 - [여기에서 읽기](https://www.npmjs.com/package/dotenv)
+  - **tsx** - TypeScript 파일을 실행하기 위한 패키지 - [여기에서 읽기](https://tsx.is/)
+  - **turso** - 프로덕션용 SQLite - [여기에서 읽기](https://turso.tech/)
+  - **libsql** - 전역 애플리케이션에 적합하도록 낮은 쿼리 지연 시간에 최적화된 SQLite 포크 - [여기에서 읽기](https://docs.turso.tech/libsql)
+</Prerequisites>
+
+<FileStructure />
+
+#### Step 1 - 필요한 패키지 설치하기
+<InstallPackages lib='@libsql/client'/>
+
+#### Step 2 - 연결 변수 설정하기
+
+프로젝트 루트에 `.env` 파일을 만들고 Turso 데이터베이스 URL과 auth token을 추가합니다:
+
+```plaintext copy
+TURSO_DATABASE_URL=
+TURSO_AUTH_TOKEN=
+```
+
+<Callout type='info' title='중요'>
+`TURSO_DATABASE_URL`과 `TURSO_AUTH_TOKEN` 값을 모른다면 LibSQL Driver SDK 튜토리얼을 참고할 수 있습니다.
+[여기](https://docs.turso.tech/sdk/ts/quickstart)에서 확인한 뒤, 생성한 값을 `.env` 파일에 추가하고 다시 돌아오세요.
+</Callout>
+
+#### Step 3 - 데이터베이스에 Drizzle ORM 연결하기
+Drizzle는 모든 `@libsql/client` 드라이버 변형을 기본적으로 지원합니다:
+
+<LibsqlTable />
+<br/>
+<LibsqlTabs />
+
+`src` 디렉터리에 `index.ts` 파일을 만들고 연결을 초기화합니다:
+
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/libsql';
+
+// You can specify any property from the libsql connection options
+const db = drizzle({ 
+  connection: { 
+    url: process.env.TURSO_DATABASE_URL!, 
+    authToken: process.env.TURSO_AUTH_TOKEN!
+  }
+});
+```
+
+기존 드라이버를 제공해야 한다면 다음과 같이 할 수 있습니다:
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/libsql';
+import { createClient } from '@libsql/client';
+
+const client = createClient({ 
+  url: process.env.TURSO_DATABASE_URL!, 
+  authToken: process.env.TURSO_AUTH_TOKEN!
+});
+const db = drizzle({ client });
+```
+
+#### Step 4 - 테이블 만들기
+
+<CreateTable/>
+
+#### Step 5 - Drizzle config 파일 설정하기
+
+**Drizzle config** - [Drizzle Kit](/docs/kit-overview)에서 사용하는 설정 파일로, 데이터베이스 연결, 마이그레이션 폴더, 스키마 파일에 대한 모든 정보를 담고 있습니다.
+
+프로젝트 루트에 `drizzle.config.ts` 파일을 만들고 다음 내용을 추가합니다:
+
+```typescript copy filename="drizzle.config.ts"
+import 'dotenv/config';
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  out: './drizzle',
+  schema: './src/db/schema.ts',
+  dialect: 'turso',
+  dbCredentials: {
+    url: process.env.TURSO_DATABASE_URL,
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  },
+});
+```
+
+#### Step 6 - 데이터베이스에 변경 사항 적용하기
+
+<ApplyChanges />
+
+#### Step 7 - 데이터에 시드 넣고 조회하기
+
+<QueryTurso/>
+
+#### Step 8 - index.ts 파일 실행하기
+
+<RunFile/>

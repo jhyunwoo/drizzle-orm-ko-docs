@@ -1,0 +1,67 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import ConnectNeon from '@mdx-ko/get-started/postgresql/ConnectNeon.mdx'
+import CreateTable from '@mdx-ko/get-started/postgresql/CreateTable.mdx'
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import QueryDatabase from '@mdx-ko/get-started/QueryDatabase.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+
+<Breadcrumbs/>
+
+# Drizzle과 Neon으로 시작하기
+
+<Prerequisites>
+  - **dotenv** - 환경 변수를 관리하는 패키지 - [여기에서 읽기](https://www.npmjs.com/package/dotenv)
+  - **tsx** - TypeScript 파일을 실행하는 패키지 - [여기에서 읽기](https://tsx.is/)
+  - **Neon** - 서버리스 Postgres 플랫폼 - [여기에서 읽기](https://neon.tech/docs/introduction)
+</Prerequisites>
+
+Drizzle은 `neon-http`와 `neon-websockets` 드라이버를 사용하는 Neon 연결을 기본적으로 지원합니다. 이 드라이버들은 내부적으로 **neon-serverless** 드라이버를 사용합니다.  
+  
+`neon-http`와 `neon-websockets` 드라이버를 사용하면 TCP 대신 HTTP 또는 WebSockets를 통해 서버리스 환경에서 Neon 데이터베이스에 접근할 수 있습니다. HTTP를 통한 쿼리는 단일 비대화형 트랜잭션에서 더 빠릅니다.  
+  
+세션이나 대화형 트랜잭션 지원이 필요하거나 `pg` 드라이버와 완전히 호환되는 drop-in replacement가 필요하다면, WebSocket 기반 `neon-serverless` 드라이버를 사용할 수 있습니다. [Postgres](/docs/get-started/postgresql-new)를 사용해 Neon 데이터베이스에 직접 연결할 수도 있습니다.
+
+<FileStructure/>
+
+#### 1단계 - **@neondatabase/serverless** 패키지 설치
+<InstallPackages lib='@neondatabase/serverless'/>
+
+#### 2단계 - 연결 변수 설정
+
+<SetupEnv env_variable='DATABASE_URL' />
+
+#### 3단계 - Drizzle ORM을 데이터베이스에 연결
+
+<ConnectNeon/>
+
+#### 4단계 - 테이블 생성
+
+<CreateTable />
+
+#### 5단계 - Drizzle config 파일 설정
+
+<SetupConfig dialect='postgresql' env_variable='DATABASE_URL'/>
+
+#### 6단계 - 데이터베이스에 변경 사항 적용
+
+<ApplyChanges />
+
+#### 7단계 - 데이터베이스 시드 및 쿼리
+
+<QueryDatabase dialect='neon-http' env_variable='DATABASE_URL'/>
+
+#### 8단계 - index.ts 파일 실행
+
+<RunFile/>

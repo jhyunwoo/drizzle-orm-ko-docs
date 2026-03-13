@@ -1,0 +1,11 @@
+`src/db` 디렉터리에 `schema.ts` 파일을 생성하고 테이블을 선언합니다.
+```typescript copy filename="src/db/schema.ts"
+import { int, singlestoreTable, varchar } from 'drizzle-orm/singlestore-core';
+
+export const usersTable = singlestoreTable('users_table', {
+  id: int().primaryKey(),
+  name: varchar({ length: 255 }).notNull(),
+  age: int().notNull(),
+  email: varchar({ length: 255 }).notNull().unique(),
+});
+```

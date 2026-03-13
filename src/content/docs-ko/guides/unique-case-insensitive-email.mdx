@@ -1,0 +1,212 @@
+---
+title: 고유하고 대소문자를 구분하지 않는 이메일 처리
+slug: unique-case-insensitive-email
+---
+
+import Section from "@mdx-ko/Section.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Callout from '@mdx-ko/Callout.astro';
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql), [SQLite](/docs/get-started-sqlite) 시작하기
+- [Indexes](/docs/indexes-constraints#indexes)
+- [Insert statement](/docs/insert)와 [Select method](/docs/select)
+- [sql operator](/docs/sql)
+- `drizzle-orm@0.31.0`, `drizzle-kit@0.22.0` 이상이 필요합니다.
+</Prerequisites>
+
+### PostgreSQL
+
+PostgreSQL에서 Drizzle과 함께 고유하고 대소문자를 구분하지 않는 `email` 처리를 구현하려면, 소문자로 변환한 `email` 컬럼에 unique index를 만들 수 있습니다. 이렇게 하면 대소문자와 관계없이 `email`이 고유하도록 보장할 수 있습니다.
+
+Drizzle은 단순하고 유연한 API를 제공하므로, SQL-like 문법으로 이런 인덱스를 쉽게 만들 수 있습니다:
+<CodeTabs items={["schema.ts", "migration.sql"]}>
+  <CodeTab>
+  ```ts copy {12,13}
+  import { SQL, sql } from 'drizzle-orm';
+  import { AnyPgColumn, pgTable, serial, text, uniqueIndex } from 'drizzle-orm/pg-core';
+
+  export const users = pgTable(
+    'users',
+    {
+      id: serial('id').primaryKey(),
+      name: text('name').notNull(),
+      email: text('email').notNull(),
+    },
+    (table) => [
+      // uniqueIndex('emailUniqueIndex').on(sql`lower(${table.email})`),
+      uniqueIndex('emailUniqueIndex').on(lower(table.email)),
+    ],
+  );
+
+  // custom lower function
+  export function lower(email: AnyPgColumn): SQL {
+    return sql`lower(${email})`;
+  }
+  ```
+  </CodeTab>
+  ```sql
+  CREATE TABLE IF NOT EXISTS "users" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"email" text NOT NULL
+  );
+  --> statement-breakpoint
+  CREATE UNIQUE INDEX IF NOT EXISTS "emailUniqueIndex" ON "users" USING btree (lower("email"));
+  ```
+</CodeTabs>
+
+아래는 `lower` 함수를 사용해 `email`로 사용자를 조회하는 방법입니다:
+
+<Section>
+```ts copy {10}
+import { eq } from 'drizzle-orm';
+import { lower, users } from './schema';
+
+const db = drizzle(...);
+
+const findUserByEmail = async (email: string) => {
+  return await db
+    .select()
+    .from(users)
+    .where(eq(lower(users.email), email.toLowerCase()));
+};
+```
+
+```sql
+select * from "users" where lower(email) = 'john@email.com';
+```
+</Section>
+
+### MySQL
+
+MySQL에서 문자열 비교의 기본 collation 설정은 대소문자를 구분하지 않으므로, SQL query에서 문자열 검색이나 비교를 수행할 때 문자 대소문자가 결과에 영향을 주지 않습니다. 하지만 collation 설정은 달라질 수 있고 대소문자를 구분하도록 설정될 수도 있으므로, 우리는 소문자로 변환한 `email` 컬럼에 unique index를 만들어 대소문자와 관계없이 `email`이 고유하도록 명시적으로 보장하겠습니다.
+
+Drizzle은 단순하고 유연한 API를 제공하므로, SQL-like 문법으로 이런 인덱스를 쉽게 만들 수 있습니다:
+<CodeTabs items={["schema.ts", "migration.sql"]}>
+  <CodeTab>
+  ```ts copy {12,13}
+  import { SQL, sql } from 'drizzle-orm';
+  import { AnyMySqlColumn, mysqlTable, serial, uniqueIndex, varchar } from 'drizzle-orm/mysql-core';
+
+  export const users = mysqlTable(
+    'users',
+    {
+      id: serial('id').primaryKey(),
+      name: varchar('name', { length: 255 }).notNull(),
+      email: varchar('email', { length: 255 }).notNull(),
+    },
+    (table) => [
+      // uniqueIndex('emailUniqueIndex').on(sql`(lower(${table.email}))`),
+      uniqueIndex('emailUniqueIndex').on(lower(table.email)),
+    ]
+  );
+
+  // custom lower function
+  export function lower(email: AnyMySqlColumn): SQL {
+    return sql`(lower(${email}))`;
+  }
+  ```
+  </CodeTab>
+  ```sql
+  CREATE TABLE `users` (
+	  `id` serial AUTO_INCREMENT NOT NULL,
+	  `name` varchar(255) NOT NULL,
+	  `email` varchar(255) NOT NULL,
+	  CONSTRAINT `users_id` PRIMARY KEY(`id`),
+	  CONSTRAINT `emailUniqueIndex` UNIQUE((lower(`email`)))
+  );
+  ```
+</CodeTabs>
+
+<Callout type="warning">
+Functional indexes는 MySQL `8.0.13`부터 지원됩니다. 올바른 문법을 위해 expression은 `(lower(column))`처럼 괄호로 감싸야 합니다.
+</Callout>
+
+아래는 `lower` 함수를 사용해 `email`로 사용자를 조회하는 방법입니다:
+
+<Section>
+```ts copy {10}
+import { eq } from 'drizzle-orm';
+import { lower, users } from './schema';
+
+const db = drizzle(...);
+
+const findUserByEmail = async (email: string) => {
+  return await db
+    .select()
+    .from(users)
+    .where(eq(lower(users.email), email.toLowerCase()));
+};
+```
+
+```sql
+select * from `users` where lower(email) = 'john@email.com';
+```
+</Section>
+
+### SQLite
+
+SQLite에서 Drizzle과 함께 고유하고 대소문자를 구분하지 않는 `email` 처리를 구현하려면, 소문자로 변환한 `email` 컬럼에 unique index를 만들 수 있습니다. 이렇게 하면 대소문자와 관계없이 `email`이 고유하도록 보장할 수 있습니다.
+
+Drizzle은 단순하고 유연한 API를 제공하므로, SQL-like 문법으로 이런 인덱스를 쉽게 만들 수 있습니다:
+
+<CodeTabs items={["schema.ts", "migration.sql"]}>
+  <CodeTab>
+  ```ts copy {12,13}
+  import { SQL, sql } from 'drizzle-orm';
+  import { AnySQLiteColumn, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+
+  export const users = sqliteTable(
+    'users',
+    {
+      id: integer('id').primaryKey(),
+      name: text('name').notNull(),
+      email: text('email').notNull(),
+    },
+    (table) => [
+      // uniqueIndex('emailUniqueIndex').on(sql`lower(${table.email})`),
+      uniqueIndex('emailUniqueIndex').on(lower(table.email)),
+    ]
+  );
+
+  // custom lower function
+  export function lower(email: AnySQLiteColumn): SQL {
+    return sql`lower(${email})`;
+  }
+  ```
+  </CodeTab>
+  ```sql
+  CREATE TABLE `users` (
+	  `id` integer PRIMARY KEY NOT NULL,
+	  `name` text NOT NULL,
+	  `email` text NOT NULL
+  );
+  --> statement-breakpoint
+  CREATE UNIQUE INDEX `emailUniqueIndex` ON `users` (lower(`email`));
+  ```
+</CodeTabs>
+
+아래는 `lower` 함수를 사용해 `email`로 사용자를 조회하는 방법입니다:
+
+<Section>
+```ts copy {10}
+import { eq } from 'drizzle-orm';
+import { lower, users } from './schema';
+
+const db = drizzle(...);
+
+const findUserByEmail = async (email: string) => {
+  return await db
+    .select()
+    .from(users)
+    .where(eq(lower(users.email), email.toLowerCase()));
+};
+```
+
+```sql
+select * from "users" where lower(email) = 'john@email.com';
+```
+</Section>

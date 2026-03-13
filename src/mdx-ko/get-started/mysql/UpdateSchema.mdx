@@ -1,0 +1,30 @@
+테이블 스키마를 업데이트하려면 `schema.ts` 파일에서 업데이트할 수 있습니다. 예를 들어, `users_table`에 새 열 `phone`을 추가해 보겠습니다.
+```typescript copy filename="src/db/schema.ts" {20}
+import {
+  mysqlTable,
+  mysqlSchema,
+  AnyMySqlColumn,
+  primaryKey,
+  unique,
+  serial,
+  varchar,
+  int,
+} from 'drizzle-orm/mysql-core';
+import { sql } from 'drizzle-orm';
+
+export const usersTable = mysqlTable(
+  'users_table',
+  {
+    id: serial().notNull(),
+    name: varchar({ length: 255 }).notNull(),
+    age: int().notNull(),
+    email: varchar({ length: 255 }).notNull(),
+    phone: varchar({ length: 255 }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.id], name: 'users_table_id' }),
+    unique('id').on(table.id),
+    unique('users_table_email_unique').on(table.email),
+  ],
+);
+```

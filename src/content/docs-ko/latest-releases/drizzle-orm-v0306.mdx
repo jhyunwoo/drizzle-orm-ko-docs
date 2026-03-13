@@ -1,0 +1,30 @@
+---
+title: DrizzleORM v0.30.6 릴리스
+pubDate: 2024-03-28
+description: PGlite 드라이버 지원을 추가했습니다.
+---
+
+## 새 기능
+
+### PGlite 드라이버 지원
+
+[PGlite](https://github.com/electric-sql/pglite)는 WASM으로 빌드된 Postgres를 TypeScript 클라이언트 라이브러리로 패키징한 것으로, 추가 의존성 설치 없이 브라우저, Node.js, Bun에서 Postgres를 실행할 수 있게 해 줍니다. gzip 기준 크기는 2.6mb에 불과합니다.
+
+임시 in-memory 데이터베이스로 사용할 수도 있고, 파일 시스템(Node/Bun)이나 indexedDB(브라우저)에 영속성을 두고 사용할 수도 있습니다.
+
+기존의 "브라우저 안의 Postgres" 프로젝트들과 달리, PGlite는 Linux 가상 머신을 사용하지 않습니다. 그저 WASM 위에서 동작하는 Postgres입니다.
+
+Drizzle과 PGlite 시작 가이드는 [here](/docs/get-started-postgresql#pglite)에서 확인하세요.
+
+사용 예시
+```ts copy {1,6}
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+import { users } from './schema';
+
+// In-memory Postgres
+const client = new PGlite();
+const db = drizzle(client);
+
+await db.select().from(users);
+```

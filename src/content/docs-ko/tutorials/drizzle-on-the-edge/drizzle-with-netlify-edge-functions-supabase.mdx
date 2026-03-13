@@ -1,0 +1,231 @@
+---
+title: "Netlify Edge Functions 및 Supabase Database로 Drizzle 사용하기"
+date: "2025-01-30"
+---
+
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import Npm from '@mdx-ko/Npm.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import Section from "@mdx-ko/Section.astro";
+import Callout from "@mdx-ko/Callout.astro";
+
+이 튜토리얼에서는 [Netlify Edge Functions](https://docs.netlify.com/edge-functions/overview/)와 [Supabase Database](https://supabase.com/docs/guides/database/overview) 데이터베이스로 Drizzle ORM을 사용하는 방법을 보여줍니다.
+
+<Prerequisites>
+- 최신 버전의 [Netlify CLI](https://docs.netlify.com/cli/get-started/#installation)가 설치되어 있어야 합니다.
+- Drizzle ORM과 [Drizzle kit](/docs/kit-overview)이 설치되어 있어야 합니다. 아래 명령을 실행하면 설치할 수 있습니다:
+<Npm>
+drizzle-orm
+-D drizzle-kit
+</Npm>
+
+- 환경 변수 관리를 위해 `dotenv` 패키지가 설치되어 있어야 합니다. Node.js `v20.6.0` 이상을 사용한다면 Node.js가 `.env` 파일을 기본 지원하므로 설치할 필요가 없습니다. 자세한 내용은 [여기](https://nodejs.org/en/blog/release/v20.6.0#built-in-env-file-support)를 참고하세요.
+<Npm>
+  dotenv
+</Npm>
+
+- 선택 사항으로, 나중에 사용할 `Context` 객체의 타입을 import하기 위해 `@netlify/edge-functions` 패키지를 설치할 수 있습니다.
+<Npm>
+  @netlify/edge-functions
+</Npm>
+</Prerequisites>
+
+<Callout type="warning">
+여기서 설치하는 패키지는 [Create a table](#create-a-table), [Setup Drizzle config file](#setup-drizzle-config-file), [Apply changes to the database](#apply-changes-to-the-database) 단계에서 데이터베이스에 테이블을 만들 때만 사용됩니다. 이 패키지들은 Netlify Edge Functions 내부에서 실행되는 코드에는 영향을 주지 않습니다. Edge Functions에서 필요한 패키지를 import하기 위해 `import_map.json`을 사용할 것입니다.
+</Callout>
+
+<Steps>
+#### 새 Supabase 프로젝트 만들기
+
+[대시보드](https://supabase.com/dashboard)에서 새 Supabase 프로젝트를 만들거나 이 [링크](https://database.new/)를 따라가서 만들 수 있습니다.
+
+#### 연결 문자열 변수 설정
+
+대시보드 상단 바에서 **Connect**를 클릭하면 `Project connect details`를 찾을 수 있습니다. `Transaction pooler` 섹션에서 URI를 복사하세요. 비밀번호 플레이스홀더를 실제 데이터베이스 비밀번호로 바꾸는 것도 잊지 마세요.
+
+`.env` 파일에 `DATABASE_URL` 변수를 추가합니다.
+
+```plaintext copy
+DATABASE_URL=<YOUR_DATABASE_URL>
+```
+
+Supabase Database 연결에 대한 자세한 내용은 [문서](https://supabase.com/docs/guides/database/connecting-to-postgres#connection-pooler)를 참고하세요.
+
+#### Netlify Edge Functions 설정
+
+프로젝트 루트에 `netlify/edge-functions` 디렉터리를 만듭니다. 이 디렉터리에 Edge Functions를 저장합니다.
+
+`netlify/edge-functions` 디렉터리에 `user.ts` 함수를 만듭니다.
+
+```typescript copy filename="netlify/edge-functions/user.ts"
+import type { Context } from "@netlify/edge-functions";
+
+export default async (request: Request, context: Context) => {
+  return new Response("User data");
+};
+```
+
+<Callout type="warning">
+`Request`와 `Response` 객체의 타입은 전역 스코프에 있습니다.
+</Callout>
+
+#### import 설정
+
+프로젝트 루트에 `import_map.json` 파일을 만들고 아래 내용을 추가합니다.
+
+```json copy filename="import_map.json"
+{
+  "imports": {
+    "drizzle-orm/": "https://esm.sh/drizzle-orm/",
+    "postgres": "https://esm.sh/postgres"
+  }
+}
+```
+
+Netlify Edge Functions에서 `import_map.json`에 대한 자세한 내용은 [여기](https://docs.netlify.com/edge-functions/api/#import-maps)를 참고하세요.
+
+#### Netlify 설정 파일 만들기
+
+프로젝트 루트에 `netlify.toml` 파일을 만들고 아래 내용을 추가합니다.
+
+```toml copy filename="netlify.toml"
+[functions]
+  deno_import_map = "./import_map.json"
+
+[[edge_functions]]
+  path = "/user"
+  function = "user"
+```
+
+이 설정은 Netlify가 Deno imports에 `import_map.json` 파일을 사용하고, `/user` 경로로 들어오는 요청을 `user.ts` 함수로 라우팅하도록 알려줍니다. 
+`netlify.toml`에 대한 자세한 내용은 [여기](https://docs.netlify.com/configure-builds/file-based-configuration/)를 참고하세요.
+
+#### 테이블 만들기
+
+`netlify/edge-functions/common` 디렉터리에 `schema.ts` 파일을 만들고 테이블 스키마를 선언합니다.
+
+```typescript copy filename="netlify/edge-functions/common/schema.ts"
+import { pgTable, serial, text, integer } from "drizzle-orm/pg-core";
+
+export const usersTable = pgTable('users_table', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  age: integer('age').notNull(),
+  email: text('email').notNull().unique(),
+})
+```
+
+#### Drizzle config 파일 설정
+
+**Drizzle config**는 [Drizzle Kit](/docs/kit-overview)에서 사용되며 데이터베이스 연결, 마이그레이션 폴더, 스키마 파일에 대한 모든 정보를 담고 있는 설정 파일입니다.
+
+프로젝트 루트에 `drizzle.config.ts` 파일을 만들고 아래 내용을 추가합니다.
+
+```typescript copy filename="drizzle.config.ts"
+import 'dotenv/config'; // remove this line if you use Node.js v20.6.0 or later
+import type { Config } from "drizzle-kit";
+
+export default {
+  schema: './netlify/edge-functions/common/schema.ts',
+  out: './drizzle',
+  dialect: 'postgresql',
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+} satisfies Config;
+```
+
+이 튜토리얼에서는 Drizzle kit를 사용해 Neon 데이터베이스에 변경 사항을 push할 것입니다.
+
+#### 데이터베이스에 변경 사항 적용
+
+```bash copy
+npx drizzle-kit push
+```
+<Callout type="warning">Push 명령은 로컬 개발 환경에서 새로운 스키마 설계나 변경 사항을 빠르게 테스트해야 하는 상황에 적합하며, 마이그레이션 파일을 관리하는 오버헤드 없이 빠르게 반복 작업할 수 있게 해줍니다.</Callout>
+
+대신 migrations 워크플로를 사용할 수도 있습니다. 자세한 내용은 여기에서 읽어보세요: [Migrations](/docs/migrations).
+
+#### 데이터베이스에 Drizzle ORM 연결
+
+`netlify/edge-functions/user.ts` 파일을 업데이트하고 데이터베이스 설정을 구성합니다.
+
+```typescript copy filename="netlify/edge-functions/user.ts"
+import type { Context } from "@netlify/edge-functions";
+import { usersTable } from "./common/schema.ts";
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+
+export default async (request: Request, context: Context) => {
+  const queryClient = postgres(Netlify.env.get("DATABASE_URL")!);
+  const db = drizzle({ client: queryClient });
+
+  const users = await db.select().from(usersTable);
+
+  return new Response(JSON.stringify(users));
+};
+```
+
+<Callout type="warning">
+VS Code를 사용 중이라면 import 아래에 빨간 밑줄이 보일 수 있습니다. 그래도 Edge Function은 계속 실행됩니다. 빨간 밑줄을 없애려면 다음 단계에서 VS Code가 Edge Functions를 사용하도록 설정할 수 있습니다.
+</Callout>
+
+#### 로컬에서 코드 테스트하기
+
+Netlify dev 서버를 시작하려면 아래 명령을 실행합니다.
+
+```bash copy
+netlify dev
+```
+
+명령을 처음 실행하면 VS Code가 Edge Functions를 사용하도록 설정할지 제안합니다. 설정하려면 `Yes`를 클릭하세요. `.vscode` 디렉터리에 `settings.json` 파일이 생성됩니다.
+그래도 빨간 밑줄이 보인다면 Deno Language Server를 재시작할 수 있습니다.
+
+브라우저를 열고 `/user` 경로로 이동하세요. Neon 데이터베이스에서 반환된 사용자 데이터가 보여야 합니다:
+
+```plaintext
+[]
+```
+
+`users_table` 테이블에 아직 데이터를 추가하지 않았다면 빈 배열일 수 있습니다.
+
+#### 새 Netlify 프로젝트 초기화
+
+새 Netlify 프로젝트를 초기화하려면 아래 명령을 실행합니다.
+
+```bash copy
+netlify init
+```
+
+CLI의 질문에 답해 새 Netlify 프로젝트를 만듭니다. 이 튜토리얼에서는 `Yes, create and deploy site manually` -> `<YOUR_TEAM>` -> `<SITE_NAME>`를 선택합니다.
+
+#### Netlify 환경 변수 설정
+
+환경 변수를 Netlify로 가져오려면 아래 명령을 실행합니다.
+
+```bash copy
+netlify env:import .env
+```
+
+Netlify 환경 변수에 대한 자세한 내용은 [여기](https://docs.netlify.com/environment-variables/get-started/)를 참고하세요.
+
+#### 프로젝트 배포
+
+프로젝트를 배포하려면 아래 명령을 실행합니다.
+
+```bash copy
+netlify deploy
+```
+
+CLI의 안내에 따라 프로젝트를 Netlify에 배포하세요. 이 튜토리얼에서 publish 디렉터리는 `'.'`입니다.
+
+기본적으로 이것은 [draft deployment](https://docs.netlify.com/cli/get-started/#draft-deploys)입니다.
+프로덕션 배포를 하려면 아래 명령을 실행하세요:
+
+```bash copy
+netlify deploy --prod
+```
+
+</Steps>
+
+마지막으로, 배포된 웹사이트의 URL을 사용하고 만들어 둔 경로 `(e.g. /user)`로 이동하여 edge function에 접근할 수 있습니다.

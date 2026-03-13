@@ -1,0 +1,135 @@
+---
+title: PostgreSQL의 Point datatype
+slug: point-datatype-psql
+---
+
+import Section from "@mdx-ko/Section.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Callout from '@mdx-ko/Callout.astro';
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql) 시작하기
+- [Point datatype](/docs/column-types/pg#point)
+- [Filtering in select statement](/docs/select#filtering)
+- [sql operator](/docs/sql)
+</Prerequisites>
+
+PostgreSQL에는 기하학적 데이터를 저장하기 위한 `point`라는 특수 datatype이 있습니다. 이는 2차원 공간의 한 점을 표현하는 데 사용됩니다. point datatype은 `(x, y)` 좌표 쌍으로 표현됩니다.
+point는 longitude를 먼저, latitude를 그다음에 받습니다.
+
+<Section>
+```ts copy {6}
+import { sql } from 'drizzle-orm';
+
+const db = drizzle(...);
+
+await db.execute(
+  sql`select point(-90.9, 18.7)`,
+);
+```
+
+```json
+[ 
+  { 
+    point: '(-90.9,18.7)' 
+  }
+]
+```
+</Section>
+
+아래는 Drizzle에서 `point` datatype을 사용해 테이블을 만드는 방법입니다:
+
+```ts {6}
+import { pgTable, point, serial, text } from 'drizzle-orm/pg-core';
+
+export const stores = pgTable('stores', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  location: point('location', { mode: 'xy' }).notNull(),
+});
+```
+
+아래는 Drizzle에서 테이블에 point 데이터를 삽입하는 방법입니다:
+
+```ts {4, 10, 16}
+// mode: 'xy'
+await db.insert(stores).values({
+  name: 'Test',
+  location: { x: -90.9, y: 18.7 },
+});
+
+// mode: 'tuple'
+await db.insert(stores).values({
+  name: 'Test',
+  location: [-90.9, 18.7],
+});
+
+// sql raw
+await db.insert(stores).values({
+  name: 'Test',
+  location: sql`point(-90.9, 18.7)`,
+});
+```
+
+객체 사이의 거리를 계산하려면 `<->` 연산자를 사용할 수 있습니다. 아래는 Drizzle에서 좌표 기준으로 가장 가까운 위치를 조회하는 방법입니다:
+
+<Callout type='warning'>
+`getColumns`는 `drizzle-orm@1.0.0-beta.2`부터 사용할 수 있습니다([여기](/docs/upgrade-v1)에서 더 읽어보기)
+
+pre-1 버전(예: `0.45.1`)을 사용 중이라면 `getTableColumns`를 사용하세요
+</Callout>
+
+<Section>
+```ts {9, 14, 17}
+import { getColumns, sql } from 'drizzle-orm';
+import { stores } from './schema';
+
+const point = {
+  x: -73.935_242,
+  y: 40.730_61,
+};
+
+const sqlDistance = sql`location <-> point(${point.x}, ${point.y})`;
+
+await db
+  .select({
+    ...getColumns(stores),
+    distance: sql`round((${sqlDistance})::numeric, 2)`,
+  })
+  .from(stores)
+  .orderBy(sqlDistance)
+  .limit(1);
+```
+
+```sql
+select *, round((location <-> point(-73.935242, 40.73061))::numeric, 2)
+from stores order by location <-> point(-73.935242, 40.73061)
+limit 1;
+```
+</Section>
+
+`point` 타입의 `location`이 두 대각선 점으로 정의된 직사각형 경계 안에 들어오는 행만 필터링하려면 `<@` 연산자를 사용할 수 있습니다. 이 연산자는 첫 번째 객체가 두 번째 객체 안에 있거나 그 위에 있는지를 검사합니다:
+
+<Section>
+```ts {12}
+const point = {
+  x1: -88,
+  x2: -73,
+  y1: 40,
+  y2: 43,
+};
+
+await db
+  .select()
+  .from(stores)
+  .where(
+    sql`${stores.location} <@ box(point(${point.x1}, ${point.y1}), point(${point.x2}, ${point.y2}))`
+  );
+```
+
+```sql
+select * from stores where location <@ box(point(-88, 40), point(-73, 43));
+```
+</Section>

@@ -1,0 +1,67 @@
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+# Drizzle \<\> Bun SQLite
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- Bun - [웹사이트](https://bun.sh/docs)
+- Bun SQLite driver - [문서](https://bun.sh/docs/api/sqlite)
+</Prerequisites>
+
+**[공식 웹사이트](https://bun.sh/)**에 따르면, Bun은 빠른 올인원 JavaScript 런타임입니다. 
+
+Drizzle ORM은 **[`bun:sqlite`](https://bun.sh/docs/api/sqlite)** 모듈을 네이티브하게 지원하며, 엄청나게 빠릅니다 🚀  
+
+저희는 SQL 방언과 방언별 드라이버 및 문법을 받아들이며, 다른 어떤 ORM과도 달리 
+`bun:sqlite` 같은 동기식 드라이버에 대해서도 **async**와 **sync** API를 모두 제공하고, 가장 널리 쓰이는 
+SQLite 스타일의 `all`, `get`, `values`, `run` 쿼리 메서드 문법을 그대로 반영합니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+```typescript copy
+import { drizzle } from 'drizzle-orm/bun-sqlite';
+
+const db = drizzle();
+
+const result = await db.select().from(...);
+```
+
+기존 드라이버를 직접 제공해야 하는 경우:
+```typescript copy
+import { drizzle } from 'drizzle-orm/bun-sqlite';
+import { Database } from 'bun:sqlite';
+
+const sqlite = new Database('sqlite.db');
+const db = drizzle({ client: sqlite });
+
+const result = await db.select().from(...);
+```
+
+**sync** API를 사용하고 싶다면:
+```typescript copy
+import { drizzle } from 'drizzle-orm/bun-sqlite';
+import { Database } from 'bun:sqlite';
+
+const sqlite = new Database('sqlite.db');
+const db = drizzle({ client: sqlite });
+
+const result = db.select().from(users).all();
+const result = db.select().from(users).get();
+const result = db.select().from(users).values();
+const result = db.select().from(users).run();
+```
+
+#### 다음 단계는?
+
+<WhatsNextPostgres/>

@@ -1,0 +1,49 @@
+import Callout from '@mdx-ko/Callout.astro';
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+`src/db` 디렉터리에 `index.ts` 파일을 만들고 연결을 초기화하세요:
+
+<CodeTabs items={['mysql2', '설정과 함께 사용하는 mysql2', '기존 mysql2 드라이버']}>
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from "drizzle-orm/mysql2";
+
+const db = drizzle(process.env.DATABASE_URL);
+```
+```typescript copy
+import 'dotenv/config';
+import { drizzle } from "drizzle-orm/mysql2";
+
+// You can specify any property from the mysql2 connection options
+const db = drizzle({ connection: { uri: process.env.DATABASE_URL }});
+```
+```ts
+import 'dotenv/config';
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
+  
+const poolConnection = mysql.createPool({
+  host: "host",
+  user: "user",
+  database: "database",
+});
+const db = drizzle({ client: poolConnection });
+
+// or if you need client connection
+async function main() {
+  const connection = await mysql.createConnection({
+    host: "host",
+    user: "user",
+    database: "database",
+  });
+  const db = drizzle({ client: connection });
+}
+main();
+```
+</CodeTabs>
+
+<Callout type="warning" emoji="⚙️">
+  내장 `migrate` 함수로 DDL 마이그레이션을 실행할 때는, 저희와 드라이버 양쪽 모두 단일 `client` 연결 사용을 강력히 권장합니다.
+
+  조회 용도에서는 비즈니스 요구에 따라 `client`와 `pool` 중 어느 쪽이든 자유롭게 사용할 수 있습니다.
+</Callout>

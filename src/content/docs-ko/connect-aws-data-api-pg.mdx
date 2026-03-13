@@ -1,0 +1,57 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+
+# Drizzle \<\> AWS Data API Postgres
+
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- AWS Data API - [웹사이트](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html)
+- AWS SDK - [웹사이트](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-rds-data/)
+</Prerequisites>
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm @aws-sdk/client-rds-data
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+```typescript copy
+import { drizzle } from 'drizzle-orm/aws-data-api/pg';
+
+// These three properties are required. You can also specify
+// any property from the RDSDataClient type inside the connection object.
+const db = drizzle({ connection: {
+  database: process.env['DATABASE']!,
+  secretArn: process.env['SECRET_ARN']!,
+  resourceArn: process.env['RESOURCE_ARN']!,
+}});
+
+await db.select().from(...);
+```
+
+기존 드라이버를 직접 제공해야 하는 경우:
+
+```typescript copy
+import { drizzle } from 'drizzle-orm/aws-data-api/pg';
+import { RDSDataClient } from '@aws-sdk/client-rds-data';
+
+const rdsClient = new RDSDataClient({ region: 'us-east-1' });
+
+const db = drizzle(rdsClient, {
+  database: process.env['DATABASE']!,
+  secretArn: process.env['SECRET_ARN']!,
+  resourceArn: process.env['RESOURCE_ARN']!,
+});
+
+await db.select().from(...);
+```
+
+#### 다음 단계는?
+
+<WhatsNextPostgres/>

@@ -1,0 +1,104 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Tab from '@mdx-ko/Tab.astro';
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Steps from '@mdx-ko/Steps.astro';
+
+# Prisma를 위한 Drizzle 확장
+
+기존 Prisma 프로젝트가 있고 Drizzle을 써 보거나 점진적으로 도입하고 싶다면, Prisma 클라이언트에 Drizzle API를 추가해 주는 first-class extension을 사용할 수 있습니다. 이 확장을 사용하면 기존 DB 연결을 재사용하면서, Prisma 쿼리와 나란히 Drizzle을 함께 사용할 수 있습니다.
+
+## 사용 방법
+
+<Steps>
+#### 의존성 설치
+
+Drizzle 본체와, Prisma 스키마로부터 Drizzle 스키마를 생성해 줄 generator 패키지를 설치해야 합니다.
+<Npm>
+drizzle-orm@latest
+-D drizzle-prisma-generator
+</Npm>
+
+#### Prisma 스키마 업데이트
+
+Prisma 스키마에 Drizzle generator를 추가합니다. `output`은 생성된 Drizzle 스키마 TS 파일이 저장될 경로입니다.
+```prisma copy filename="schema.prisma" {5-8}
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator drizzle {
+  provider = "drizzle-prisma-generator"
+  output   = "./drizzle" // Where to put generated Drizle tables
+}
+
+// Rest of your Prisma schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+
+...
+```
+
+#### Drizzle 스키마 생성
+
+```bash
+prisma generate
+```
+
+#### Prisma 클라이언트에 Drizzle 확장 추가
+
+<CodeTabs items={["PostgreSQL", "MySQL", "SQLite"]}>
+<CodeTab>
+```ts copy
+import { PrismaClient } from '@prisma/client';
+import { drizzle } from 'drizzle-orm/prisma/pg';
+
+const prisma = new PrismaClient().$extends(drizzle());
+```
+</CodeTab>
+<CodeTab>
+```ts copy
+import { PrismaClient } from '@prisma/client';
+import { drizzle } from 'drizzle-orm/prisma/mysql';
+
+const prisma = new PrismaClient().$extends(drizzle());
+```
+</CodeTab>
+<CodeTab>
+```ts copy
+import { PrismaClient } from '@prisma/client';
+import { drizzle } from 'drizzle-orm/prisma/sqlite';
+
+const prisma = new PrismaClient().$extends(drizzle());
+```
+</CodeTab>
+</CodeTabs>
+
+#### `prisma.$drizzle`을 통해 Drizzle 쿼리 실행 ✨
+
+Drizzle query builder를 사용하려면 Drizzle 테이블에 대한 참조가 필요합니다. 이 참조는 generator 설정에서 지정한 output 경로에서 import할 수 있습니다.
+
+```ts copy
+import { User } from './drizzle';
+
+await prisma.$drizzle.insert().into(User).values({ email: 'sorenbs@drizzle.team', name: 'Søren' });
+const users = await prisma.$drizzle.select().from(User);
+```
+
+</Steps>
+
+## 제한 사항
+
+- [Relational queries](/docs/rqb)는 [Prisma 드라이버 제한 사항](https://github.com/prisma/prisma/issues/17576) 때문에 지원되지 않습니다. Prisma는 쿼리 결과를 relational queries에 필요한 배열 형식으로 반환할 수 없기 때문입니다.
+- SQLite에서는 같은 이유로 `.values()`(예: `await db.select().from(table).values()`)가 지원되지 않습니다.
+- [Prepared statements](/docs/perf-queries#prepared-statement) 지원은 제한적입니다. Prisma에는 prepared queries를 위한 API가 없기 때문에, `.prepare()`는 Drizzle 쪽에서 SQL 쿼리만 빌드합니다.

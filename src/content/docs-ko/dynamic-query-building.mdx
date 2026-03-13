@@ -1,0 +1,169 @@
+import Callout from '@mdx-ko/Callout.astro';
+
+# Dynamic query building
+
+기본적으로 Drizzle의 모든 query builder는 가능한 한 SQL에 맞추려고 하기 때문에, 대부분의 method는 한 번만 호출할 수 있습니다.
+예를 들어 `SELECT` statement에는 `WHERE` clause가 하나만 있을 수 있으므로 `.where()`도 한 번만 호출할 수 있습니다:
+
+```ts
+const query = db
+	.select()
+	.from(users)
+	.where(eq(users.id, 1))
+	.where(eq(users.name, 'John')); // ❌ Type error - where() can only be invoked once
+```
+
+이전 ORM 버전에서는 이런 제한이 구현되어 있지 않았고, 특히 이 예제는 많은 사용자에게 혼란의 원인이 되었습니다. 사용자들은 query builder가 여러 번의 `.where()` 호출을 하나의 조건으로 "merge"해 줄 것이라고 기대했기 때문입니다.
+
+이 동작은 일반적인 query 작성, 즉 전체 query를 한 번에 만드는 경우에는 유용합니다.
+하지만 query를 동적으로 구성하고 싶을 때, 즉 query builder를 받아서 확장하는 공유 함수를 가지고 있을 때는 문제가 됩니다.
+이 문제를 해결하기 위해 Drizzle은 query builder를 위한 특별한 'dynamic' 모드를 제공하며, 이 모드에서는 method를 한 번만 호출해야 하는 제한이 제거됩니다.
+이를 활성화하려면 query builder에서 `.$dynamic()`을 호출해야 합니다.
+
+제공된 페이지 번호와 선택적인 페이지 크기를 바탕으로 query에 `LIMIT`과 `OFFSET` clause를 추가하는 간단한 `withPagination` 함수를 구현해 보며 동작 방식을 살펴보겠습니다:
+
+```ts
+function withPagination<T extends PgSelect>(
+	qb: T,
+	page: number = 1,
+	pageSize: number = 10,
+) {
+	return qb.limit(pageSize).offset((page - 1) * pageSize);
+}
+
+const query = db.select().from(users).where(eq(users.id, 1));
+withPagination(query, 1); // ❌ Type error - the query builder is not in dynamic mode
+
+const dynamicQuery = query.$dynamic();
+withPagination(dynamicQuery, 1); // ✅ OK
+```
+
+`withPagination` 함수는 generic이라는 점에 주목하세요. 덕분에 그 안에서 query builder의 결과 타입을 수정할 수 있고, 예를 들어 join을 추가할 수도 있습니다:
+
+```ts
+function withFriends<T extends PgSelect>(qb: T) {
+	return qb.leftJoin(friends, eq(friends.userId, users.id));
+}
+
+let query = db.select().from(users).where(eq(users.id, 1)).$dynamic();
+query = withFriends(query);
+```
+
+이것이 가능한 이유는 `PgSelect`와 그와 유사한 다른 타입들이 동적 query 작성에 사용되도록 특별히 설계되었기 때문입니다. 이 타입들은 dynamic mode에서만 사용할 수 있습니다.
+
+다음은 dynamic query building에서 generic parameter로 사용할 수 있는 모든 타입 목록입니다:
+
+{
+
+<table>
+	<thead align='center'>
+		<tr>
+			<td>
+				<b>Dialect</b>
+			</td>
+			<td colspan='4'>
+				<b>Type</b>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<b>Query</b>
+			</td>
+			<td>
+				<b>Select</b>
+			</td>
+			<td>
+				<b>Insert</b>
+			</td>
+			<td>
+				<b>Update</b>
+			</td>
+			<td>
+				<b>Delete</b>
+			</td>
+		</tr>
+	</thead>
+	<tbody>
+		<tr align='center'>
+			<td rowspan='2'>Postgres</td>
+			<td>
+				<code>PgSelect</code>
+			</td>
+			<td rowspan='2'>
+				<code>PgInsert</code>
+			</td>
+			<td rowspan='2'>
+				<code>PgUpdate</code>
+			</td>
+			<td rowspan='2'>
+				<code>PgDelete</code>
+			</td>
+		</tr>
+		<tr align='center'>
+			<td>
+				<code>PgSelectQueryBuilder</code>
+			</td>
+		</tr>
+		<tr align='center'>
+			<td rowspan='2'>MySQL</td>
+			<td>
+				<code>MySqlSelect</code>
+			</td>
+			<td rowspan='2'>
+				<code>MySqlInsert</code>
+			</td>
+			<td rowspan='2'>
+				<code>MySqlUpdate</code>
+			</td>
+			<td rowspan='2'>
+				<code>MySqlDelete</code>
+			</td>
+		</tr>
+		<tr align='center'>
+			<td>
+				<code>MySqlSelectQueryBuilder</code>
+			</td>
+		</tr>
+		<tr align='center'>
+			<td rowspan='2'>SQLite</td>
+			<td>
+				<code>SQLiteSelect</code>
+			</td>
+			<td rowspan='2'>
+				<code>SQLiteInsert</code>
+			</td>
+			<td rowspan='2'>
+				<code>SQLiteUpdate</code>
+			</td>
+			<td rowspan='2'>
+				<code>SQLiteDelete</code>
+			</td>
+		</tr>
+		<tr align='center'>
+			<td>
+				<code>SQLiteSelectQueryBuilder</code>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+}
+
+<Callout type='info'>
+	`...QueryBuilder` 타입은 [standalone query builder
+	instance](/docs/goodies#standalone-query-builder)와 함께 사용할 때를 위한 것입니다. DB query builder는
+	이 타입들의 subclass이므로, 이 타입들을 그대로 사용할 수도 있습니다.
+
+    ```ts
+    	import { QueryBuilder } from 'drizzle-orm/pg-core';
+
+    	function withFriends<T extends PgSelectQueryBuilder>(qb: T) {
+    		return qb.leftJoin(friends, eq(friends.userId, users.id));
+    	}
+
+    	const qb = new QueryBuilder();
+    	let query = qb.select().from(users).where(eq(users.id, 1)).$dynamic();
+    	query = withFriends(query);
+    ```
+
+</Callout>

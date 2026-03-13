@@ -1,0 +1,80 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Callout from '@mdx-ko/Callout.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> MySQL
+
+MySQL 데이터베이스와 함께 Drizzle를 사용하려면 `mysql2` 드라이버를 사용해야 합니다.
+
+**[공식 웹사이트](https://github.com/sidorares/node-mysql2)**에 따르면,
+`mysql2`는 성능에 초점을 맞춘 Node.js용 MySQL 클라이언트입니다.
+
+Drizzle ORM은 `drizzle-orm/mysql2` 패키지로 `mysql2`를 기본 지원합니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm mysql2
+-D drizzle-kit
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 작성
+<CodeTabs items={['mysql2', '설정이 포함된 mysql']}>
+```typescript copy
+import { drizzle } from "drizzle-orm/mysql2";
+
+const db = drizzle(process.env.DATABASE_URL);
+
+const response = await db.select().from(...)
+```
+```typescript copy
+import { drizzle } from "drizzle-orm/mysql2";
+
+// You can specify any property from the mysql2 connection options
+const db = drizzle({ connection:{ uri: process.env.DATABASE_URL }});
+
+const response = await db.select().from(...)
+```
+</CodeTabs>
+
+기존 드라이버를 제공해야 하는 경우:
+
+<CodeTabs items={['클라이언트 연결', '풀 연결']}>
+  ```typescript copy
+  import { drizzle } from "drizzle-orm/mysql2";
+  import mysql from "mysql2/promise";
+
+  const connection = await mysql.createConnection({
+    host: "host",
+    user: "user",
+    database: "database",
+    ...
+  });
+
+  const db = drizzle({ client: connection });
+  ```
+  ```typescript copy
+  import { drizzle } from "drizzle-orm/mysql2";
+  import mysql from "mysql2/promise";
+
+  const poolConnection = mysql.createPool({
+    host: "host",
+    user: "user",
+    database: "database",
+    ...
+  });
+
+  const db = drizzle({ client: poolConnection });
+  ```
+</CodeTabs>
+
+<Callout type="warning" emoji="⚙️">
+  내장된 `migrate` 함수와 DDL 마이그레이션의 경우, 저희와 드라이버 측 모두 단일 `client` 연결 사용을 강력히 권장합니다.
+
+  쿼리 용도라면 비즈니스 요구사항에 따라 `client` 또는 `pool`을 자유롭게 사용할 수 있습니다.
+</Callout>
+
+#### 다음 단계는?
+
+<WhatsNextPostgres/>

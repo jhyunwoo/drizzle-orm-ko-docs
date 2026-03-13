@@ -1,0 +1,153 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Npx from "@mdx-ko/Npx.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Breadcrumbs from '@mdx-ko/Breadcrumbs.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import FileStructure from '@mdx-ko/get-started/FileStructure.mdx';
+import InstallPackages from '@mdx-ko/get-started/InstallPackages.mdx';
+import ConnectPostgreSQL from '@mdx-ko/get-started/postgresql/ConnectPostgreSQL.mdx'
+import CreateTable from '@mdx-ko/get-started/postgresql/CreateTable.mdx'
+import SetupConfig from '@mdx-ko/get-started/SetupConfig.mdx';
+import ApplyChanges from '@mdx-ko/get-started/ApplyChanges.mdx';
+import RunFile from '@mdx-ko/get-started/RunFile.mdx';
+import QueryDatabase from '@mdx-ko/get-started/QueryDatabase.mdx';
+import SetupEnv from '@mdx-ko/get-started/SetupEnv.mdx';
+
+<Breadcrumbs/>
+
+# 기존 프로젝트에서 Drizzle과 Gel 시작하기
+
+<Prerequisites>
+  - **tsx** - TypeScript 파일을 실행하기 위한 패키지 - [여기에서 읽기](https://tsx.is/)
+  - **gel-js** - Gel 데이터베이스를 조회하기 위한 패키지 - [여기에서 읽기](https://github.com/geldata/gel-js)
+</Prerequisites>
+
+Drizzle는 `gel` 클라이언트를 사용하는 Gel 연결을 기본적으로 지원합니다.
+
+이 프로젝트의 기본 파일 구조는 다음과 같습니다. `src` 디렉터리의 `index.ts`에는 테이블 정의가 있고, `drizzle` 폴더에는 Gel에서 Drizzle로 생성된 스키마가 들어 있습니다.
+
+```plaintext
+📦 <project root>
+ ├ 📂 drizzle
+ ├ 📂 dbschema
+ │ ├ 📂 migrations
+ │ ├ 📜 default.esdl
+ │ └ 📜 scoping.esdl
+ ├ 📂 src
+ │ └ 📜 index.ts
+ ├ 📜 drizzle.config.ts
+ ├ 📜 edgedb.toml
+ ├ 📜 package.json
+ └ 📜 tsconfig.json
+```
+
+#### Step 1 - 필요한 패키지 설치하기
+<Npm>
+  drizzle-orm gel
+  -D drizzle-kit tsx
+</Npm>
+
+#### Step 2 - Drizzle config 파일 설정하기
+
+**Drizzle config** - [Drizzle Kit](/docs/kit-overview)에서 사용하는 설정 파일로, 데이터베이스 연결, 마이그레이션 폴더, 스키마 파일에 대한 모든 정보를 담고 있습니다.
+
+프로젝트 루트에 `drizzle.config.ts` 파일을 만들고 다음 내용을 추가합니다:
+
+```typescript copy filename="drizzle.config.ts"
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  dialect: 'gel',
+});
+```
+
+#### Step 3 - Gel 타입을 Drizzle 스키마로 가져오기
+
+데이터베이스 스키마를 가져옵니다:
+<Npx>
+drizzle-kit pull
+</Npx>
+
+아래는 생성된 `schema.ts` 파일의 예시입니다:
+
+```typescript filename="drizzle/schema.ts"
+import { gelTable, uniqueIndex, uuid, smallint, text } from "drizzle-orm/gel-core"
+import { sql } from "drizzle-orm"
+
+export const users = gelTable("users", {
+	id: uuid().default(sql`uuid_generate_v4()`).primaryKey().notNull(),
+	age: smallint(),
+	email: text().notNull(),
+	name: text(),
+}, (table) => [
+	uniqueIndex("a8c6061c-f37f-11ef-9249-0d78f6c1807b;schemaconstr").using("btree", table.id.asc().nullsLast().op("uuid_ops")),
+]);
+```
+
+#### Step 4 - 데이터베이스에 Drizzle ORM 연결하기
+
+`src` 디렉터리에 `index.ts` 파일을 만들고 연결을 초기화합니다:
+
+```typescript copy filename="src/index.ts"
+import { drizzle } from "drizzle-orm/gel";
+import { createClient } from "gel";
+
+const gelClient = createClient();
+const db = drizzle({ client: gelClient });
+```
+
+#### Step 5 - 데이터베이스 조회하기
+
+```typescript copy filename="src/index.ts"
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/gel";
+import { createClient } from "gel";
+import { users } from "../drizzle/schema";
+
+const gelClient = createClient();
+const db = drizzle({ client: gelClient });
+
+async function main() {
+  const user: typeof users.$inferInsert = {
+    name: "John",
+    age: 30,
+    email: "john@example.com",
+  };
+
+  await db.insert(users).values(user);
+  console.log("New user created!");
+
+  const usersResponse = await db.select().from(users);
+  console.log("Getting all users from the database: ", usersResponse);
+  /*
+  const users: {
+    id: number;
+    name: string;
+    age: number;
+    email: string;
+  }[]
+  */
+
+  await db
+    .update(users)
+    .set({
+      age: 31,
+    })
+    .where(eq(users.email, user.email));
+  console.log("User info updated!");
+
+  await db.delete(users).where(eq(users.email, user.email));
+  console.log("User deleted!");
+}
+
+main();
+```
+
+#### Step 6 - index.ts 파일 실행하기
+
+<RunFile/>

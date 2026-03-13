@@ -1,0 +1,50 @@
+import Tab from '@mdx-ko/Tab.astro';
+import Tabs from '@mdx-ko/Tabs.astro';
+import Npm from "@mdx-ko/Npm.astro";
+import Callout from '@mdx-ko/Callout.astro';
+import Steps from '@mdx-ko/Steps.astro';
+import AnchorCards from '@mdx-ko/AnchorCards.astro';
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from "@mdx-ko/Section.astro";
+import WhatsNextPostgres from "@mdx-ko/WhatsNextPostgres.astro";
+
+# Drizzle \<\> SQLite Cloud
+<Prerequisites>
+- Drizzle과 데이터베이스 [연결 기본](/docs/connect-overview)
+- **SQLite Cloud 데이터베이스** - [docs](https://docs.sqlitecloud.io/docs/overview)
+- **SQLite Cloud 드라이버** - [docs](https://docs.sqlitecloud.io/docs/sdk-js-introduction) & [GitHub](https://github.com/sqlitecloud/sqlitecloud-js)
+</Prerequisites>
+
+**[공식 웹사이트](https://docs.sqlitecloud.io/docs/overview)**에 따르면, SQLite Clouds는 SQLite 데이터베이스 엔진 위에 구축된 관리형 분산 관계형 데이터베이스 시스템입니다.
+
+#### 1단계 - 패키지 설치
+<Npm>
+drizzle-orm@beta @sqlitecloud/drivers
+-D drizzle-kit@beta
+</Npm>
+
+#### 2단계 - 드라이버 초기화 및 쿼리 실행
+```typescript
+import { drizzle } from 'drizzle-orm/sqlite-cloud';
+
+const db = drizzle(process.env.SQLITE_CLOUD_CONNECTION_STRING);
+
+const result = await db.execute('select 1');
+```
+
+기존 드라이버를 직접 제공해야 하는 경우:
+
+```typescript
+import { Database } from '@sqlitecloud/drivers';
+import { drizzle } from 'drizzle-orm/sqlite-cloud';
+
+const client = new Database(process.env.SQLITE_CLOUD_CONNECTION_STRING!);
+const db = drizzle({ client });
+
+const result = await db.execute('select 1');
+```
+
+#### 다음 단계
+
+<WhatsNextPostgres/>

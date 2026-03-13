@@ -1,0 +1,330 @@
+---
+title: DrizzleORM v0.31.0 릴리스
+pubDate: 2024-05-31
+description: PostgreSQL indexes API 변경 사항
+---
+
+## 주요 변경 사항
+
+> 참고: `drizzle-orm@0.31.0`은 `drizzle-kit@0.22.0` 이상과 함께 사용할 수 있습니다. Drizzle Kit도 동일합니다. Drizzle Kit 명령을 실행하면 이를 확인하고 필요 시 업그레이드를 안내합니다. Drizzle Kit 업데이트는 [아래](#drizzle-kit-updates-drizzle-kit0220)에서 확인할 수 있습니다.
+
+### PostgreSQL indexes API 변경
+
+이전의 Drizzle+PostgreSQL indexes API는 올바르지 않았고 PostgreSQL 문서와도 맞지 않았습니다. 다행히 이 API는 쿼리에서 사용되지 않았고, drizzle-kit도 인덱스의 모든 속성을 지원하지 않았습니다. 즉, 이제 API를 올바른 형태로 변경하고 drizzle-kit에서 완전한 지원을 제공할 수 있게 되었습니다.
+
+이전 API
+
+- `.on` 내부에 SQL expressions를 정의할 방법이 없었습니다.
+- 이 경우 `.using`과 `.on`은 사실상 같은 역할이므로 API가 올바르지 않았습니다.
+- `.asc()`, `.desc()`, `.nullsFirst()`, `.nullsLast()`는 인덱스 자체가 아니라 인덱스에 포함되는 각 컬럼 또는 expression마다 지정되어야 합니다.
+
+```ts
+// Index declaration reference
+index('name')
+  .on(table.column1, table.column2, ...) or .onOnly(table.column1, table.column2, ...)
+  .concurrently()
+  .using(sql``) // sql expression
+  .asc() or .desc()
+  .nullsFirst() or .nullsLast()
+  .where(sql``) // sql expression
+```
+
+현재 API
+
+```ts
+// First example, with `.on()`
+index('name')
+  .on(table.column1.asc(), table.column2.nullsFirst(), ...) or .onOnly(table.column1.desc().nullsLast(), table.column2, ...)
+  .concurrently()
+  .where(sql``)
+  .with({ fillfactor: '70' })
+
+// Second Example, with `.using()`
+index('name')
+  .using('btree', table.column1.asc(), sql`lower(${table.column2})`, table.column1.op('text_ops'))
+  .where(sql``) // sql expression
+  .with({ fillfactor: '70' })
+```
+
+## 새 기능
+
+### 🎉 "pg_vector" extension 지원
+
+> Drizzle 스키마 안에서 extension을 생성하는 전용 코드는 없습니다. vector 타입, 인덱스, 쿼리를 사용하고 있다면, `pg_vector` extension이 설치된 PostgreSQL 데이터베이스를 사용하고 있다고 가정합니다.
+
+이제 `pg_vector`용 인덱스를 지정하고, 쿼리, 정렬 등에 `pg_vector` 함수를 활용할 수 있습니다.
+
+`pg_vector` 문서의 인덱스 예제를 몇 가지 가져와 Drizzle로 옮겨보겠습니다.
+
+#### L2 distance, Inner product, Cosine distance
+
+```ts
+// CREATE INDEX ON items USING hnsw (embedding vector_l2_ops);
+// CREATE INDEX ON items USING hnsw (embedding vector_ip_ops);
+// CREATE INDEX ON items USING hnsw (embedding vector_cosine_ops);
+
+const table = pgTable('items', {
+    embedding: vector('embedding', { dimensions: 3 })
+}, (table) => ({
+    l2: index('l2_index').using('hnsw', table.embedding.op('vector_l2_ops'))
+    ip: index('ip_index').using('hnsw', table.embedding.op('vector_ip_ops'))
+    cosine: index('cosine_index').using('hnsw', table.embedding.op('vector_cosine_ops'))
+}))
+```
+
+#### L1 distance, Hamming distance, Jaccard distance - pg_vector 0.7.0 버전에 추가
+
+```ts
+// CREATE INDEX ON items USING hnsw (embedding vector_l1_ops);
+// CREATE INDEX ON items USING hnsw (embedding bit_hamming_ops);
+// CREATE INDEX ON items USING hnsw (embedding bit_jaccard_ops);
+
+const table = pgTable('table', {
+    embedding: vector('embedding', { dimensions: 3 })
+}, (table) => ({
+    l1: index('l1_index').using('hnsw', table.embedding.op('vector_l1_ops'))
+    hamming: index('hamming_index').using('hnsw', table.embedding.op('bit_hamming_ops'))
+    bit: index('bit_jaccard_index').using('hnsw', table.embedding.op('bit_jaccard_ops'))
+}))
+```
+
+쿼리에는 vector용으로 미리 정의된 함수를 사용하거나, SQL template operator를 사용해 직접 만들 수 있습니다.
+
+다음 helper도 사용할 수 있습니다.
+
+```ts
+import { l2Distance, l1Distance, innerProduct, 
+          cosineDistance, hammingDistance, jaccardDistance } from 'drizzle-orm'
+
+l2Distance(table.column, [3, 1, 2]) // table.column <-> '[3, 1, 2]'
+l1Distance(table.column, [3, 1, 2]) // table.column <+> '[3, 1, 2]'
+
+innerProduct(table.column, [3, 1, 2]) // table.column <#> '[3, 1, 2]'
+cosineDistance(table.column, [3, 1, 2]) // table.column <=> '[3, 1, 2]'
+
+hammingDistance(table.column, '101') // table.column <~> '101'
+jaccardDistance(table.column, '101') // table.column <%> '101'
+```
+
+`pg_vector`에 다른 함수가 있다면, 우리가 이미 가진 구현을 복제해서 사용할 수 있습니다. 방법은 다음과 같습니다.
+
+```ts
+export function l2Distance(
+  column: SQLWrapper | AnyColumn,
+  value: number[] | string[] | TypedQueryBuilder<any> | string,
+): SQL {
+  if (is(value, TypedQueryBuilder<any>) || typeof value === 'string') {
+    return sql`${column} <-> ${value}`;
+  }
+  return sql`${column} <-> ${JSON.stringify(value)}`;
+}
+```
+
+원하는 이름으로 만들고 연산자만 바꾸면 됩니다. 이 예시는 숫자 배열, 문자열 배열, 문자열, 심지어 select query까지 허용합니다. 원하는 다른 타입도 자유롭게 만들거나 기여해서 PR을 보내 주세요.
+
+#### 예시
+
+`pg_vector` 문서의 쿼리 예제를 몇 가지 가져와 Drizzle로 옮겨보겠습니다.
+
+```ts
+import { l2Distance } from 'drizzle-orm';
+
+// SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
+db.select().from(items).orderBy(l2Distance(items.embedding, [3,1,2]))
+
+// SELECT embedding <-> '[3,1,2]' AS distance FROM items;
+db.select({ distance: l2Distance(items.embedding, [3,1,2]) })
+
+// SELECT * FROM items ORDER BY embedding <-> (SELECT embedding FROM items WHERE id = 1) LIMIT 5;
+const subquery = db.select({ embedding: items.embedding }).from(items).where(eq(items.id, 1));
+db.select().from(items).orderBy(l2Distance(items.embedding, subquery)).limit(5)
+
+// SELECT (embedding <#> '[3,1,2]') * -1 AS inner_product FROM items;
+db.select({ innerProduct: sql`(${maxInnerProduct(items.embedding, [3,1,2])}) * -1` }).from(items)
+
+// and more!
+```
+
+## 🎉 새로운 PostgreSQL 타입: `point`, `line`
+
+이제 [PostgreSQL Geometric Types](https://www.postgresql.org/docs/current/datatype-geometric.html)의 `point`와 `line`을 사용할 수 있습니다.
+
+`point` 타입은 데이터베이스에서 매핑할 때 `tuple`과 `xy` 두 가지 모드를 가집니다.
+
+- `tuple`은 insert에 사용할 수 있고 select 시 tuple로 매핑됩니다. 즉, 데이터베이스의 Point(1,2)는 drizzle에서 [1,2] 타입이 됩니다.
+
+- `xy`는 insert에 사용할 수 있고 select 시 x, y 좌표를 가진 객체로 매핑됩니다. 즉, 데이터베이스의 Point(1,2)는 drizzle에서 `{ x: 1, y: 2 }` 타입이 됩니다.
+
+```ts
+const items = pgTable('items', {
+ point: point('point'),
+ pointObj: point('point_xy', { mode: 'xy' }),
+});
+```
+
+`line` 타입은 데이터베이스에서 매핑할 때 `tuple`과 `abc` 두 가지 모드를 가집니다.
+
+- `tuple`은 insert에 사용할 수 있고 select 시 tuple로 매핑됩니다. 즉, 데이터베이스의 Line{1,2,3}는 drizzle에서 [1,2,3] 타입이 됩니다.
+
+- `abc`는 insert에 사용할 수 있고 select 시 방정식 `Ax + By + C = 0`의 a, b, c 상수를 가진 객체로 매핑됩니다. 즉, 데이터베이스의 Line{1,2,3}는 drizzle에서 `{ a: 1, b: 2, c: 3 }` 타입이 됩니다.
+
+```ts
+const items = pgTable('items', {
+ line: line('line'),
+ lineObj: line('line_abc', { mode: 'abc' }),
+});
+```
+
+## 🎉 기본 "postgis" extension 지원
+
+> Drizzle 스키마 안에서 extension을 생성하는 전용 코드는 없습니다. postgis 타입, 인덱스, 쿼리를 사용하고 있다면 `postgis` extension이 설치된 PostgreSQL 데이터베이스를 사용하고 있다고 가정합니다.
+
+postgis extension의 `geometry` 타입:
+
+```ts
+const items = pgTable('items', {
+  geo: geometry('geo', { type: 'point' }),
+  geoObj: geometry('geo_obj', { type: 'point', mode: 'xy' }),
+  geoSrid: geometry('geo_options', { type: 'point', mode: 'xy', srid: 4000 }),
+});
+```
+
+**mode**
+`geometry` 타입은 데이터베이스에서 매핑할 때 `tuple`과 `xy` 두 가지 모드를 가집니다.
+
+- `tuple`은 insert에 사용할 수 있고 select 시 tuple로 매핑됩니다. 즉, 데이터베이스 geometry는 drizzle에서 [1,2] 타입이 됩니다.
+- `xy`는 insert에 사용할 수 있고 select 시 x, y 좌표를 가진 객체로 매핑됩니다. 즉, 데이터베이스 geometry는 drizzle에서 `{ x: 1, y: 2 }` 타입이 됩니다.
+
+**type**
+
+이번 릴리스에는 미리 정의된 타입 `point`가 포함되어 있으며, 이는 PostgreSQL PostGIS extension의 `geometry(Point)` 타입입니다. 다른 타입을 사용하고 싶다면 원하는 문자열을 지정하면 됩니다.
+
+# Drizzle Kit 업데이트: `drizzle-kit@0.22.0`
+
+> 여기의 릴리스 노트는 [drizzle-kit@0.22.0](https://github.com/drizzle-team/drizzle-kit-mirror/releases/tag/v0.22.0)에서 일부 중복되었습니다.
+
+## 새 기능
+
+### 🎉 새 타입 지원
+
+이제 Drizzle Kit은 다음을 처리할 수 있습니다.
+
+- PostgreSQL의 `point`와 `line`
+- PostgreSQL `pg_vector` extension의 `vector`
+- PostgreSQL `PostGIS` extension의 `geometry`
+
+### 🎉 drizzle.config의 새 파라미터 `extensionsFilters`
+
+PostGIS extension은 `public` 스키마에 몇 개의 내부 테이블을 생성합니다. 즉, PostGIS extension이 설치된 데이터베이스에서 `push`나 `introspect`를 사용하면 그 모든 테이블이 `diff` 작업에 포함됩니다. 이 경우 `tablesFilter`를 지정하고, extension이 만든 모든 테이블을 찾아 이 파라미터에 나열해야 했습니다.
+
+이제는 그런 단계를 거칠 필요가 없도록 이 문제를 해결했습니다. 사용 중인 extension 이름을 `extensionsFilters`에 지정하기만 하면, Drizzle이 필요한 모든 테이블을 건너뜁니다.
+
+현재는 `postgis` 옵션만 지원하지만, `public` 스키마에 테이블을 만드는 다른 extension도 앞으로 추가할 계획입니다.
+
+`postgis` 옵션은 `geography_columns`, `geometry_columns`, `spatial_ref_sys` 테이블을 건너뜁니다.
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+export default defaultConfig({
+  dialect: "postgresql",
+  extensionsFilters: ["postgis"],
+})
+```
+
+## 개선 사항
+
+### 데이터베이스 자격 증명용 zod 스키마 업데이트 및 모든 positive/negative case 테스트 작성
+
+- kit config에서 SSL 파라미터 전체를 지원하고, `node:tls` connection의 타입도 제공합니다.
+
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+export default defaultConfig({
+  dialect: "postgresql",
+  dbCredentials: {
+    ssl: true, //"require" | "allow" | "prefer" | "verify-full" | options from node:tls
+  }
+})
+```
+
+```ts
+import { defineConfig } from 'drizzle-kit'
+
+export default defaultConfig({
+  dialect: "mysql",
+  dbCredentials: {
+    ssl: "", // string | SslOptions (ssl options from mysql2 package)
+  }
+})
+```
+
+### `libsql` 및 `better-sqlite3` 드라이버의 SQLite url 정규화
+
+이 드라이버들은 파일 경로 패턴이 서로 다르며, Drizzle Kit은 두 패턴을 모두 받아들여 각 드라이버에 맞는 올바른 파일 경로 형식을 만들어 줍니다.
+
+### MySQL 및 SQLite의 index-as-expression 동작 업데이트
+
+이번 릴리스에서 MySQL과 SQLite는 expression을 SQL 쿼리 안에 올바르게 매핑합니다. expression은 문자열 안에서 escape되지 않지만 컬럼은 escape됩니다.
+
+```ts
+export const users = sqliteTable(
+  'users',
+  {
+    id: integer('id').primaryKey(),
+    email: text('email').notNull(),
+  },
+  (table) => ({
+    emailUniqueIndex: uniqueIndex('emailUniqueIndex').on(sql`lower(${table.email})`),
+  }),
+);
+
+```
+```sql
+-- before
+CREATE UNIQUE INDEX `emailUniqueIndex` ON `users` (`lower("users"."email")`);
+
+-- now
+CREATE UNIQUE INDEX `emailUniqueIndex` ON `users` (lower("email"));
+```
+
+## 버그 수정
+
+- [BUG]: 여러 제약 조건이 추가되지 않음(첫 번째만 생성됨) - [#2341](https://github.com/drizzle-team/drizzle-orm/issues/2341) 
+- Drizzle Studio: Error: Connection terminated unexpectedly - [#435](https://github.com/drizzle-team/drizzle-kit-mirror/issues/435)
+- 로컬에서 sqlite migrations 실행 불가 - [#432](https://github.com/drizzle-team/drizzle-kit-mirror/issues/432)
+- 오류: 알 수 없는 옵션 `--config` - [#423](https://github.com/drizzle-team/drizzle-kit-mirror/issues/423)
+
+
+## 인덱스에 대해 `push`와 `generate`가 동작하는 방식
+
+### 제한 사항
+
+#### expression이 하나라도 포함된 인덱스라면 이름을 직접 지정해야 합니다
+
+예시
+
+```ts
+index().on(table.id, table.email) // will work well and name will be autogeneretaed
+index('my_name').on(table.id, table.email) // will work well
+
+// but
+
+index().on(sql`lower(${table.email})`) // error
+index('my_name').on(sql`lower(${table.email})`) // will work well
+```
+
+#### 기존 인덱스에서 아래 필드가 변경되면 Push는 구문을 생성하지 않습니다
+
+- `.on()`과 `.using()` 내부의 expressions
+- `.where()` 문
+- 컬럼의 operator classes `.op()`
+
+인덱스에서 이 필드를 변경하려는 `push` 워크플로를 사용 중이라면 다음이 필요합니다.
+
+- 인덱스를 주석 처리
+- Push
+- 인덱스 주석을 해제하고 해당 필드를 변경
+- 다시 Push
+
+`generate` 명령의 경우, `drizzle-kit`은 새로운 drizzle indexes API에서 인덱스의 어떤 속성이든 변경되면 반응하므로 여기에는 제한이 없습니다.

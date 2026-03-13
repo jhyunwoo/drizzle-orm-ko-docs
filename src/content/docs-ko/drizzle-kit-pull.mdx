@@ -1,0 +1,246 @@
+import CodeTab from "@mdx-ko/CodeTab.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import Section from "@mdx-ko/Section.astro";
+import Tab from "@mdx-ko/Tab.astro";
+import Tabs from "@mdx-ko/Tabs.astro";
+import Callout from "@mdx-ko/Callout.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import Drivers from "@mdx-ko/Drivers.mdx"
+import Dialects from "@mdx-ko/Dialects.mdx"
+import Npm from "@mdx-ko/Npm.astro"
+import Npx from "@mdx-ko/Npx.astro"
+
+# `drizzle-kit pull`
+
+<Prerequisites>
+- Drizzle 및 `drizzle-kit` 시작하기 - [여기를 읽으세요](/docs/get-started)
+- Drizzle 스키마 기본 사항 - [여기 읽기](/docs/sql-schema-declaration) 
+- 데이터베이스 연결 기본 사항 - [여기를 읽어보세요](/docs/connect-overview) 
+- Drizzle 마이그레이션 기본 사항 - [여기에서 읽기](/docs/migrations) 
+- Drizzle Kit [개요](/docs/kit-overview) 및 [구성 파일](/docs/drizzle-config-file) docs
+</Prerequisites>
+
+`drizzle-kit pull`를 사용하면 기존 데이터베이스 스키마를 문자 그대로 가져오고(내성 검사) `schema.ts` drizzle 스키마 파일을 생성할 수 있습니다. 
+이는 Drizzle 마이그레이션의 [데이터베이스 우선](/docs/migrations) 접근 방식을 다루도록 설계되었습니다.
+
+<Callout collapsed="내부적으로는 어떻게 작동하나요?">
+Drizzle Kit `pull` 명령을 실행하면 다음이 수행됩니다.
+1. 기존 데이터베이스에서 데이터베이스 스키마(DDL)를 가져옵니다.
+2. `schema.ts` drizzle 스키마 파일을 생성하고 `out` 폴더에 저장합니다.
+
+<Section>
+```
+                                  ┌────────────────────────┐      ┌─────────────────────────┐ 
+                                  │                        │ <---  CREATE TABLE "users" (
+┌──────────────────────────┐      │                        │        "id" SERIAL PRIMARY KEY,
+│ ~ drizzle-kit pull       │      │                        │        "name" TEXT,
+└─┬────────────────────────┘      │        DATABASE        │        "email" TEXT UNIQUE
+  │                               │                        │       );
+  └ Pull datatabase schema -----> │                        │
+  ┌ Generate Drizzle       <----- │                        │
+  │ schema TypeScript file        └────────────────────────┘
+  │
+  v
+```
+```typescript
+import * as p from "drizzle-orm/pg-core";
+
+export const users = p.pgTable("users", {
+  id: p.serial().primaryKey(),
+  name: p.text(),
+  email: p.text().unique(), 
+};
+```
+</Section>
+</Callout>
+
+TypeScript 프로젝트 외부에서 데이터베이스 스키마를 관리해야 하거나 
+다른 사람이 관리하는 데이터베이스를 사용하고 있습니다.
+
+<br/>
+<hr/>
+<br/>
+
+`drizzle-kit pull`에서는 `dialect`을 지정해야 하며 다음 중 하나를 수행해야 합니다.
+데이터베이스 연결 `url` 또는 `user:password@host:port/db` 매개변수를 제공할 수 있습니다.
+[drizzle.config.ts](/docs/drizzle-config-file) 구성 파일을 통해 또는 CLI 옵션을 통해:
+
+<CodeTabs items={["구성 파일 포함", "CLI 옵션 포함"]}>
+<Section>
+```ts
+// drizzle.config.ts
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  dbCredentials: {
+    url: "postgresql://user:password@host:port/dbname",
+  },
+});
+```
+```shell
+npx drizzle-kit pull
+```
+</Section>
+
+```shell
+npx drizzle-kit pull --dialect=postgresql --url=postgresql://user:password@host:port/dbname
+```
+</CodeTabs>
+
+### 하나의 프로젝트에 여러 구성 파일
+
+프로젝트에 여러 구성 파일이 있을 수 있습니다. 이는 동일한 프로젝트에 여러 데이터베이스 단계, 여러 데이터베이스 또는 서로 다른 데이터베이스가 있는 경우 매우 유용합니다.
+
+<Npx>
+  drizzle-kit pull --config=drizzle-dev.config.ts
+  drizzle-kit pull --config=drizzle-prod.config.ts
+</Npx>
+```plaintext {5-6}
+📦 <project root>
+ ├ 📂 drizzle
+ ├ 📂 src
+ ├ 📜 .env
+ ├ 📜 drizzle-dev.config.ts
+ ├ 📜 drizzle-prod.config.ts
+ ├ 📜 package.json
+ └ 📜 tsconfig.json
+```
+
+### 데이터베이스 드라이버 지정
+<Callout type="warning">
+**Expo SQLite** 및 **OP SQLite**는 기기 내(사용자별) 데이터베이스이므로 거기에서 `pull` 데이터베이스 스키마에 접근할 수 있는 방법이 없습니다.<br/>
+내장형 데이터베이스의 경우 Drizzle은 **내장형 마이그레이션**을 제공합니다. [시작하기](/docs/get-started/expo-new) 가이드를 확인하세요.
+</Callout>
+Drizzle Kit에는 사전 번들로 제공되는 데이터베이스 드라이버가 함께 제공되지 않습니다. 
+`dialect` - [토론 참조](https://github.com/drizzle-team/drizzle-orm/discussions/2203)를 기반으로 현재 프로젝트에서 사용 가능한 데이터베이스 드라이버를 자동으로 선택합니다.
+
+대부분 동일한 방언을 사용하는 모든 드라이버는 동일한 연결 매개변수 세트를 공유합니다. 
+`aws-data-api`, `pglight` 및 `d1-http`과 같은 예외의 경우 `driver` 매개변수를 명시적으로 지정해야 합니다.
+
+<CodeTabs items={["AWS 데이터 API", "PGLite", "Cloudflare D1 HTTP"]}>
+```ts {6}
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  driver: "aws-data-api",
+  dbCredentials: {
+    database: "database",
+    resourceArn: "resourceArn",
+    secretArn: "secretArn",
+  },
+};
+```
+```ts {6}
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  driver: "pglite",
+  dbCredentials: {
+    // inmemory
+    url: ":memory:"
+    
+    // or database folder
+    url: "./database/"
+  },
+};
+```
+```ts {6}
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "sqlite",
+  driver: "d1-http",
+  dbCredentials: {
+    accountId: "accountId",
+    databaseId: "databaseId",
+    token: "token",
+  },
+};
+```
+</CodeTabs>
+
+### 초기 풀
+
+<Callout type='error'>
+이 기능은 `1.0.0-beta.2` 이상에서 사용할 수 있습니다.
+</Callout>
+
+<Npm>
+drizzle-orm@beta
+drizzle-kit@beta -D
+</Npm>
+
+<br/>
+
+`--init` 플래그를 사용하여 가져온 스키마를 데이터베이스에 적용된 마이그레이션으로 표시할 수 있습니다. 
+이후의 모든 마이그레이션은 초기 마이그레이션과 다릅니다.
+```shell
+npx drizzle-kit push --init
+```
+
+### 테이블, 스키마, 확장 포함
+`drizzle-kit push`은 기본적으로 `public` 스키마의 모든 테이블을 관리합니다.
+`tablesFilters`, `schemaFilter` 및 `extensionFilters` 옵션을 통해 테이블, 스키마 및 확장 목록을 구성할 수 있습니다.
+
+|                     |                                                                                               |
+| :------ | :------------------------------------------------------------------------------- |
+| `tablesFilter` | `glob` 기반 테이블 이름 필터, 예: `["users", "user_info"]` 또는 `"user*"`. 기본값은 `"*"` |
+| `schemaFilter` | `glob` 기반 스키마 이름 필터, 예: `["public", "drizzle"]` 또는 `"drizzle*"`. 기본값은 `"*"`입니다 |
+| `extensionsFilters` | 설치된 데이터베이스 확장 목록(예: `["postgis"]`. 기본값은 `[]`입니다 |
+<br/>
+
+**공개** 스키마의 **모든 테이블**에서만 작동하도록 drizzle-kit을 구성해 보겠습니다.
+그리고 drizzle-kit에 **postgis** 확장 기능이 설치되어 있음을 알려주세요. 
+공개 스키마에 자체 테이블을 생성하므로 drizzle은 이를 무시할 수 있습니다.
+
+<Section>
+```ts filename="drizzle.config.ts" {9-11}
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "postgresql",
+  schema: "./src/schema.ts",
+  dbCredentials: {
+    url: "postgresql://user:password@host:port/dbname",
+  },
+  extensionsFilters: ["postgis"],
+  schemaFilter: ["public"],
+  tablesFilter: ["*"],
+});
+```
+```shell
+npx drizzle-kit push
+```
+</Section>
+
+### 확장된 구성 목록
+[drizzle.config.ts](/docs/drizzle-config-file) 파일을 통해 `drizzle-kit`을 구성하는 것이 좋습니다. 
+하지만 필요한 경우 CLI를 통해 모든 구성 옵션을 제공할 수 있습니다. CI/CD 파이프라인 등
+
+|                     |            |                                                                           |
+| :------ | :--------- | :-------------------------------------------------- |
+| `dialect` | `required` | <Dialects/> 중 하나인 데이터베이스 방언 |
+| `driver` |            | 드라이버 예외 <Drivers/> |
+| `out` |            | 마이그레이션 출력 폴더 경로, 기본값은 `./drizzle` |
+| `url` |            | 데이터베이스 연결 문자열 |
+| `user` |            | 데이터베이스 사용자 |
+| `password` |            | 데이터베이스 비밀번호 |
+| `host` |            | 호스트 |
+| `port` |            | 포트 |
+| `database` |            | 데이터베이스 이름 |
+| `config` |            | 구성 파일 경로, 기본값은 `drizzle.config.ts` |
+| `introspect-casing` |            | 열, 테이블 등의 JS 키 생성 전략 `preserve` `camel` |
+| `tablesFilter` |            | 테이블 이름 필터 |
+| `schemaFilter` |            | 스키마 이름 필터. 기본값: `["public"]` |
+| `extensionsFilters` |            | 데이터베이스 확장 내부 데이터베이스 필터 |
+
+<Npx>
+drizzle-kit pull --dialect=postgresql --url=postgresql://user:password@host:port/dbname
+drizzle-kit pull --dialect=postgresql --driver=pglite url=database/
+drizzle-kit pull --dialect=postgresql --tablesFilter='user*' --extensionsFilters=postgis url=postgresql://user:password@host:port/dbname
+</Npx>
+
+![](@/assets/gifs/introspect_mysql.gif)

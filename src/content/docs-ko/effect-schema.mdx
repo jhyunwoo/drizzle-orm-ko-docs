@@ -1,0 +1,60 @@
+import Npm from '@mdx-ko/Npm.astro';
+import Callout from '@mdx-ko/Callout.astro';
+
+<Callout type="error">
+Drizzle+Effect Schema 통합은 `drizzle-orm@1.0.0-beta.15`부터 가능합니다.
+</Callout>
+
+# effect-schema
+
+Drizzle ORM 스키마에서 [Effect](https://effect.website/) 스키마를 생성할 수 있습니다.
+
+**특징**
+
+- 테이블, 뷰, enum에 대한 select 스키마를 생성합니다.
+- 테이블에 대한 insert 및 update 스키마를 생성합니다.
+- 지원되는 방언: CockroachDB, MSSQL, MySQL, PostgreSQL, SingleStore, SQLite.
+#### 용법
+```ts
+import { pgEnum, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from 'drizzle-orm/effect-schema';
+import { Schema } from 'effect';
+
+const users = pgTable('users', {
+	id: serial('id').primaryKey(),
+	name: text('name').notNull(),
+	email: text('email').notNull(),
+	role: text('role', { enum: ['admin', 'user'] }).notNull(),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// Schema for inserting a user - can be used to validate API requests
+const UserInsert = createInsertSchema(users);
+
+// Schema for updating a user - can be used to validate API requests
+const UserUpdate = createUpdateSchema(users);
+
+// Schema for selecting a user - can be used to validate API responses
+const UserSelect = createSelectSchema(users);
+
+// Overriding the fields
+const UserInsert = createInsertSchema(users, {
+	role: Schema.String,
+});
+
+// Refining the fields - useful if you want to change the fields before they become nullable/optional in the final schema
+const UserInsert = createInsertSchema(users, {
+	id: (schema) => schema.pipe(Schema.greaterThanOrEqualTo(0)),
+	role: Schema.String,
+});
+
+// Usage
+
+const program = Effect.gen(function*() {
+	const parsedUser = yield* Schema.validate(UserInsert)({
+		name: 'John Doe',
+		email: 'johndoe@test.com',
+		role: 'admin',
+	});
+});
+```

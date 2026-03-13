@@ -1,0 +1,122 @@
+---
+title: 빈 배열을 기본값으로 사용하기
+slug: empty-array-default-value
+---
+
+import Section from "@mdx-ko/Section.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql), [SQLite](/docs/get-started-sqlite) 시작하기
+- [PostgreSQL](/docs/column-types/pg), [MySQL](/docs/column-types/mysql), [SQLite](/docs/column-types/sqlite)의 column data types 알아보기
+- [sql operator](/docs/sql)
+</Prerequisites>
+
+### PostgreSQL
+
+PostgreSQL에서 빈 배열을 기본값으로 설정하려면 `sql` operator와 `'{}'` 또는 `ARRAY[]` 구문을 사용할 수 있습니다:
+
+<Section>
+```ts copy {10,14}
+import { sql } from 'drizzle-orm';
+import { pgTable, serial, text } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  tags1: text('tags1')
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
+  tags2: text('tags2')
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
+});
+```
+
+```sql
+CREATE TABLE IF NOT EXISTS "users" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"tags1" text[] DEFAULT '{}'::text[] NOT NULL,
+	"tags2" text[] DEFAULT ARRAY[]::text[] NOT NULL
+);
+```
+</Section>
+
+
+### MySQL
+
+MySQL에는 array data type이 없지만, 같은 목적을 위해 `json` data type을 사용할 수 있습니다. MySQL에서 빈 배열을 기본값으로 설정하려면 `JSON_ARRAY()` 함수나 `('[]')` 구문을 사용하는 `sql` operator를 사용할 수 있습니다:
+
+<Section>
+```ts copy {7,11,15}
+import { sql } from 'drizzle-orm';
+import { json, mysqlTable, serial, varchar } from 'drizzle-orm/mysql-core';
+
+export const users = mysqlTable('users', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  tags1: json('tags1').$type<string[]>().notNull().default([]),
+  tags2: json('tags2')
+    .$type<string[]>()
+    .notNull()
+    .default(sql`('[]')`), // the same as default([])
+  tags3: json('tags3')
+    .$type<string[]>()
+    .notNull()
+    .default(sql`(JSON_ARRAY())`),
+});
+```
+
+```sql
+CREATE TABLE `users` (
+	`id` serial AUTO_INCREMENT NOT NULL,
+	`name` varchar(255) NOT NULL,
+	`tags1` json NOT NULL DEFAULT ('[]'),
+	`tags2` json NOT NULL DEFAULT ('[]'),
+	`tags3` json NOT NULL DEFAULT (JSON_ARRAY()),
+	CONSTRAINT `users_id` PRIMARY KEY(`id`)
+);
+```
+</Section>
+
+`mode` 옵션은 애플리케이션에서 값을 어떻게 다룰지 정의합니다. `json` mode에서는 값을 JSON object literal로 취급합니다.
+
+`json` object 추론을 위해 `.$type<..>()`를 지정할 수 있지만, 런타임 값을 검사하지는 않습니다. 대신 기본값, insert, select schema에 대해 컴파일 타임 보호를 제공합니다.
+
+### SQLite
+
+SQLite에는 array data type이 없지만, 같은 목적을 위해 `text` data type을 사용할 수 있습니다. SQLite에서 빈 배열을 기본값으로 설정하려면 `json_array()` 함수나 `'[]'` 구문을 사용하는 `sql` operator를 사용할 수 있습니다:
+
+<Section>
+```ts copy {9,13}
+import { sql } from 'drizzle-orm';
+import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey(),
+  tags1: text('tags1', { mode: 'json' })
+    .notNull()
+    .$type<string[]>()
+    .default(sql`(json_array())`),
+  tags2: text('tags2', { mode: 'json' })
+    .notNull()
+    .$type<string[]>()
+    .default(sql`'[]'`),
+});
+```
+
+```sql
+CREATE TABLE `users` (
+	`id` integer PRIMARY KEY NOT NULL,
+	`tags1` text DEFAULT (json_array()) NOT NULL,
+	`tags2` text DEFAULT '[]' NOT NULL
+);
+```
+</Section>
+
+`mode` 옵션은 애플리케이션에서 값을 어떻게 다룰지 정의합니다. `json` mode에서는 값을 JSON object literal로 취급합니다.
+
+`json` object 추론을 위해 `.$type<..>()`를 지정할 수 있지만, 런타임 값을 검사하지는 않습니다. 대신 기본값, insert, select schema에 대해 컴파일 타임 보호를 제공합니다.

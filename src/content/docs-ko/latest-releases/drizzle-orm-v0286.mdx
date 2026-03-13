@@ -1,0 +1,149 @@
+---
+title: DrizzleORM v0.28.6 릴리스
+pubDate: 2023-09-06
+description: MySQL용 datetime 매핑을 변경했고, LibSQL batch API 지원을 추가했으며, SQLite text의 JSON mode, Relational Query API 호출의 `.toSQL()`, Arrays용 새 PostgreSQL 연산자, Relational Queries의 `where` 함수용 추가 SQL 연산자를 더했습니다. 버그 수정도 포함됩니다.
+---
+import Section from "@mdx-ko/Section.astro";
+
+## 변경 사항
+
+> **참고**:
+> 이제 MySQL의 `mode: 'date'`를 사용하는 `datetime`은 MySQL의 `datetime` 동작에 맞추기 위해 UTC 문자열로 저장되고, 조회 시에도 UTC로 데이터를 가져옵니다. 다른 동작이 필요하고 `datetime` 매핑을 별도로 처리하고 싶다면 `mode: 'string'` 또는 [Custom Types](/docs/custom-types) 구현을 사용해 주세요
+
+구현 세부 사항은 [Fix Datetime mapping for MySQL](https://github.com/drizzle-team/drizzle-orm/pull/1082)을 확인해 주세요.
+
+## 새 기능
+
+### 🎉 `LibSQL` batch api 지원
+
+Reference: https://docs.turso.tech/reference/client-access/javascript-typescript-sdk#execute-a-batch-of-statements
+
+Batch API 사용 예시:
+
+<Section>
+```ts copy {1}
+const batchResponse = await db.batch([
+	db.insert(usersTable).values({ id: 1, name: 'John' }).returning({
+		id: usersTable.id,
+	}),
+	db.update(usersTable).set({ name: 'Dan' }).where(eq(usersTable.id, 1)),
+	db.query.usersTable.findMany({}),
+	db.select().from(usersTable).where(eq(usersTable.id, 1)),
+	db.select({ id: usersTable.id, invitedBy: usersTable.invitedBy }).from(
+		usersTable,
+	),
+]);
+```
+
+```ts
+type BatchResponse = [
+	{
+		id: number;
+	}[],
+	ResultSet,
+	{
+		id: number;
+		name: string;
+		verified: number;
+		invitedBy: number | null;
+	}[],
+	{
+		id: number;
+		name: string;
+		verified: number;
+		invitedBy: number | null;
+	}[],
+	{
+		id: number;
+		invitedBy: number | null;
+	}[],
+];
+```
+</Section>
+
+`db.batch` 안에서 사용할 수 있는 모든 builder:
+
+```ts
+`db.all()`,
+`db.get()`,
+`db.values()`,
+`db.run()`,
+`db.query.<table>.findMany()`,
+`db.query.<table>.findFirst()`,
+`db.select()...`,
+`db.update()...`,
+`db.delete()...`,
+`db.insert()...`,
+```
+
+더 많은 사용 예시는 [integration-tests/tests/libsql-batch.test.ts](https://github.com/drizzle-team/drizzle-orm/pull/1161/files#diff-17253895532e520545027dd48dcdbac2d69a5a49d594974e6d55d7502f89b838R248)와 [docs](/docs/batch-api)를 확인하세요.
+
+### 🎉 SQLite text에 json mode 추가
+
+[docs](/docs/get-started-postgresql#http-proxy)에서 더 알아보세요.
+
+```ts copy {2}
+const test = sqliteTable('test', {
+	dataTyped: text('data_typed', { mode: 'json' }).$type<{ a: 1 }>().notNull(),
+});
+```
+
+### 🎉 Relational Query API 호출에 `.toSQL()` 추가
+
+```ts copy {1}
+const query = db.query.usersTable.findFirst().toSQL();
+```
+
+### 🎉 Arrays용 새 PostgreSQL 연산자 추가
+
+연산자 목록과 사용 예시:
+`arrayContains`, `arrayContained`, `arrayOverlaps`
+
+[docs](/docs/get-started-postgresql#http-proxy)에서 더 알아보세요.
+
+```ts copy {2,5,8,11,12,13,14}
+const contains = await db.select({ id: posts.id }).from(posts)
+	.where(arrayContains(posts.tags, ['Typescript', 'ORM']));
+
+const contained = await db.select({ id: posts.id }).from(posts)
+	.where(arrayContained(posts.tags, ['Typescript', 'ORM']));
+
+const overlaps = await db.select({ id: posts.id }).from(posts)
+	.where(arrayOverlaps(posts.tags, ['Typescript', 'ORM']));
+
+const withSubQuery = await db.select({ id: posts.id }).from(posts)
+	.where(arrayContains(
+		posts.tags,
+		db.select({ tags: posts.tags }).from(posts).where(eq(posts.id, 1)),
+	));
+```
+
+### 🎉 Relational Queries의 where filter function에 더 많은 SQL 연산자 추가
+
+[docs](/docs/rqb#select-filters)에서 더 많은 예시를 확인할 수 있습니다.
+
+<Section>
+```ts
+// Before
+import { inArray } from "drizzle-orm/pg-core";
+
+await db.users.findFirst({
+  where: (table, _) => inArray(table.id, [ ... ])
+})
+```
+
+```ts copy {3}
+// After
+await db.users.findFirst({
+  where: (table, { inArray }) => inArray(table.id, [ ... ])
+})
+```
+</Section>
+
+## 수정 사항
+
+- sqlite의 on conflict에서 where를 올바르게 처리하도록 수정했습니다 ([#1076](https://github.com/drizzle-team/drizzle-orm/pull/1076))
+- libsql/client type import를 수정했습니다 ([#1122](https://github.com/drizzle-team/drizzle-orm/pull/1122))
+- RDS에서 raw sql query가 올바르게 매핑되지 않던 문제를 수정했습니다 ([#1071](https://github.com/drizzle-team/drizzle-orm/pull/1071))
+- MySQL용 Datetime 매핑을 수정했습니다 ([#1082](https://github.com/drizzle-team/drizzle-orm/pull/1082))
+- smallserial이 serial로 생성되던 문제를 수정했습니다 ([#1127](https://github.com/drizzle-team/drizzle-orm/pull/1127))

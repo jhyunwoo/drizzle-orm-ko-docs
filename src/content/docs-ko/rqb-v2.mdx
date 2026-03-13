@@ -1,0 +1,1063 @@
+import Tab from '@mdx/Tab.astro';
+import Npm from '@mdx/Npm.astro';
+import Tabs from '@mdx/Tabs.astro';
+import Callout from '@mdx/Callout.astro';
+import CodeTabs from '@mdx/CodeTabs.astro';
+import CodeTab from '@mdx/CodeTab.astro';
+import Section from '@mdx/Section.astro';
+import IsSupportedChipGroup from '@mdx/IsSupportedChipGroup.astro';
+
+# Drizzle 쿼리
+
+<Callout type='error'>
+이 페이지는 drizzle 버전 `1.0.0-beta.1` 이상에서 사용할 수 있는 개념을 설명합니다.
+</Callout>
+
+<Npm>
+drizzle-orm@beta
+drizzle-kit@beta -D
+</Npm>
+
+<br/>
+
+<IsSupportedChipGroup chips={{ 'PostgreSQL': true, 'SQLite': true, 'MySQL': true, 'SingleStore': true }} />
+
+Drizzle ORM은 SQL 위에 놓이는 얇고 타입이 지정된 레이어로 설계되었습니다.
+저희는 TypeScript에서 SQL 데이터베이스를 다루는 가장 좋은 방법을 설계했다고 진심으로 믿고 있으며, 이제 그것을 더 발전시킬 때라고 생각합니다.  
+  
+Relational queries는 여러 번의 join과 복잡한 데이터 매핑을 피하면서 SQL 데이터베이스의 중첩된 관계형 데이터를 조회할 수 있도록 훌륭한 개발자 경험을 제공하기 위해 만들어졌습니다.  
+
+
+이 기능은 기존 스키마 정의와 query builder의 확장입니다.
+필요에 따라 opt-in하여 사용할 수 있습니다.
+최고 수준의 개발자 경험과 성능을 모두 제공하도록 신경 썼습니다.  
+
+<CodeTabs items={["index.ts", "schema.ts"]}>
+	<CodeTab>
+	```typescript copy /schema/3
+	import { relations } from './schema';
+	import { drizzle } from 'drizzle-orm/...';
+
+	const db = drizzle({ relations });
+
+	const result = await db.query.users.findMany({
+		with: {
+			posts: true			
+		},
+	});
+	```
+
+	```ts
+	[{
+		id: 10,
+		name: "Dan",
+		posts: [
+			{
+				id: 1,
+				content: "SQL is awesome",
+				authorId: 10,
+			},
+			{
+				id: 2,
+				content: "But check relational queries",
+				authorId: 10,
+			}
+		]
+	}]
+	```
+	</CodeTab>
+
+	```typescript {15-25} copy
+    import { defineRelations } from "drizzle-orm";
+    import * as p from "drizzle-orm/pg-core";
+    
+    export const posts = p.pgTable("posts", {
+      id: p.integer().primaryKey(),
+      content: p.text().notNull(),
+      authorId: p.integer("author_id").notNull(),
+    });
+    
+    export const users = p.pgTable("users", {
+      id: p.integer().primaryKey(),
+      name: p.text().notNull(),
+    });
+    
+    export const relations = defineRelations({ users, posts }, (r) => ({
+      posts: {
+        author: r.one.users({
+          from: r.posts.authorId,
+          to: r.users.id,
+        }),
+      },
+      users: {
+        posts: r.many.users(),
+      },
+    }));
+	```
+</CodeTabs>
+
+Relational queries는 Drizzle의 원래 **[query builder](/docs/select)**를 확장한 기능입니다.
+스키마 파일에 있는 모든 `tables`와 `relations`를 `drizzle()` 초기화 시 제공한 다음
+`db.query` API를 사용하면 됩니다.
+<Callout type="info" emoji="ℹ️">
+	`drizzle` import 경로는 사용 중인 **[데이터베이스 드라이버](/docs/connect-overview)**에 따라 달라집니다.
+</Callout>
+<CodeTabs items={["index.ts", "schema.ts", "relations.ts"]}>
+<CodeTab>
+```ts
+import { relations } from './relations';
+import { drizzle } from 'drizzle-orm/...';
+
+const db = drizzle({ relations });
+
+await db.query.users.findMany(...);
+```
+</CodeTab>
+```typescript copy
+import { type AnyPgColumn, boolean, integer, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+	id: integer().primaryKey(),
+	name: text().notNull(),
+	invitedBy: integer('invited_by').references((): AnyPgColumn => users.id),
+});
+
+export const groups = pgTable('groups', {
+	id: integer().primaryKey(),
+	name: text().notNull(),
+	description: text(),
+});
+
+export const usersToGroups = pgTable('users_to_groups', {
+	id: integer().primaryKey(),
+	userId: integer('user_id').notNull().references(() => users.id),
+	groupId: integer('group_id').notNull().references(() => groups.id),
+}, (t) => [
+	primaryKey(t.userId, t.groupId)
+]);
+
+export const posts = pgTable('posts', {
+	id: integer().primaryKey(),
+	content: text().notNull(),
+	authorId: integer('author_id').references(() => users.id),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const comments = pgTable('comments', {
+	id: integer().primaryKey(),
+	content: text().notNull(),
+	creator: integer().references(() => users.id),
+	postId: integer('post_id').references(() => posts.id),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const commentLikes = pgTable('comment_likes', {
+	id: integer().primaryKey(),
+	creator: integer().references(() => users.id),
+	commentId: integer('comment_id').references(() => comments.id),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+```
+```typescript copy
+import { defineRelations } from 'drizzle-orm';
+import * as schema from './schema';
+
+export const relations = defineRelations(schema, (r) => ({
+    users: {
+      invitee: r.one.users({
+        from: r.users.invitedBy,
+        to: r.users.id,
+      }),
+      groups: r.many.groups({
+        from: r.users.id.through(r.usersToGroups.userId),
+        to: r.groups.id.through(r.usersToGroups.groupId),
+      }),
+      posts: r.many.posts(),
+    },
+    groups: {
+      users: r.many.users(),
+    },
+    posts: {
+      author: r.one.users({
+        from: r.posts.authorId,
+        to: r.users.id,
+      }),
+      comments: r.many.comments(),
+    },
+    comments: {
+      post: r.one.posts({
+        from: r.comments.postId,
+        to: r.posts.id,
+      }),
+      author: r.one.users({
+        from: r.comments.creator,
+        to: r.users.id,
+      }),
+      likes: r.many.commentLikes(),
+    },
+    commentLikes: {
+      comment: r.one.comments({
+        from: r.commentLikes.commentId,
+        to: r.comments.id,
+      }),
+      author: r.one.users({
+        from: r.commentLikes.creator,
+        to: r.users.id,
+      }),
+    },
+  })
+);
+```
+</CodeTabs>
+
+Drizzle은 `.findMany()`와 `.findFirst()` API를 제공합니다.
+### 여러 개 찾기
+<Section>
+```typescript copy
+const users = await db.query.users.findMany();
+```
+```ts
+// result type
+const result: {
+	id: number;
+	name: string;
+	verified: boolean;
+	invitedBy: number | null;
+}[];
+```
+</Section>
+
+### 첫 번째 찾기
+<Callout>
+  `.findFirst()`는 쿼리에 `limit 1`을 추가합니다.
+</Callout>
+<Section>
+```typescript copy
+const user = await db.query.users.findFirst();
+```
+```ts
+// result type
+const result: {
+	id: number;
+	name: string;
+	verified: boolean;
+	invitedBy: number | null;
+};
+```
+</Section>
+
+### 관계 포함하기
+
+`with` 연산자를 사용하면 여러 관련 테이블의 데이터를 결합하고 결과를 올바르게 집계할 수 있습니다.
+
+**댓글이 포함된 모든 posts 가져오기:**
+```typescript copy
+const posts = await db.query.posts.findMany({
+	with: {
+		comments: true,
+	},
+});
+```
+
+**댓글이 포함된 첫 번째 post 가져오기:**
+```typescript copy
+const post = await db.query.posts.findFirst({
+	with: {
+		comments: true,
+	},
+});
+```
+
+중첩된 with 문은 필요한 만큼 이어서 사용할 수 있습니다.  
+중첩된 `with` 쿼리의 타입은 Drizzle이 [Core Type API](/docs/goodies#type-api)를 사용해 추론합니다.
+  
+**posts를 포함한 모든 users 가져오기. 각 post에는 comments 목록이 포함되어야 합니다:**
+```typescript copy
+const users = await db.query.users.findMany({
+	with: {
+		posts: {
+			with: {
+				comments: true,
+			},
+		},
+	},
+});
+```
+
+### 부분 필드 선택
+`columns` 매개변수를 사용하면 데이터베이스에서 가져올 컬럼을 포함하거나 제외할 수 있습니다.
+
+<Callout type="info" emoji="ℹ️">
+  Drizzle은 쿼리 수준에서 partial select를 수행하므로 데이터베이스에서 추가 데이터가 전송되지 않습니다.
+
+  **Drizzle이 출력하는 SQL 문은 하나뿐이라는 점을 기억하세요.**
+</Callout>
+
+**`id`, `content`만 선택하고 `comments`를 포함한 모든 posts 가져오기:**
+```typescript copy
+const posts = await db.query.posts.findMany({
+	columns: {
+		id: true,
+		content: true,
+	},
+	with: {
+		comments: true,
+	}
+});
+```
+
+**`content` 없이 모든 posts 가져오기:**
+```typescript copy
+const posts = await db.query.posts.findMany({
+	columns: {
+		content: false,
+	},
+});
+```
+
+<Callout type="info" emoji="ℹ️">
+`true`와 `false` 선택 옵션이 함께 있을 때는 모든 `false` 옵션이 무시됩니다.
+</Callout>
+
+`name` 필드를 포함하고 `id` 필드를 제외하면, `id` 제외는 중복됩니다.
+`name`을 제외한 모든 필드가 어차피 제외되기 때문입니다.  
+  
+**같은 쿼리에서 필드 제외와 포함을 함께 사용하기:**
+<Section>
+```typescript copy
+const users = await db.query.users.findMany({
+	columns: {
+		name: true,
+		id: false //ignored
+	},
+});
+```
+```ts
+// result type
+const users: {
+	name: string;
+};
+```
+</Section>
+
+**중첩된 relations의 컬럼만 포함하기:**
+<Section>
+```typescript copy
+const res = await db.query.users.findMany({
+	columns: {},
+	with: {
+		posts: true
+	}
+});
+```
+```ts
+// result type
+const res: {
+	posts: {
+		id: number,
+		text: string
+	}
+}[];
+```
+</Section>
+
+### 중첩된 부분 필드 선택
+**[`partial select`](#partial-select)**와 마찬가지로, 중첩된 relation의 컬럼을 포함하거나 제외할 수 있습니다:
+```typescript copy
+const posts = await db.query.posts.findMany({
+	columns: {
+		id: true,
+		content: true,
+	},
+	with: {
+		comments: {
+			columns: {
+				authorId: false
+			}
+		}
+	}
+});
+```
+
+### Select 필터
+SQL과 비슷한 query builder에서와 마찬가지로,
+relational queries API에서도 **[`operators`](/docs/operators)** 목록을 사용해 필터와 조건을 정의할 수 있습니다.  
+
+이 연산자들은 `drizzle-orm`에서 import할 수도 있고 callback 구문에서 바로 사용할 수도 있습니다:
+<Section>
+```typescript copy
+const users = await db.query.users.findMany({
+	where: {
+		id: 1
+	}
+});
+```
+```sql
+select * from users where id = 1
+```
+</Section>
+
+특정 날짜 이전에 생성된 comments를 포함하면서 `id=1`인 post 찾기:
+```typescript copy
+await db.query.posts.findMany({
+  where: {
+    id: 1,
+  },
+  with: {
+    comments: {
+      where: {
+        createdAt: { lt: new Date() },
+      },
+    },
+  },
+});
+```
+
+**모든 필터 연산자 목록**
+```ts
+where: {
+    OR: [],
+    AND: [],
+    NOT: {},
+    RAW: (table) => sql`${table.id} = 1`,
+
+    // filter by relations
+    [relation]: {},
+
+	  // filter by columns
+    [column]: {
+      OR: [],
+      AND: [],
+      NOT: {},
+      eq: 1,
+      ne: 1,
+      gt: 1,
+      gte: 1,
+      lt: 1,
+      lte: 1,
+      in: [1],
+      notIn: [1],
+      like: "",
+      ilike: "",
+      notLike: "",
+      notIlike: "",
+      isNull: true,
+      isNotNull: true,
+      arrayOverlaps: [1, 2],
+      arrayContained: [1, 2],
+      arrayContains: [1, 2]
+    },
+},
+```
+
+**예시**
+<CodeTabs items={["간단한 eq", "AND 사용", "OR 사용", "NOT 사용", "RAW를 사용하는 복잡한 예제"]}>
+<CodeTab>
+```ts
+const response = db.query.users.findMany({
+  where: {
+    age: 15,
+  },
+});
+```
+```sql {3}
+select "users"."id" as "id", "users"."name" as "name"
+from "users" 
+where ("users"."age" = 15)
+```
+</CodeTab>
+<CodeTab>
+```ts
+const response = db.query.users.findMany({
+  where: {
+    age: 15,
+    name: 'John'
+  },
+});
+```
+```sql {3}
+select "users"."id" as "id", "users"."name" as "name"
+from "users" 
+where ("users"."age" = 15 and "users"."name" = 'John')
+```
+</CodeTab>
+<CodeTab>
+```ts
+const response = await db.query.users.findMany({
+  where: {
+    OR: [
+      {
+        id: {
+          gt: 10,
+        },
+      },
+	  {
+		name: {
+          like: "John%",
+        },
+	  }
+    ],
+  },
+});
+```
+```sql {3}
+select "users"."id" as "id", "users"."name" as "name" 
+from "users" 
+where ("users"."id" > 10 or "users"."name" like 'John%')
+```
+</CodeTab>
+<CodeTab>
+```ts
+const response = db.query.users.findMany({
+  where: {
+    NOT: {
+      id: {
+        gt: 10,
+      },
+    },
+    name: {
+      like: "John%",
+    },
+  },
+});
+```
+```sql {3}
+select "users"."id" as "id", "users"."name" as "name" 
+from "users" 
+where (not "users"."id" > 10 and "users"."name" like 'John%')
+```
+</CodeTab>
+<CodeTab>
+```ts
+// schema.ts
+import { integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+
+export const users = pgTable("users", {
+  id: integer("id").primaryKey(),
+  name: text("name"),
+  email: text("email").notNull(),
+  age: integer("age"),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastLogin: timestamp("last_login"),
+  subscriptionEnd: timestamp("subscription_end"),
+  lastActivity: timestamp("last_activity"),
+  preferences: jsonb("preferences"),      // JSON column for user settings/preferences
+  interests: text("interests").array(),     // Array column for user interests
+});
+```
+```ts
+const response = db.query.users.findMany({
+  where: {
+    AND: [
+      {
+        OR: [
+          { RAW: (table) => sql`LOWER(${table.name}) LIKE 'john%'` },
+          { name: { ilike: "jane%" } },
+        ],
+      },
+      {
+        OR: [
+          { RAW: (table) => sql`${table.preferences}->>'theme' = 'dark'` },
+          { RAW: (table) => sql`${table.preferences}->>'theme' IS NULL` },
+        ],
+      },
+      { RAW: (table) => sql`${table.age} BETWEEN 25 AND 35` },
+    ],
+  },
+});
+```
+```sql
+select "d0"."id" as "id", "d0"."name" as "name", 
+"d0"."email" as "email", "d0"."age" as "age", 
+"d0"."created_at" as "createdAt", "d0"."last_login" as "lastLogin", 
+"d0"."subscription_end" as "subscriptionEnd", "d0"."last_activity" as "lastActivity", 
+"d0"."preferences" as "preferences", "d0"."interests" as "interests" 
+from "users" as "d0" 
+where ((LOWER("d0"."name") LIKE 'john%' or "d0"."name" ilike 'jane%') 
+and ("d0"."preferences"->>'theme' = 'dark' or "d0"."preferences"->>'theme' IS NULL) 
+and "d0"."age" BETWEEN 25 AND 35)
+```
+</CodeTab>
+</CodeTabs>
+
+### 관계 필터
+
+Drizzle Relations를 사용하면 쿼리 중인 테이블뿐 아니라 쿼리에 포함한 어떤 테이블로도 필터링할 수 있습니다.
+
+**예시:** ID가 10보다 크고 content가 "M"으로 시작하는 post를 하나 이상 가진 모든 `users` 가져오기
+```ts
+const usersWithPosts = await db.query.usersTable.findMany({
+  where: {
+    id: {
+      gt: 10
+    },
+    posts: {
+      content: {
+        like: 'M%'
+      }
+    }
+  },
+});
+```
+
+**예시:** post가 1개 이상 있는 경우에만 posts와 함께 모든 `users` 가져오기
+```ts
+const response = db.query.users.findMany({
+  with: {
+    posts: true,
+  },
+  where: {
+    posts: true,
+  },
+});
+```
+
+### Limit & Offset
+Drizzle ORM은 쿼리와 중첩된 엔티티에 대해 `limit` 및 `offset` API를 제공합니다.
+  
+**posts 5개 찾기:**
+```typescript copy
+await db.query.posts.findMany({
+	limit: 5,
+});
+```
+
+**posts를 찾고 comments는 최대 3개까지만 가져오기:**
+```typescript copy
+await db.query.posts.findMany({
+	with: {
+		comments: {
+			limit: 3,
+		},
+	},
+});
+```
+
+<Callout type="warning" emoji="⚠️">
+  `offset`은 이제 `with` 테이블 안에서도 사용할 수 있습니다!
+</Callout>
+```typescript 
+await db.query.posts.findMany({
+	limit: 5,
+	offset: 2, // correct ✅
+	with: {
+		comments: {
+			offset: 3, // correct ✅
+			limit: 3,
+		},
+	},
+});
+```
+
+5번째부터 10번째 post까지의 comments를 포함한 posts 찾기:
+```typescript copy
+await db.query.posts.findMany({
+	with: {
+		comments: true,
+	},
+  limit: 5,
+  offset: 5,
+});
+```
+
+### Order By
+Drizzle은 relational query builder에서 정렬을 위한 API를 제공합니다.  
+
+같은 정렬용 **[core API](/docs/select#order-by)**를 사용할 수도 있고
+import 없이 callback에서 `order by` 연산자를 사용할 수도 있습니다.  
+
+<Callout title='중요'>
+같은 테이블에서 여러 `orderBy` 구문을 사용하면, 추가한 순서 그대로 쿼리에 포함됩니다
+</Callout>
+
+<Section>
+```typescript copy
+await db.query.posts.findMany({
+  orderBy: {
+    id: "asc",
+  },
+});
+```
+</Section>
+
+**`asc` + `desc`로 정렬하기:**
+```typescript copy
+  await db.query.posts.findMany({
+    orderBy: { id: "asc" },
+    with: {
+      comments: {
+        orderBy: { id: "desc" },
+      },
+    },
+  });
+```
+
+정렬 구문에서 사용자 정의 `sql`을 사용할 수도 있습니다:
+
+```typescript copy
+await db.query.posts.findMany({
+  orderBy: (t) => sql`${t.id} asc`,
+  with: {
+    comments: {
+      orderBy: (t, { desc }) => desc(t.id),
+    },
+  },
+});
+```
+
+### 사용자 정의 필드 포함
+Relational query API를 사용하면 사용자 정의 추가 필드를 넣을 수 있습니다.
+데이터를 조회한 뒤 여기에 추가 함수를 적용해야 할 때 유용합니다.
+<Callout type="warning" emoji="⚠️">
+	현재 `extras`에서는 집계가 지원되지 않으므로, 집계가 필요하면 **[`core queries`](/docs/select)**를 사용하세요.
+</Callout>
+
+<Section>
+```typescript copy {5}
+import { sql } from 'drizzle-orm';
+
+await db.query.users.findMany({
+	extras: {
+		loweredName: sql`lower(${users.name})`,
+	},
+})
+```
+```typescript copy {3}
+await db.query.users.findMany({
+	extras: {
+		loweredName: (users, { sql }) => sql`lower(${users.name})`,
+	},
+})
+```
+</Section>
+
+`lowerName` 키는 반환된 객체의 모든 필드에 포함됩니다.
+
+<Callout type="warning" emoji="⚠️">
+  extras 필드에 `.as("<alias>")`를 지정하면 drizzle은 이를 무시합니다
+</Callout>
+
+groups를 함께 가져오면서 fullName 필드(즉 firstName과 lastName을 이어 붙인 값)를 포함하려면,
+아래와 같이 Drizzle relational query builder를 사용할 수 있습니다.
+
+<Section>
+```typescript copy
+const res = await db.query.users.findMany({
+	extras: {
+		fullName: (users, { sql }) => sql<string>`concat(${users.name}, " ", ${users.name})`,
+	},
+	with: {
+		usersToGroups: {
+			with: {
+				group: true,
+			},
+		},
+	},
+});
+```
+```ts
+// result type
+const res: {
+	id: number;
+	name: string;
+	verified: boolean;
+	invitedBy: number | null;
+	fullName: string;
+	usersToGroups: {
+			group: {
+					id: number;
+					name: string;
+					description: string | null;
+			};
+	}[];
+}[];
+
+```
+</Section>
+
+
+comments가 포함된 모든 posts를 가져오고, post content의 길이와 각 comment content의 길이를 계산하는 추가 필드를 넣으려면:
+<Section>
+```typescript copy
+const res = await db.query.posts.findMany({
+	extras: {
+		contentLength: (table, { sql }) => sql<number>`length(${table.content})`,
+	},
+	with: {
+		comments: {
+			extras: {
+				commentSize: (table, { sql }) => sql<number>`length(${table.content})`,
+			},
+		},
+	},
+});
+```
+```ts
+// result type
+const res: {
+	id: number;
+	createdAt: Date;
+	content: string;
+	authorId: number | null;
+	contentLength: number;
+	comments: {
+			id: number;
+			createdAt: Date;
+			content: string;
+			creator: number | null;
+			postId: number | null;
+			commentSize: number;
+	}[];
+};
+```
+</Section>
+
+### 서브쿼리 포함하기
+
+Relational Queries 안에서도 서브쿼리를 사용해 사용자 정의 SQL 구문의 힘을 활용할 수 있습니다
+
+**posts를 포함하고 각 user의 전체 post 수를 함께 가져오기**
+```ts
+import { posts } from './schema';
+import { eq } from 'drizzle-orm';
+
+await db.query.users.findMany({
+  with: {
+    posts: true
+  },
+  extras: {
+    totalPostsCount: (table) => db.$count(posts, eq(posts.authorId, table.id)),
+  }
+});
+```
+```sql
+select "d0"."id" as "id", "d0"."name" as "name", "posts"."r" as "posts", 
+((select count(*) from "posts" where "posts"."author_id" = "d0"."id")) as "totalPostsCount" 
+from "users" as "d0" 
+left join lateral(
+  select coalesce(json_agg(row_to_json("t".*)), '[]') as "r" 
+  from (select "d1"."id" as "id", "d1"."content" as "content", "d1"."author_id" as "authorId" from "posts" as "d1" where "d0"."id" = "d1"."author_id") as "t"
+) as "posts" on true
+```
+
+### Prepared statements
+Prepared statement는 쿼리 성능을 크게 향상시키도록 설계되었습니다. [여기](/docs/perf-queries)를 참조하세요.
+
+이 섹션에서는 placeholder를 정의하고 prepared statement를 실행하는 방법을 배울 수 있습니다.
+Drizzle relational query builder를 사용해 이를 수행합니다.
+
+##### **`where` 안의 placeholder**
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite']}>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+    where: { id: { eq: sql.placeholder("id") } },
+    with: {
+      posts: {
+        where: { id: 1 },
+      },
+    },
+}).prepare("query_name");
+
+const usersWithPosts = await prepared.execute({ id: 1 });
+```
+</Section>
+</Tab>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+    where: { id: { eq: sql.placeholder("id") } },
+    with: {
+      posts: {
+        where: { id: 1 },
+      },
+    },
+}).prepare();
+
+const usersWithPosts = await prepared.execute({ id: 1 });
+```
+</Section>
+</Tab>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+    where: { id: { eq: sql.placeholder("id") } },
+    with: {
+      posts: {
+        where: { id: 1 },
+      },
+    },
+}).prepare();
+
+const usersWithPosts = await prepared.execute({ id: 1 });
+```
+</Section>
+</Tab>
+</Tabs>
+
+
+##### **`limit` 안의 placeholder**
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite']}>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+    with: {
+      posts: {
+        limit: sql.placeholder("limit"),
+      },
+    },
+  }).prepare("query_name");
+
+const usersWithPosts = await prepared.execute({ limit: 1 });
+```
+</Section>
+</Tab>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+    with: {
+      posts: {
+        limit: sql.placeholder("limit"),
+      },
+    },
+  }).prepare();
+
+const usersWithPosts = await prepared.execute({ limit: 1 });
+```
+</Section>
+</Tab>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+    with: {
+      posts: {
+        limit: sql.placeholder("limit"),
+      },
+    },
+  }).prepare();
+
+const usersWithPosts = await prepared.execute({ limit: 1 });
+```
+</Section>
+</Tab>
+</Tabs>
+
+
+##### **`offset` 안의 placeholder**
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite']}>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+	offset: sql.placeholder('offset'),
+	with: {
+		posts: true,
+	},
+}).prepare('query_name');
+
+const usersWithPosts = await prepared.execute({ offset: 1 });
+```
+</Section>
+</Tab>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+	offset: sql.placeholder('offset'),
+	with: {
+		posts: true,
+	},
+}).prepare();
+
+const usersWithPosts = await prepared.execute({ offset: 1 });
+```
+</Section>
+</Tab>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+	offset: sql.placeholder('offset'),
+	with: {
+		posts: true,
+	},
+}).prepare();
+
+const usersWithPosts = await prepared.execute({ offset: 1 });
+```
+</Section>
+</Tab>
+</Tabs>
+
+##### **여러 placeholder**
+<Tabs items={['PostgreSQL', 'MySQL', 'SQLite']}>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+    limit: sql.placeholder("uLimit"),
+    offset: sql.placeholder("uOffset"),
+    where: {
+      OR: [{ id: { eq: sql.placeholder("id") } }, { id: 3 }],
+    },
+    with: {
+      posts: {
+        where: { id: { eq: sql.placeholder("pid") } },
+        limit: sql.placeholder("pLimit"),
+      },
+    },
+}).prepare("query_name");
+
+const usersWithPosts = await prepared.execute({ pLimit: 1, uLimit: 3, uOffset: 1, id: 2, pid: 6 });
+```
+</Section>
+</Tab>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+    limit: sql.placeholder("uLimit"),
+    offset: sql.placeholder("uOffset"),
+    where: {
+      OR: [{ id: { eq: sql.placeholder("id") } }, { id: 3 }],
+    },
+    with: {
+      posts: {
+        where: { id: { eq: sql.placeholder("pid") } },
+        limit: sql.placeholder("pLimit"),
+      },
+    },
+}).prepare();
+
+const usersWithPosts = await prepared.execute({ pLimit: 1, uLimit: 3, uOffset: 1, id: 2, pid: 6 });
+```
+</Section>
+</Tab>
+<Tab>
+<Section>
+```ts copy
+const prepared = db.query.users.findMany({
+    limit: sql.placeholder("uLimit"),
+    offset: sql.placeholder("uOffset"),
+    where: {
+      OR: [{ id: { eq: sql.placeholder("id") } }, { id: 3 }],
+    },
+    with: {
+      posts: {
+        where: { id: { eq: sql.placeholder("pid") } },
+        limit: sql.placeholder("pLimit"),
+      },
+    },
+}).prepare();
+
+const usersWithPosts = await prepared.execute({ pLimit: 1, uLimit: 3, uOffset: 1, id: 2, pid: 6 });
+```
+</Section>
+</Tab>
+</Tabs>

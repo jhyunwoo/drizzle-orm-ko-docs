@@ -1,0 +1,426 @@
+---
+title: 쿼리에서 컬럼 포함 또는 제외하기
+slug: include-or-exclude-columns
+---
+
+import Section from "@mdx-ko/Section.astro";
+import IsSupportedChipGroup from "@mdx-ko/IsSupportedChipGroup.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import CodeTabs from '@mdx-ko/CodeTabs.astro';
+import CodeTab from '@mdx-ko/CodeTab.astro';
+import Callout from "@mdx-ko/Callout.astro";
+
+<IsSupportedChipGroup chips={{PostgreSQL: true, MySQL: true, SQLite: true}}/>
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql), [SQLite](/docs/get-started-sqlite) 시작하기
+- [Select statement](/docs/select)
+- [타입이 지정된 테이블 컬럼 가져오기](/docs/goodies#get-typed-table-columns)
+- [Joins](/docs/joins)
+- [Relational queries](/docs/rqb)
+- [Relational queries에서 부분 select](/docs/rqb#partial-fields-select)
+</Prerequisites>
+
+Drizzle은 쿼리에서 컬럼을 포함하거나 제외하기 위한 유연한 API를 제공합니다. 모든 컬럼을 포함하려면 다음과 같이 `.select()` 메서드를 사용할 수 있습니다.
+
+<CodeTabs items={["index.ts", "schema.ts"]}>
+	<CodeTab>
+    ```ts copy {5}
+    import { posts } from './schema';
+
+    const db = drizzle(...);
+
+    await db.select().from(posts);
+    ```
+
+    ```ts
+    // result type
+    type Result = {
+      id: number;
+      title: string;
+      content: string;
+      views: number;
+    }[];
+    ```
+  </CodeTab>
+
+  ```ts copy
+  import { integer, pgTable, serial, text } from 'drizzle-orm/pg-core';
+
+  export const posts = pgTable('posts', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    content: text('content').notNull(),
+    views: integer('views').notNull().default(0),
+  });
+	```
+</CodeTabs>
+
+특정 컬럼만 포함하려면 다음과 같이 `.select()` 메서드를 사용할 수 있습니다.
+
+<Section>
+  ```ts copy {1}
+  await db.select({ title: posts.title }).from(posts);
+  ```
+
+  ```ts
+  // result type
+  type Result = {
+    title: string;
+  }[];
+  ```
+</Section>
+
+추가 컬럼과 함께 모든 컬럼을 포함하려면 다음과 같이 `getColumns()` 유틸리티 함수를 사용할 수 있습니다.
+
+<Callout type='warning'>
+`getColumns`는 `drizzle-orm@1.0.0-beta.2`부터 사용할 수 있습니다([여기](/docs/upgrade-v1)에서 자세히 보기).
+
+1.0 이전 버전(예: `0.45.1`)을 사용 중이라면 `getTableColumns`를 사용하세요.
+</Callout>
+
+
+<Section>
+  ```ts copy {5,6}
+  import { getColumns, sql } from 'drizzle-orm';
+
+  await db
+    .select({
+      ...getColumns(posts),
+      titleLength: sql<number>`length(${posts.title})`,
+    })
+    .from(posts);
+  ```
+
+  ```ts
+  // result type
+  type Result = {
+    id: number;
+    title: string;
+    content: string;
+    views: number;
+    titleLength: number;
+  }[];
+  ```
+</Section>
+
+컬럼을 제외하려면 다음과 같이 `getColumns()` 유틸리티 함수를 사용할 수 있습니다.
+
+<Callout type='warning'>
+`getColumns`는 `drizzle-orm@1.0.0-beta.2`부터 사용할 수 있습니다([여기](/docs/upgrade-v1)에서 자세히 보기).
+
+1.0 이전 버전(예: `0.45.1`)을 사용 중이라면 `getTableColumns`를 사용하세요.
+</Callout>
+
+<Section>
+  ```ts copy {3,5}
+  import { getColumns } from 'drizzle-orm';
+
+  const { content, ...rest } = getColumns(posts); // exclude "content" column
+
+  await db.select({ ...rest }).from(posts); // select all other columns
+  ```
+
+  ```ts
+  // result type
+  type Result = {
+    id: number;
+    title: string;
+    views: number;
+  }[];
+  ```
+</Section>
+
+다음은 joins와 함께 컬럼을 포함하거나 제외하는 방법입니다.
+
+<CodeTabs items={["index.ts", "schema.ts"]}>
+  <CodeTab>
+    ```ts copy {5,9,10,11}
+    import { eq, getColumns } from 'drizzle-orm';
+    import { comments, posts, users } from './db/schema';
+
+    // exclude "userId" and "postId" columns from "comments"
+    const { userId, postId, ...rest } = getColumns(comments);
+
+    await db
+      .select({
+        postId: posts.id, // include "id" column from "posts"
+        comment: { ...rest }, // include all other columns
+        user: users, // equivalent to getColumns(users)
+      })
+      .from(posts)
+      .leftJoin(comments, eq(posts.id, comments.postId))
+      .leftJoin(users, eq(users.id, posts.userId));
+    ```
+
+    ```ts
+    // result type
+    type Result = {
+      postId: number;
+      comment: {
+        id: number;
+        content: string;
+        createdAt: Date;
+      } | null;
+      user: {
+        id: number;
+        name: string;
+        email: string;
+      } | null;
+    }[];
+    ```
+  </CodeTab>
+
+  ```ts copy
+  import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+
+  export const users = pgTable('users', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    email: text('email').notNull(),
+  });
+
+  export const posts = pgTable('posts', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    content: text('content').notNull(),
+    views: integer('views').notNull().default(0),
+    userId: integer('user_id').notNull().references(() => users.id),
+  });
+
+  export const comments = pgTable('comments', {
+    id: serial('id').primaryKey(),
+    postId: integer('post_id').notNull().references(() => posts.id),
+    userId: integer('user_id').notNull().references(() => users.id),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  });
+  ```
+</CodeTabs>
+
+Drizzle에는 쿼리에서 컬럼을 쉽게 포함하거나 제외할 수 있는 유용한 relational queries API도 있습니다. 모든 컬럼을 포함하는 방법은 다음과 같습니다.
+
+<CodeTabs items={["index.ts", "schema.ts"]}>
+  <CodeTab>
+    ```ts copy {5,7,8,9,12,13,14,17,18,19,20,21,22}
+    import * as schema from './schema';
+
+    const db = drizzle(..., { schema });
+
+    await db.query.posts.findMany();
+    ```
+
+    ```ts
+    // result type
+    type Result = {
+      id: number;
+      title: string;
+      content: string;
+      views: number;
+    }[]
+    ```
+  </CodeTab>
+
+  ```ts copy
+  import { integer, pgTable, serial, text } from 'drizzle-orm/pg-core';
+
+  export const posts = pgTable('posts', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    content: text('content').notNull(),
+    views: integer('views').notNull().default(0),
+  });
+	```
+</CodeTabs>
+
+다음은 relational queries를 사용해 특정 컬럼만 포함하는 방법입니다.
+
+<Section>
+  ```ts copy {2,3,4}
+  await db.query.posts.findMany({
+    columns: {
+      title: true,
+    },
+  });
+  ```
+
+  ```ts
+  // result type
+  type Result = {
+    title: string;
+  }[]
+  ```
+</Section>
+
+다음은 relational queries를 사용해 추가 컬럼과 함께 모든 컬럼을 포함하는 방법입니다.
+
+<Section>
+  ```ts copy {4,5,6}
+  import { sql } from 'drizzle-orm';
+
+  await db.query.posts.findMany({
+    extras: {
+      titleLength: sql<number>`length(${posts.title})`.as('title_length'),
+    },
+  });
+  ```
+
+  ```ts
+  // result type
+  type Result = {
+    id: number;
+    title: string;
+    content: string;
+    views: number;
+    titleLength: number;
+  }[];
+  ```
+</Section>
+
+다음은 relational queries를 사용해 컬럼을 제외하는 방법입니다.
+
+<Section>
+  ```ts copy {2,3,4}
+  await db.query.posts.findMany({
+    columns: {
+      content: false,
+    },
+  });
+  ```
+
+  ```ts
+  // result type
+  type Result = {
+    id: number;
+    title: string;
+    views: number;
+  }[]
+  ```
+</Section>
+
+다음은 relational queries를 사용해 relation과 함께 컬럼을 포함하거나 제외하는 방법입니다.
+
+<CodeTabs items={["index.ts", "schema.ts"]}>
+  <CodeTab>
+  ```ts copy {7,12,13,16}
+  import * as schema from './schema';
+
+  const db = drizzle(..., { schema });
+
+  await db.query.posts.findMany({
+    columns: {
+      id: true, // include "id" column
+    },
+    with: {
+      comments: {
+        columns: {
+          userId: false, // exclude "userId" column
+          postId: false, // exclude "postId" column
+        },
+      },
+      user: true, // include all columns from "users" table
+    },
+  });
+  ```
+
+  ```ts
+  // result type
+  type Result = {
+    id: number;
+    user: {
+      id: number;
+      name: string;
+      email: string;
+    };
+    comments: {
+      id: number;
+      content: string;
+      createdAt: Date;
+    }[];
+  }[]
+  ```
+  </CodeTab>
+
+  ```ts copy
+  import { relations } from 'drizzle-orm';
+  import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+
+  export const users = pgTable('users', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    email: text('email').notNull(),
+  });
+
+  export const posts = pgTable('posts', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    content: text('content').notNull(),
+    views: integer('views').notNull().default(0),
+    userId: integer('user_id').notNull().references(() => users.id),
+  });
+
+  export const comments = pgTable('comments', {
+    id: serial('id').primaryKey(),
+    postId: integer('post_id').notNull().references(() => posts.id),
+    userId: integer('user_id').notNull().references(() => users.id),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  });
+
+  export const usersRelations = relations(users, ({ many }) => ({
+    posts: many(posts),
+    comments: many(comments),
+  }));
+
+  export const postsRelations = relations(posts, ({ many, one }) => ({
+    comments: many(comments),
+    user: one(users, { fields: [posts.userId], references: [users.id] }),
+  }));
+
+  export const commentsRelations = relations(comments, ({ one }) => ({
+    post: one(posts, { fields: [comments.postId], references: [posts.id] }),
+    user: one(users, { fields: [comments.userId], references: [users.id] }),
+  }));
+  ```
+</CodeTabs>
+
+다음은 조건부 select를 위한 사용자 정의 솔루션을 만드는 방법입니다.
+
+<CodeTabs items={["index.ts", "schema.ts"]}>
+  <CodeTab>
+    ```ts copy {7}
+    import { posts } from './schema';
+
+    const searchPosts = async (withTitle = false) => {
+      await db
+        .select({
+          id: posts.id,
+          ...(withTitle && { title: posts.title }),
+        })
+        .from(posts);
+    };
+
+    await searchPosts();
+    await searchPosts(true);
+    ```
+
+    ```ts
+    // result type
+    type Result = {
+      id: number;
+      title?: string | undefined;
+    }[];
+    ```
+  </CodeTab>
+
+  ```ts copy
+  import { integer, pgTable, serial, text } from 'drizzle-orm/pg-core';
+
+  export const posts = pgTable('posts', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    content: text('content').notNull(),
+    views: integer('views').notNull().default(0),
+  });
+	```
+</CodeTabs>

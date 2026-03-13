@@ -1,0 +1,11 @@
+`src/db` 디렉터리에 `schema.ts` 파일을 생성하고 테이블을 선언합니다.
+```typescript copy filename="src/db/schema.ts"
+import { int4, cockroachTable, varchar } from "drizzle-orm/cockroach-core";
+
+export const usersTable = cockroachTable("users", {
+  id: int4().primaryKey().generatedAlwaysAsIdentity(),
+  name: varchar({ length: 255 }).notNull(),
+  age: int4().notNull(),
+  email: varchar({ length: 255 }).notNull().unique(),
+});
+```

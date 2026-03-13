@@ -1,0 +1,142 @@
+---
+title: DrizzleORM v0.29.2 릴리스
+pubDate: 2023-12-25
+description: planescale relational tests 개선, 빈 PgArrays의 문자열 이스케이프 수정, SQLite에서 exists 함수의 문법 오류 수정, AWS Data API에서 날짜를 올바르게 처리하도록 개선, Hermes mixins constructor 이슈 해결이 포함되었습니다.
+---
+
+## 수정 사항: 
+
+- planescale relational tests에 개선 사항 추가 ([#1579](https://github.com/drizzle-team/drizzle-orm/pull/1579))
+- FIX: 빈 PgArrays에 대한 올바른 문자열 이스케이프 처리 ([#1640](https://github.com/drizzle-team/drizzle-orm/pull/1640))
+- sqlite에서 exists fn의 잘못된 문법 수정 ([#1647](https://github.com/drizzle-team/drizzle-orm/pull/1647))
+- AWS Data API에서 날짜를 올바르게 처리
+- Hermes mixins constructor 이슈 수정
+
+## ESLint Drizzle Plugin, v0.2.3
+
+```bash copy
+npm i eslint-plugin-drizzle@0.2.3
+```
+
+🎉 [ESLint] 함수 지원 추가 및 오류 메시지 개선
+
+- Drizzle 객체가 함수 자체이거나 함수에서 가져오도록 허용, 예:
+- 오류 메시지의 제안에 더 나은 문맥 추가
+
+자세한 내용은 [docs](/docs/eslint-plugin)에서 확인할 수 있습니다.
+## 새 드라이버
+
+**🎉 Expo SQLite Driver 사용 가능**
+
+[Expo SQLite Driver](/docs/get-started-sqlite#expo-sqlite)로 시작하려면 `expo-sqlite`와 `drizzle-orm` 패키지를 설치해야 합니다.
+
+```bash copy
+npm install drizzle-orm expo-sqlite@next
+```
+
+그런 다음 다음과 같이 사용할 수 있습니다.
+
+```ts copy {4,6}
+import { drizzle } from "drizzle-orm/expo-sqlite";
+import { openDatabaseSync } from "expo-sqlite";
+
+const expoDb = openDatabaseSync("db.db");
+
+const db = drizzle(expoDb);
+
+await db.select().from(...)...
+
+// or
+
+db.select().from(...).then(...);
+
+// or
+
+db.select().from(...).all();
+```
+
+Drizzle Migrations를 사용하려면 babel 및 metro 설정 파일을 업데이트해야 합니다.
+
+1. `babel-plugin-inline-import` 패키지를 설치합니다.
+
+```bash copy
+npm install babel-plugin-inline-import
+```
+
+2. `babel.config.js`와 `metro.config.js` 파일을 업데이트합니다.
+
+```ts filename="babel.config.js" copy {6}
+module.exports = function(api) {
+  api.cache(true);
+
+  return {
+    presets: ['babel-preset-expo'],
++   plugins: [["inline-import", { "extensions": [".sql"] }]]
+  };
+};
+```
+
+```ts filename="metro.config.js" copy {6}
+const { getDefaultConfig } = require('expo/metro-config');
+
+/** @type {import('expo/metro-config').MetroConfig} */
+const config = getDefaultConfig(__dirname);
+
++config.resolver.sourceExts.push('sql');
+
+module.exports = config;
+```
+
+3. 프로젝트 루트 폴더에 `drizzle.config.ts` 파일을 생성합니다.
+
+```ts copy
+import type { Config } from 'drizzle-kit';
+
+export default {
+	schema: './db/schema.ts',
+	out: './drizzle',
+    dialect: 'sqlite',
+	driver: 'expo',
+} satisfies Config;
+```
+
+schema 파일과 drizzle.config.ts 파일을 만든 뒤에는 다음과 같이 마이그레이션을 생성할 수 있습니다.
+
+```bash copy
+npx drizzle-kit generate
+```
+
+그다음 `./drizzle` 폴더의 `migrations.js` 파일을 `App.tsx` 파일에 import하고 `useMigrations` 훅 또는 `migrate` 함수를 사용해야 합니다.
+
+```ts copy {4,11}
+import { drizzle } from "drizzle-orm/expo-sqlite";
+import { openDatabaseSync } from "expo-sqlite";
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
+import migrations from './drizzle/migrations';
+
+const expoDb = openDatabaseSync("db.db");
+
+const db = drizzle(expoDb);
+
+export default function App() {
+    const { success, error } = useMigrations(db, migrations);
+
+    if (error) {
+        return (
+            <View>
+                <Text>Migration error: {error.message}</Text>
+            </View>
+        );
+    }
+
+    if (!success) {
+        return (
+            <View>
+                <Text>Migration is in progress...</Text>
+            </View>
+        );
+    }
+
+    return ...your application component;
+}
+```

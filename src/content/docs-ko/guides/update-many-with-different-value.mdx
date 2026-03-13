@@ -1,0 +1,69 @@
+---
+title: 각 행마다 다른 값으로 여러 행 업데이트하기
+slug: update-many-with-different-value
+---
+
+import Section from "@mdx-ko/Section.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+import IsSupportedChipGroup from "@mdx-ko/IsSupportedChipGroup.astro";
+
+<IsSupportedChipGroup chips={{PostgreSQL: true, MySQL: true, SQLite: true}}/>
+
+<Prerequisites>
+- [PostgreSQL](/docs/get-started-postgresql), [MySQL](/docs/get-started-mysql), [SQLite](/docs/get-started-sqlite) 시작하기
+- [Update statement](/docs/update)
+- [Filters](/docs/operators)와 [sql operator](/docs/sql)
+</Prerequisites>
+
+하나의 요청 안에서 각 행마다 다른 값으로 여러 행을 업데이트하려면, 아래처럼 `sql` operator와 `case` statement, 그리고 `.update().set()` 메서드를 사용할 수 있습니다:
+
+<Section>
+```ts {26, 29, 32, 36, 38, 40}
+import { SQL, inArray, sql } from 'drizzle-orm';
+import { users } from './schema';
+
+const db = drizzle(...);
+
+const inputs = [
+  {
+    id: 1,
+    city: 'New York',
+  },
+  {
+    id: 2,
+    city: 'Los Angeles',
+  },
+  {
+    id: 3,
+    city: 'Chicago',
+  },
+];
+
+// You have to be sure that inputs array is not empty
+if (inputs.length === 0) {
+  return;
+}
+
+const sqlChunks: SQL[] = [];
+const ids: number[] = [];
+
+sqlChunks.push(sql`(case`);
+
+for (const input of inputs) {
+  sqlChunks.push(sql`when ${users.id} = ${input.id} then ${input.city}`);
+  ids.push(input.id);
+}
+
+sqlChunks.push(sql`end)`);
+
+const finalSql: SQL = sql.join(sqlChunks, sql.raw(' '));
+
+await db.update(users).set({ city: finalSql }).where(inArray(users.id, ids));
+```
+
+```sql
+update users set "city" = 
+  (case when id = 1 then 'New York' when id = 2 then 'Los Angeles' when id = 3 then 'Chicago' end)
+where id in (1, 2, 3)
+```
+</Section>

@@ -1,0 +1,21 @@
+import Npx from '@mdx-ko/Npx.astro';
+import Callout from '@mdx-ko/Callout.astro';
+
+TypeScript 파일을 실행하는 방법은 여러 가지가 있지만, 여기서는 하나로 통일해서 `tsx`를 사용하겠습니다.
+
+이미 `tsx`를 설치했으니 이제 쿼리를 실행할 수 있습니다.
+
+**`index.ts` 스크립트 실행**
+<Npx>
+  tsx src/index.ts
+</Npx>
+
+<Callout title='tips'>
+  TypeScript 파일 실행에는 `bun` 사용을 권장합니다. `bun`을 사용하면 프로젝트가 CommonJS (CJS), ECMAScript Modules (ESM), 또는 다른 어떤 모듈 형식으로 설정되어 있든 추가 설정 없이 이런 스크립트를 문제없이 실행할 수 있습니다.
+  `bun`으로 스크립트를 실행하려면 아래 명령을 사용하세요:
+  ```bash copy
+  bun src/index.ts
+  ```
+
+  아직 bun이 설치되어 있지 않다면 [Bun installation docs](https://bun.sh/docs/installation#installing)를 확인하세요.
+</Callout>

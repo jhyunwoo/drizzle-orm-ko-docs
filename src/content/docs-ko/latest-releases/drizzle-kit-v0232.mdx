@@ -1,0 +1,8 @@
+---
+title: Drizzle Kit v0.23.2 릴리스
+pubDate: 2024-08-05
+description: 버그 수정
+---
+
+- PostgreSQL에서 `schemaFilter` 객체를 전달했을 때 `push`와 `introspect`에 발생하던 버그를 수정했습니다. `schemaFilter`에 정의되지 않은 스키마에서도 enum을 감지하고 있었습니다.
+- 시퀀스 릴리스부터 `drizzle-kit up` 명령이 기대한 대로 동작하도록 수정했습니다.

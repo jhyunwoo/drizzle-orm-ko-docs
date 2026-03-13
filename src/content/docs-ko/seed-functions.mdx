@@ -1,0 +1,1301 @@
+import Callout from '@mdx-ko/Callout.astro';
+import Tab from "@mdx-ko/Tab.astro";
+import Tabs from "@mdx-ko/Tabs.astro";
+
+# 생성기
+
+<Callout title='warning'>
+현재는 이를 지원하는 생성기에서 `arraySize`를 `isUnique`와 함께 지정하면, 고유한 배열이 아니라 고유한 값들이 생성된 뒤 배열로 묶이게 됩니다.
+</Callout>
+
+## ---
+
+### `default`
+
+<rem025 />
+생성기가 호출될 때마다 동일한 값을 생성합니다.
+
+|  | 파라미터          | 기본값     | 타입
+|:-| :--------      | :--------   | :--------
+|  |`defaultValue`  |--           |`any`
+|  |`arraySize`     |--           |`number`
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  posts: {
+    columns: {
+      content: funcs.default({
+        // value you want to generate
+        defaultValue: "post content",
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `valuesFromArray`
+
+<rem025 />
+주어진 배열에서 값을 생성합니다.
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`values`    |--                           |`any[]` \| `{ weight: number; values: any[] }[]`
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  posts: {
+    columns: {
+      title: funcs.valuesFromArray({
+        // Array of values you want to generate (can be an array of weighted values)
+        values: ["Title1", "Title2", "Title3", "Title4", "Title5"],
+
+        // Property that controls whether the generated values will be unique or not
+        isUnique: true,
+        
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `intPrimaryKey`
+
+<rem025 />
+1부터 시작하는 순차적인 정수를 생성합니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |--          |--          |--
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  posts: {
+    columns: {
+      id: funcs.intPrimaryKey(),
+    },
+  },
+}));
+
+```
+
+### `number`
+
+<rem025 />
+주어진 범위 내의 부동소수점 숫자를 생성합니다.
+
+|  | 파라미터      | 기본값                                                                                               | 타입
+|:-| :--------  | :--------                                                                                             | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성`                                                                           |`boolean`
+|  |`precision` |`100`                                                                                                  |`number`
+|  |`maxValue`  |``` `precision * 1000` if isUnique equals false``` ``` `precision * count` if isUnique equals true```  |`number`
+|  |`minValue`  |`-maxValue`                                                                                            |`number`
+|  |`arraySize` |--                                                                                                     |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  products: {
+    columns: {
+      unitPrice: funcs.number({
+        // lower border of range.
+        minValue: 10,
+
+        // upper border of range.
+        maxValue: 120,
+        
+        // precision of generated number:
+        // precision equals 10 means that values will be accurate to one tenth (1.2, 34.6);
+        // precision equals 100 means that values will be accurate to one hundredth (1.23, 34.67).
+        precision: 100,
+
+        // property that controls if generated values gonna be unique or not.
+        isUnique: false,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `int`
+
+<rem025 />
+주어진 범위 내의 정수를 생성합니다.
+
+|  | 파라미터      | 기본값                                                                            | 타입
+|:-| :--------  | :--------                                                                          | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성`                                                        |`boolean`
+|  |`maxValue`  |``` `1000` if isUnique equals false``` ``` `count * 10` if isUnique equals true```  |`number \| bigint`
+|  |`minValue`  |`-maxValue`                                                                         |`number \| bigint`
+|  |`arraySize` |--                                                                                  |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  products: {
+    columns: {
+      unitsInStock: funcs.int({
+        // lower border of range.
+        minValue: 0,
+
+        // lower border of range.
+        maxValue: 100,
+
+        // property that controls if generated values gonna be unique or not.
+        isUnique: false,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `boolean`
+
+<rem025 />
+boolean 값(true 또는 false)을 생성합니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |`arraySize` |--          |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      isAvailable: funcs.boolean({
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `date`
+
+<rem025 />
+주어진 범위 내의 날짜를 생성합니다.
+
+|  | 파라미터      | 기본값                 | 타입
+|:-| :--------  | :--------------         | :--------
+|  |`minDate`   |`new Date('2020-05-08')` | `string \| Date`
+|  |`maxDate`   |`new Date('2028-05-08')` | `string \| Date`
+|  |`arraySize` |--                       |`number`
+
+<Callout type='warning'>
+매개변수(`minDate` 또는 `maxDate`) 중 하나만 제공하면, 지정되지 않은 나머지 하나는 제공된 날짜에 8년을 더하거나 빼서 계산됩니다.
+</Callout>
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      birthDate: funcs.date({
+        // lower border of range.
+        minDate: "1990-01-01",
+
+        // upper border of range.
+        maxDate: "2010-12-31",
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `time`
+
+<rem025 />
+24시간 형식의 시간을 생성합니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |`arraySize` |--          |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      birthTime: funcs.time({
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `timestamp`
+
+<rem025 />
+타임스탬프를 생성합니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |`arraySize` |--          |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  orders: {
+    columns: {
+      shippedDate: funcs.timestamp({
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `datetime`
+
+<rem025 />
+datetime 객체를 생성합니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |`arraySize` |--          |`number`
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  orders: {
+    columns: {
+      shippedDate: funcs.datetime({
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `year`
+
+<rem025 />
+`YYYY` 형식의 연도를 생성합니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |`arraySize` |--          |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      birthYear: funcs.year({
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `json`
+
+<rem025 />
+고정된 구조를 가진 JSON 객체를 생성합니다.
+
+```ts
+{ email, name, isGraduated, hasJob, salary, startedWorking, visitedCountries}
+
+// or
+
+{ email, name, isGraduated, hasJob, visitedCountries }
+```
+
+> JSON 구조는 무작위로 선택됩니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |`arraySize` |--          |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      metadata: funcs.json({
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `interval`
+
+<rem025 />
+시간 간격을 생성합니다.
+
+생성되는 값의 예: `1 year 12 days 5 minutes`
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      timeSpentOnWebsite: funcs.interval({
+        // `isUnique` - property that controls whether the generated values will be unique or not
+        isUnique: true,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `string`
+
+<rem025 />
+무작위 문자열을 생성합니다.
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      hashedPassword: funcs.string({
+        // `isUnique` - property that controls whether the generated values will be unique or not
+        isUnique: false,
+        
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `uuid`
+
+<rem025 />
+v4 UUID 문자열을 생성합니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |`arraySize` |--          |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  products: {
+    columns: {
+      id: funcs.uuid({
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+```
+
+### `firstName`
+
+<rem025 />
+사람의 이름(first name)을 생성합니다.
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      firstName: funcs.firstName({
+        // `isUnique` - property that controls whether the generated values will be unique or not
+        isUnique: true,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `lastName`
+
+<rem025 />
+사람의 성(last name)을 생성합니다.
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      lastName: funcs.lastName({
+        // `isUnique` - property that controls whether the generated values will be unique or not
+        isUnique: false,
+        
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `fullName`
+
+<rem025 />
+사람의 전체 이름(full name)을 생성합니다.
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      fullName: funcs.fullName({
+        // `isUnique` - property that controls whether the generated values will be unique or not
+        isUnique: true,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `email`
+
+<rem025 />
+고유한 이메일 주소를 생성합니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |`arraySize` |--          |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      email: funcs.email({
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `phoneNumber`
+
+<rem025 />
+고유한 전화번호를 생성합니다.
+
+|  | 파라미터                    | 기본값                                         | 타입
+|:-| :--------                | :--------                                       | :--------
+|  |`template`                |--                                               |`string`
+|  |`prefixes`                |[Used dataset for prefixes](https://github.com/OleksiiKH0240/drizzle-orm/blob/main/drizzle-seed/src/datasets/phonesInfo.ts)   |`string[]`
+|  |`generatedDigitsNumbers`  | `7` - `if prefixes was defined`                 |`number \| number[]`
+|  |`arraySize`               |--                                               |`number`
+
+<rem025 />
+```ts 
+import { seed } from "drizzle-seed";
+
+//generate phone number using template property
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      phoneNumber: funcs.phoneNumber({ 
+        // `template` - phone number template, where all '#' symbols will be substituted with generated digits.
+        template: "+(380) ###-####",
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+```ts 
+import { seed } from "drizzle-seed";
+
+//generate phone number using prefixes and generatedDigitsNumbers properties
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      phoneNumber: funcs.phoneNumber({
+        // `prefixes` - array of any string you want to be your phone number prefixes.(not compatible with `template` property)
+        prefixes: ["+380 99", "+380 67"],
+
+        // `generatedDigitsNumbers` - number of digits that will be added at the end of prefixes.(not compatible with `template` property)
+        generatedDigitsNumbers: 7,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+```ts 
+import { seed } from "drizzle-seed";
+
+// generate phone number using prefixes and generatedDigitsNumbers properties but with different generatedDigitsNumbers for prefixes
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      phoneNumber: funcs.phoneNumber({
+        // `prefixes` - array of any string you want to be your phone number prefixes.(not compatible with `template` property)
+        prefixes: ["+380 99", "+380 67", "+1"],
+
+        // `generatedDigitsNumbers` - number of digits that will be added at the end of prefixes.(not compatible with `template` property)
+        generatedDigitsNumbers: [7, 7, 10],
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+### `country`
+
+<rem025 />
+국가 이름을 생성합니다.
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      country: funcs.country({
+        // `isUnique` - property that controls whether the generated values will be unique or not
+        isUnique: false,
+        
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `city`
+
+<rem025 />
+도시 이름을 생성합니다.
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      city: funcs.city({
+        // `isUnique` - property that controls whether the generated values will be unique or not
+        isUnique: false,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `streetAddress`
+
+<rem025 />
+도로명 주소를 생성합니다.
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      streetAddress: funcs.streetAddress({
+        // `isUnique` - property that controls whether the generated values will be unique or not
+        isUnique: false,
+        
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3 
+      }),
+    },
+  },
+}));
+
+```
+
+### `jobTitle`
+
+<rem025 />
+직함을 생성합니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |`arraySize` |--          |`number`
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      jobTitle: funcs.jobTitle({
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `postcode`
+
+<rem025 />
+우편번호를 생성합니다.
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      postcode: funcs.postcode({
+        // `isUnique` - property that controls whether the generated values will be unique or not
+        isUnique: true,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `state`
+
+<rem025 />
+미국 주 이름을 생성합니다.
+
+|  | 파라미터      | 기본값    | 타입
+|:-| :--------  | :--------  | :--------
+|  |`arraySize` |--          |`number`
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      state: funcs.state({
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `companyName`
+
+<rem025 />
+무작위 회사 이름을 생성합니다.
+
+|  | 파라미터      | 기본값                     | 타입
+|:-| :--------  | :--------                   | :--------
+|  |`isUnique`  |`데이터베이스 컬럼 고유성` |`boolean`
+|  |`arraySize` |--                           |`number`
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  users: {
+    columns: {
+      company: funcs.companyName({ 
+        // `isUnique` - property that controls whether the generated values will be unique or not
+        isUnique: true,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+### `loremIpsum`
+
+<rem025 />
+`lorem ipsum` 문장을 생성합니다.
+
+|  | 파라미터            | 기본값    | 타입
+|:-| :--------        | :--------  | :--------
+|  |`sentencesCount`  | 1          |`number`
+|  |`arraySize`       |--          |`number`
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  posts: {
+    columns: {
+      content: funcs.loremIpsum({
+        // `sentencesCount` - number of sentences you want to generate as one generated value(string).
+        sentencesCount: 2,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `point`
+
+<rem025 />
+x 및 y 좌표에 대해 지정된 범위 내의 2D 포인트를 생성합니다.
+
+|  | 파라미터       | 기본값                                                                                 | 타입
+|:-| :--------   | :--------                                                                               | :--------
+|  |`isUnique`   |`데이터베이스 컬럼 고유성`                                                             |`boolean`
+|  |`maxXValue`  |``` `10 * 1000` if isUnique equals false``` ``` `10 * count` if isUnique equals true```  |`number`
+|  |`minXValue`  |`-maxXValue`                                                                             |`number`
+|  |`maxYValue`  |``` `10 * 1000` if isUnique equals false``` ``` `10 * count` if isUnique equals true```  |`number`
+|  |`minYValue`  |`-maxYValue`                                                                             |`number`
+|  |`arraySize`  |--                                                                                       |`number`
+
+
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  triangles: {
+    columns: {
+      pointCoords: funcs.point({
+        // `isUnique` - property that controls if generated values gonna be unique or not.
+        isUnique: true,
+
+        // `minXValue` - lower bound of range for x coordinate.
+        minXValue: -5,
+
+        // `maxXValue` - upper bound of range for x coordinate.
+        maxXValue: 20,
+
+        // `minYValue` - lower bound of range for y coordinate.
+        minYValue: 0,
+
+        // `maxYValue` - upper bound of range for y coordinate.
+        maxYValue: 30,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `line`
+
+<rem025 />
+직선의 a, b, c 파라미터에 대해 지정된 범위 내의 2D 직선을 생성합니다.
+
+```
+line equation: a*x + b*y + c = 0
+```
+
+|  | 파라미터       | 기본값                                                                                 | 타입
+|:-| :--------   | :--------                                                                               | :--------
+|  |`isUnique`   |`데이터베이스 컬럼 고유성`                                                             |`boolean`
+|  |`maxAValue`  |``` `10 * 1000` if isUnique equals false``` ``` `10 * count` if isUnique equals true```  |`number`
+|  |`minAValue`  |`-maxAValue`                                                                             |`number`
+|  |`maxBValue`  |``` `10 * 1000` if isUnique equals false``` ``` `10 * count` if isUnique equals true```  |`number`
+|  |`minBValue`  |`-maxBValue`                                                                             |`number`
+|  |`maxCValue`  |``` `10 * 1000` if isUnique equals false``` ``` `10 * count` if isUnique equals true```  |`number`
+|  |`minCValue`  |`-maxCValue`                                                                             |`number`
+|  |`arraySize`  |--                                                                                       |`number`
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  lines: {
+    columns: {
+      lineParams: funcs.point({
+        // `isUnique` - property that controls if generated values gonna be unique or not.
+        isUnique: true,
+
+        // `minAValue` - lower bound of range for a parameter.
+        minAValue: -5,
+
+        // `maxAValue` - upper bound of range for x parameter.
+        maxAValue: 20,
+
+        // `minBValue` - lower bound of range for y parameter.
+        minBValue: 0,
+
+        // `maxBValue` - upper bound of range for y parameter.
+        maxBValue: 30,
+
+        // `minCValue` - lower bound of range for y parameter.
+        minCValue: 0,
+
+        // `maxCValue` - upper bound of range for y parameter.
+        maxCValue: 10,
+
+        // number of elements in each one-dimensional array. 
+        // (If specified, arrays will be generated.)
+        arraySize: 3
+      }),
+    },
+  },
+}));
+
+```
+
+### `bitString`
+
+<rem025 />
+지정된 파라미터를 기반으로 비트 문자열을 생성합니다.
+
+|  | 파라미터       | 기본값                                                                                 | 타입
+|:-| :--------   | :--------                                                                               | :--------
+|  |`isUnique`   |`데이터베이스 컬럼 고유성`                                                             |`boolean`
+|  |`dimensions` |`데이터베이스 컬럼의 비트 길이`                                                             |`number`
+|  |`arraySize`  |--                                                                                       |`number`
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  bitStringTable: {
+    columns: {
+      bit: funcs.bitString({
+        // desired length of each bit string (e.g., `dimensions = 3` produces values like `'010'`).
+        dimensions: 12,
+
+        // property that controls if generated values gonna be unique or not;
+        isUnique: true,
+
+        // number of elements in each one-dimensional array (If specified, arrays will be generated);
+        arraySize: 3,
+      }),
+    },
+  },
+}));
+
+```
+
+### `inet`
+
+<rem025 />
+지정된 파라미터를 기반으로 IP 주소를 생성합니다.
+
+|  | 파라미터       | 기본값                                                                                 | 타입
+|:-| :--------   | :--------                                                                               | :--------
+|  |`isUnique`   |`데이터베이스 컬럼 고유성`                                                             |`boolean`
+|  |`arraySize`  |--                                                                                       |`number`
+|  |`ipAddress`  |`'ipv4'`                                                                                 |`'ipv4' \| 'ipv6'`
+|  |`includeCidr`|`true`                                                                                   |`boolean`
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  inetTable: {
+    columns: {
+      inet: funcs.inet({
+        // property that controls if generated values gonna be unique or not;
+        isUnique: true,
+
+        // number of elements in each one-dimensional array (If specified, arrays will be generated);
+        arraySize: 3,
+
+        // type of IP address to generate — either "ipv4" or "ipv6";
+        ipAddress: "ipv4",
+
+        // determines whether generated IPs include a CIDR suffix.
+        includeCidr: true,
+      }),
+    },
+  },
+}));
+```
+
+### `geometry`
+
+<rem025 />
+주어진 파라미터를 기반으로 geometry 객체를 생성합니다.
+
+<Callout title='warnings'>
+<Tabs items={['arraySize', 'srid']}>
+<Tab>
+현재 PostgreSQL이나 CockroachDB에서 drizzle-orm을 통해 arraySize를 1보다 큰 값으로 설정하거나 `geometry(point, 0)[]` 컬럼에 `geometry point` 요소를 두 개 이상 삽입하려고 하면 오류가 발생합니다.
+
+이 버그는 이미 백로그에 등록되어 있습니다.
+
+<Callout title="❌">
+```ts {13}
+import { seed } from "drizzle-seed";
+import { geometry, pgTable } from 'drizzle-orm/pg-core';
+
+const geometryTable = pgTable('geometry_table', {
+	geometryArray: geometry('geometry_array', { type: 'point', srid: 0 }).array(3),
+});
+
+await seed(db, { geometryTable }, { count: 1000 }).refine((funcs) => ({
+  geometryTable: {
+    columns: {
+      geometryArray: funcs.geometry({
+        // currently arraySize with values > 1 are not supported
+        arraySize: 3,
+      }),
+    },
+  },
+}));
+```
+</Callout>
+
+<Callout title='✅'>
+```ts {13}
+import { seed } from "drizzle-seed";
+import { geometry, pgTable } from 'drizzle-orm/pg-core';
+
+const geometryTable = pgTable('geometry_table', {
+	geometryArray: geometry('geometry_array', { type: 'point', srid: 0 }).array(1),
+});
+
+await seed(db, { geometryTable }, { count: 1000 }).refine((funcs) => ({
+  geometryTable: {
+    columns: {
+      geometryArray: funcs.geometry({
+        // will work as expected
+        arraySize: 1,
+      }),
+    },
+  },
+}));
+```
+</Callout>
+</Tab>
+
+<Tab>
+현재 drizzle-orm 테이블 선언에서 `geometry(point)` 컬럼의 SRID를 0이 아닌 값(예: 4326)으로 설정하면 시딩 과정에서 오류가 발생합니다.
+
+이 버그는 이미 백로그에 등록되어 있습니다.
+
+<Callout title="❌">
+```ts {5}
+import { seed } from "drizzle-seed";
+import { geometry, pgTable } from 'drizzle-orm/pg-core';
+
+const geometryTable = pgTable('geometry_table', {
+	geometryColumn: geometry('geometry_column', { type: 'point', srid: 4326 }),
+});
+
+await seed(db, { geometryTable }, { count: 1000 }).refine((funcs) => ({
+  geometryTable: {
+    columns: {
+      geometryColumn: funcs.geometry({
+        srid: 4326,
+      }),
+    },
+  },
+}));
+```
+</Callout>
+
+<Callout title='✅'>
+```ts {5}
+import { seed } from "drizzle-seed";
+import { geometry, pgTable } from 'drizzle-orm/pg-core';
+
+const geometryTable = pgTable('geometry_table', {
+	geometryColumn: geometry('geometry_column', { type: 'point', srid: 0 }),
+});
+
+await seed(db, { geometryTable }, { count: 1000 }).refine((funcs) => ({
+  geometryTable: {
+    columns: {
+      geometryColumn: funcs.geometry({
+        srid: 4326,
+      }),
+    },
+  },
+}));
+```
+</Callout>
+</Tab>
+</Tabs>
+</Callout>
+
+|  | 파라미터          | 기본값                                                                                 | 타입
+|:-| :--------      | :--------                                                                               | :--------
+|  |`isUnique`      |`데이터베이스 컬럼 고유성`                                                             |`boolean`
+|  |`arraySize`     |--                                                                                       |`number`
+|  |`type`          |`'point'`                                                                                |`'point'`
+|  |`srid`          |`4326`                                                                                   |`4326 \| 3857`
+|  |`decimalPlaces` |`6`                                                                                      |`1 \| 2 \| 3 \| 4 \| 5 \| 6 \| 7`
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  geometryTable: {
+    columns: {
+      geometryPointTuple: funcs.geometry({
+        // property that controls if generated values gonna be unique or not;
+        isUnique: true,
+
+        // number of elements in each one-dimensional array (If specified, arrays will be generated);
+        arraySize: 1,
+
+        // geometry type to generate; currently only `'point'` is supported;
+        type: "point",
+
+        // Spatial Reference System Identifier: determines what type of point will be generated - either `4326` or `3857`;
+        srid: 4326,
+
+        // number of decimal places for points when `srid` is `4326` (e.g., `decimalPlaces = 3` produces values like `'point(30.723 46.482)'`).
+        decimalPlaces: 5,
+      }),
+    },
+  },
+}));
+
+```
+
+### `vector`
+
+<rem025 />
+제공된 파라미터를 기반으로 벡터를 생성합니다.
+
+|  | 파라미터          | 기본값                                                      | 타입
+|:-| :--------      | :--------                                                    | :--------
+|  |`isUnique`      |`데이터베이스 컬럼 고유성`                                  |`boolean`
+|  |`arraySize`     |--                                                            |`number`
+|  |`decimalPlaces` |`2`                                                           |`number`
+|  |`dimensions`    |`데이터베이스 컬럼의 차원 수`                                |`number`
+|  |`minValue`      |`-1000`                                                       |`number`
+|  |`maxValue`      |`1000`                                                        |`number`
+<rem025 />
+
+```ts 
+import { seed } from "drizzle-seed";
+
+await seed(db, schema, { count: 1000 }).refine((funcs) => ({
+  vectorTable: {
+    columns: {
+      vector: funcs.vector({
+        // property that controls if generated values gonna be unique or not;
+        isUnique: true,
+
+        // number of elements in each one-dimensional array (If specified, arrays will be generated);
+        arraySize: 3,
+
+        // number of decimal places for each vector element (e.g., `decimalPlaces = 3` produces values like `1.123`);
+        decimalPlaces: 5,
+
+        // number of elements in each generated vector (e.g., `dimensions = 3` produces values like `[1,2,3]`);
+        dimensions: 12,
+
+        // minimum allowed value for each vector element;
+        minValue: -100,
+
+        // maximum allowed value for each vector element.
+        maxValue: 100,
+      }),
+    },
+  },
+}));
+
+```

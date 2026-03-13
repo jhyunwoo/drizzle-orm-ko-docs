@@ -1,0 +1,171 @@
+---
+title: "Drizzle with Encore"
+date: "2026-02-02"
+svgs: ['<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="9.63139" height="40.8516" rx="4.8157" transform="matrix(0.873028 0.48767 -0.497212 0.867629 43.4805 67.3037)" fill="currentColor"></rect><rect width="9.63139" height="40.8516" rx="4.8157" transform="matrix(0.873028 0.48767 -0.497212 0.867629 76.9395 46.5342)" fill="currentColor"></rect><rect width="9.63139" height="40.8516" rx="4.8157" transform="matrix(0.873028 0.48767 -0.497212 0.867629 128.424 46.5352)" fill="currentColor"></rect><rect width="9.63139" height="40.8516" rx="4.8157" transform="matrix(0.873028 0.48767 -0.497212 0.867629 94.957 67.3037)" fill="currentColor"></rect></svg>', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="90.6 91 90.9 102.1" fill="currentColor"><path d="M181.4,170.2v22.9H90.6v-69.3c14.4-3.1,28.7-7.1,42.6-12c16.6-5.8,32.7-12.7,48.3-20.8v25.6 c-13.2,6.4-26.9,12-40.8,16.9c-15.7,5.5-31.8,9.9-48.1,13.3v0.2c30.1-2.8,59.7-7.7,88.9-14.5v23.5c-29.2,6.6-58.9,11.3-88.9,14v0.2 H181.4z"/></svg>']
+---
+
+import Steps from "@mdx-ko/Steps.astro";
+import Npm from "@mdx-ko/Npm.astro";
+import CodeTabs from "@mdx-ko/CodeTabs.astro";
+import CodeTab from "@mdx-ko/CodeTab.astro";
+import Section from "@mdx-ko/Section.astro";
+import Callout from "@mdx-ko/Callout.astro";
+import Prerequisites from "@mdx-ko/Prerequisites.astro";
+
+이 튜토리얼에서는 내장 인프라 자동화와 observability를 제공하는 오픈소스 백엔드 프레임워크 **Encore**와 함께 **Drizzle ORM**을 사용하는 방법을 보여줍니다.
+
+<Prerequisites>
+  - Encore CLI가 설치되어 있어야 합니다. 아래와 같이 설치할 수 있습니다:
+  ```bash
+  # macOS
+  brew install encoredev/tap/encore
+
+  # Linux
+  curl -L https://encore.dev/install.sh | bash
+
+  # Windows
+  iwr https://encore.dev/install.ps1 | iex
+  ```
+
+  - Drizzle ORM과 [Drizzle kit](/docs/kit-overview)이 설치되어 있어야 합니다. 아래 명령으로 설치할 수 있습니다:
+  <Npm>
+    drizzle-orm
+    -D drizzle-kit
+  </Npm>
+</Prerequisites>
+
+## Encore와 Drizzle ORM 설정하기
+
+<Steps>
+#### 새 Encore 프로젝트 만들기
+
+Drizzle이 미리 설정된 새 Encore 프로젝트는 아래와 같이 만들 수 있습니다:
+
+```bash
+encore app create my-app --example=ts/drizzle
+cd my-app
+```
+
+이미 존재하는 Encore 프로젝트가 있다면 Drizzle만 설치하면 됩니다:
+
+<Npm>
+  drizzle-orm
+  -D drizzle-kit
+</Npm>
+
+#### 데이터베이스 만들기
+
+`database.ts` 파일에서 데이터베이스를 정의합니다. Encore는 로컬에서는 Docker를 사용해, 배포 시에는 클라우드에서 PostgreSQL 데이터베이스를 자동으로 프로비저닝합니다:
+
+```typescript copy filename="database.ts"
+import { SQLDatabase } from "encore.dev/storage/sqldb";
+import { drizzle } from "drizzle-orm/node-postgres";
+import * as schema from "./schema";
+
+const db = new SQLDatabase("mydb", {
+  migrations: {
+    path: "migrations",
+    source: "drizzle",
+  },
+});
+
+export const orm = drizzle(db.connectionString, { schema });
+```
+
+`source: "drizzle"` 설정은 Encore에 Drizzle의 마이그레이션 형식을 사용하라고 알려줍니다.
+
+#### 스키마 정의하기
+
+테이블을 정의할 `schema.ts` 파일을 만듭니다:
+
+```typescript copy filename="schema.ts"
+import * as p from "drizzle-orm/pg-core";
+
+export const users = p.pgTable("users", {
+  id: p.serial().primaryKey(),
+  name: p.text().notNull(),
+  email: p.text().unique().notNull(),
+  createdAt: p.timestamp().defaultNow().notNull(),
+});
+```
+
+#### Drizzle config 설정하기
+
+`drizzle.config.ts` 파일을 만듭니다:
+
+```typescript copy filename="drizzle.config.ts"
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  out: "migrations",
+  schema: "schema.ts",
+  dialect: "postgresql",
+});
+```
+
+#### 마이그레이션 생성하기
+
+스키마로부터 마이그레이션을 생성하려면 Drizzle Kit를 실행합니다:
+
+```bash
+drizzle-kit generate
+```
+
+이 명령은 `migrations` 폴더 안에 마이그레이션 파일을 생성합니다.
+
+#### API 엔드포인트 만들기
+
+Encore 엔드포인트 안에서 Drizzle을 사용합니다:
+
+```typescript copy filename="users.ts"
+import { api } from "encore.dev/api";
+import { orm } from "./database";
+import { users } from "./schema";
+import { eq } from "drizzle-orm";
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export const list = api(
+  { expose: true, method: "GET", path: "/users" },
+  async (): Promise<{ users: User[] }> => {
+    const result = await orm.select().from(users);
+    return { users: result };
+  }
+);
+
+export const create = api(
+  { expose: true, method: "POST", path: "/users" },
+  async (req: { name: string; email: string }): Promise<User> => {
+    const [user] = await orm
+      .insert(users)
+      .values({ name: req.name, email: req.email })
+      .returning();
+    return user;
+  }
+);
+```
+
+#### 애플리케이션 실행하기
+
+Encore 앱을 시작합니다:
+
+```bash
+encore run
+```
+
+Encore는 시작 시 마이그레이션을 자동으로 적용합니다. [localhost:9400](http://localhost:9400)을 열면 API 문서, 데이터베이스 탐색기, tracing이 포함된 로컬 대시보드를 볼 수 있습니다.
+</Steps>
+
+<Callout type="info">
+Encore 애플리케이션을 실행하면 마이그레이션이 자동으로 적용됩니다. `drizzle-kit migrate`를 수동으로 실행할 필요가 없습니다.
+</Callout>
+
+## 더 알아보기
+
+- [Encore Documentation](https://encore.dev/docs)
+- [Encore Drizzle Guide](https://encore.dev/docs/ts/develop/orms/drizzle)
+- [Drizzle ORM Documentation](/docs/overview)
