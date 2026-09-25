@@ -38,6 +38,16 @@ weeks:
   - date:
       start: "YYYY-MM-DD"
     details:
+
+## Korean documentation work
+
+This repository is a Korean documentation workspace for Drizzle ORM. It keeps the site content, announcements, roadmap data, and shipping information together so changes can be reviewed in the context in which readers encounter them.
+
+The main challenge is to translate database and TypeScript concepts accurately while preserving MDX structure, code blocks, navigation, and the upstream project's release information. The documented content layout makes those responsibilities explicit and supports repeatable local site builds before publishing.
+
+## Status
+
+Documentation and translation repository. It is maintained as a learning and localization reference rather than an independent ORM implementation.
       - string
 ```
 
